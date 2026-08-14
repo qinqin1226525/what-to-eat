@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>测试 - 今天吃什么</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #fdf6ec; color: #2c2c2c;
+    padding: 20px; max-width: 700px; margin: 0 auto;
+  }
+  h1 { color: #e85d04; margin-bottom: 16px; }
+  .summary { font-size: 18px; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+  .summary.pass { background: #e8f5e9; color: #2e7d32; }
+  .summary.fail { background: #ffebee; color: #c62828; }
+  .test-row {
+    padding: 10px 14px; border-bottom: 1px solid #f0ebe0;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+  }
+  .test-row.pass::before { content: "✅ "; }
+  .test-row.fail::before { content: "❌ "; color: #c62828; }
+  .test-row .name { font-weight: 600; }
+  .test-row .detail { color: #888; margin-left: 8px; font-size: 12px; }
+  .error { color: #c62828; font-size: 12px; margin-top: 4px; padding-left: 28px; }
+  .group-header {
+    padding: 14px 14px 4px 14px; font-weight: bold; color: #666;
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🧪 测试 - 今天吃什么</h1>
+<div id="summary" class="summary">运行中...</div>
+<div id="results"></div>
+
+<script>
+// ============ 复制自 app.html 的算法和数据 ============
+const DISHES_DATA = [
+  {name: "西红柿炒蛋", time_minutes: 15, role: "主菜", ingredients: ["鸡蛋", "西红柿"], seasonings: ["盐", "糖", "油"], steps: ["鸡蛋打散", "炒蛋盛出", "炒西红柿", "合炒"], tip: "加点糖"},
+  {name: "米饭", time_minutes: 20, role: "主食", ingredients: ["大米"], seasonings: ["水"], steps: ["淘米", "加水", "煮"], tip: ""},
+  {name: "紫菜蛋花汤", time_minutes: 10, role: "汤", ingredients: ["紫菜", "鸡蛋"], seasonings: ["盐"], steps: ["烧水", "下紫菜", "淋蛋", "加盐"], tip: ""},
+  {name: "凉拌黄瓜", time_minutes: 5, role: "凉菜", ingredients: ["黄瓜", "蒜"], seasonings: ["醋", "盐"], steps: ["拍黄瓜", "调汁", "拌匀"], tip: ""},
+  {name: "假数据", time_minutes: 30, role: "主菜", ingredients: ["无"], seasonings: ["无"], steps: [], tip: ""}
+];
+
+class Dish {
+  constructor(d) {
+    this.name = d.name; this.time_minutes = d.time_minutes; this.role = d.role;
+    this.tags = d.tags || [];
+    this.ingredients = d.ingredients || [];
+    this.seasonings = d.seasonings || [];
+    this.steps = d.steps || [];
+    this.tip = d.tip || "";
+    this.nutrition = d.nutrition || [];
+  }
+}
+
+function chooseOne(dishes) {
+  return dishes[Math.floor(Math.random() * dishes.length)];
+}
+function filterByMaxTime(dishes, max) {
+  return dishes.filter(d => d.time_minutes <= max);
+}
+function filterByIngredients(dishes, available) {
+  if (!available || available.length === 0) return [];
+  const set = new Set(available);
+  return dishes.filter(d => d.ingredients.some(i => set.has(i)));
+}
+function chooseCombo(dishes, history = [], window = 30) {
+  const recent = new Set(history.slice(-window).map(h => h.dish));
+  function pick(role) {
+    let candidates = dishes.filter(d => d.role === role && !recent.has(d.name));
+    if (candidates.length === 0) candidates = dishes.filter(d => d.role === role);
+    if (candidates.length === 0) return null;
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+  return {"主菜": pick("主菜"), "汤": pick("汤"), "主食": pick("主食")};
+}
+
+const SPICY_TAGS = ["辣", "微辣", "麻辣"];
+const KID_FRIENDLY_TAGS = ["小孩爱", "甜口", "酸甜", "清淡", "基础", "面食", "快手"];
+
+function filterKidFriendly(dishes) {
+  return dishes.filter(d => {
+    const hasSpicy = d.tags.some(t => SPICY_TAGS.some(s => t.includes(s)));
+    const hasFriendly = d.tags.some(t => KID_FRIENDLY_TAGS.includes(t));
+    return hasFriendly && !hasSpicy;
+  });
+}
+
+// ============ Day 8：一日三餐 + 营养均衡 ============
+const PROTEIN_KEYS = ["鸡", "鸭", "鹅", "猪", "牛", "羊", "鱼", "虾", "蟹", "蛋", "豆腐", "豆浆", "牛奶", "奶酪"];
+const CARB_KEYS    = ["米", "面", "馒头", "饺子", "包子", "土豆", "红薯", "玉米", "燕麦", "饼", "年糕", "糯米", "面包"];
+const VEG_KEYS     = ["青", "芹", "白菜", "菜", "萝卜", "木耳", "菇", "海带", "茄", "黄瓜", "豆", "菠", "韭菜"];
+
+function classifyNutrition(dish) {
+  if (dish.nutrition && dish.nutrition.length > 0) return dish.nutrition.slice();
+  const joined = (dish.ingredients || []).join(" ");
+  const classes = [];
+  if (PROTEIN_KEYS.some(k => joined.includes(k))) classes.push("蛋白");
+  if (CARB_KEYS.some(k => joined.includes(k))) classes.push("碳水");
+  if (VEG_KEYS.some(k => joined.includes(k))) classes.push("蔬菜");
+  return classes;
+}
+
+function parseHistoryDate(s) { try { return new Date(s); } catch (e) { return new Date(0); } }
+function isWithinWindow(dateStr, windowDays) {
+  if (!dateStr) return true;
+  const d = parseHistoryDate(dateStr);
+  if (isNaN(d.getTime())) return true;
+  const cutoff = new Date(Date.now() - windowDays * 86400000);
+  return d >= cutoff;
+}
+
+function chooseThreeMeals(dishes, history = [], window = 7) {
+  const recent = new Set(
+    history.filter(h => isWithinWindow(h.date, window)).map(h => h.dish)
+  );
+  function pick(role, exclude) {
+    let candidates = dishes.filter(d =>
+      d.role === role && !exclude.has(d.name) && !recent.has(d.name));
+    if (candidates.length === 0) {
+      candidates = dishes.filter(d => d.role === role && !recent.has(d.name));
+    }
+    if (candidates.length === 0) {
+      candidates = dishes.filter(d => d.role === role);
+    }
+    if (candidates.length === 0) return null;
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+
+  const breakfast = pick("早餐", new Set());
+  const exclude = new Set();
+  if (breakfast) exclude.add(breakfast.name);
+
+  const lunch = {
+    "主菜": pick("主菜", exclude),
+    "主食": pick("主食", exclude),
+    "凉菜": pick("凉菜", exclude),
+    "汤":   pick("汤",   exclude),
+  };
+  Object.values(lunch).forEach(d => { if (d) exclude.add(d.name); });
+
+  const dinner = {
+    "主菜": pick("主菜", exclude),
+    "主食": pick("主食", exclude),
+    "凉菜": pick("凉菜", exclude),
+  };
+
+  return {"早餐": breakfast, "午餐": lunch, "晚餐": dinner};
+}
+
+// ============ 测试框架 ============
+const results = [];
+let currentGroup = "";
+function group(name) { currentGroup = name; }
+function test(name, fn) {
+  try { fn(); results.push({pass: true, group: currentGroup, name}); }
+  catch (e) { results.push({pass: false, group: currentGroup, name, error: e.message}); }
+}
+function assert(cond, msg) { if (!cond) throw new Error(msg || "Assertion failed"); }
+function assertEqual(a, b, msg) {
+  if (JSON.stringify(a) !== JSON.stringify(b)) {
+    throw new Error(msg || `Expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`);
+  }
+}
+
+// ============ 测试用例 ============
+group("chooseOne");
+test("从列表返回一项", () => {
+  const r = chooseOne(["a", "b", "c"]);
+  assert(["a", "b", "c"].includes(r));
+});
+
+group("filterByMaxTime");
+test("只返回时间内的菜", () => {
+  const dishes = [new Dish({name: "快", time_minutes: 15}), new Dish({name: "慢", time_minutes: 60})];
+  const r = filterByMaxTime(dishes, 30);
+  assertEqual(r.map(d => d.name), ["快"]);
+});
+test("空列表返回空", () => assertEqual(filterByMaxTime([], 30), []));
+
+group("filterByIngredients");
+test("匹配至少一种食材", () => {
+  const dishes = [
+    new Dish({name: "西红柿炒蛋", time_minutes: 15, ingredients: ["鸡蛋", "西红柿"]}),
+    new Dish({name: "凉拌黄瓜", time_minutes: 5, ingredients: ["黄瓜"]})
+  ];
+  const r = filterByIngredients(dishes, ["鸡蛋"]);
+  const names = r.map(d => d.name);
+  assert(names.includes("西红柿炒蛋"));
+  assert(!names.includes("凉拌黄瓜"));
+});
+test("空冰箱返回空", () => {
+  const dishes = [new Dish({name: "x", time_minutes: 1, ingredients: ["a"]})];
+  assertEqual(filterByIngredients(dishes, []), []);
+});
+
+group("chooseCombo");
+test("套餐有所有角色", () => {
+  const dishes = DISHES_DATA.map(d => new Dish(d));
+  const combo = chooseCombo(dishes, []);
+  assert(combo["主菜"] !== null);
+  assert(combo["汤"] !== null);
+  assert(combo["主食"] !== null);
+});
+test("套餐遵守不重复", () => {
+  const dishes = DISHES_DATA.map(d => new Dish(d));
+  const history = [{dish: "西红柿炒蛋", date: "今天"}];
+  const combo = chooseCombo(dishes, history);
+  assert(combo["主菜"].name !== "西红柿炒蛋");
+});
+
+group("Dish 数据完整性");
+test("每个菜都包含必要字段", () => {
+  for (const d of DISHES_DATA) {
+    assert(typeof d.name === 'string' && d.name.length > 0, `${d.name}: name 必填`);
+    assert(typeof d.time_minutes === 'number' && d.time_minutes > 0, `${d.name}: time_minutes 必填`);
+    assert(typeof d.role === 'string', `${d.name}: role 必填`);
+    assert(Array.isArray(d.ingredients), `${d.name}: ingredients 应为数组`);
+    assert(Array.isArray(d.seasonings), `${d.name}: seasonings 应为数组`);
+    assert(Array.isArray(d.steps), `${d.name}: steps 应为数组`);
+    assert(d.steps.length >= 3, `${d.name}: 步骤至少 3 个`);
+    assert(d.steps.length <= 8, `${d.name}: 步骤不超过 8 个`);
+  }
+});
+
+group("filterKidFriendly（儿童餐筛选）");
+test("包含有儿童友好标签的菜", () => {
+  const dishes = [
+    new Dish({name: "甜菜", time_minutes: 10, role: "主菜", tags: ["甜口"]}),
+    new Dish({name: "酸甜菜", time_minutes: 10, role: "主菜", tags: ["酸甜"]}),
+    new Dish({name: "小孩爱菜", time_minutes: 10, role: "主菜", tags: ["小孩爱"]}),
+  ];
+  const r = filterKidFriendly(dishes);
+  const names = r.map(d => d.name);
+  assert(names.includes("甜菜"));
+  assert(names.includes("酸甜菜"));
+  assert(names.includes("小孩爱菜"));
+});
+
+test("排除辣味菜", () => {
+  const dishes = [
+    new Dish({name: "辣菜", time_minutes: 10, role: "主菜", tags: ["辣", "下饭"]}),
+    new Dish({name: "微辣菜", time_minutes: 10, role: "主菜", tags: ["微辣"]}),
+    new Dish({name: "麻辣菜", time_minutes: 10, role: "主菜", tags: ["麻辣"]}),
+  ];
+  const r = filterKidFriendly(dishes);
+  assertEqual(r.map(d => d.name), []);
+});
+
+test("没有儿童友好标签的不算儿童餐", () => {
+  const dishes = [
+    new Dish({name: "硬菜", time_minutes: 60, role: "主菜", tags: ["硬菜", "待客"]}),
+    new Dish({name: "节日菜", time_minutes: 90, role: "主菜", tags: ["节日"]}),
+  ];
+  const r = filterKidFriendly(dishes);
+  assertEqual(r.map(d => d.name), []);
+});
+
+test("混合场景：有甜口就包含，没儿童标签又辣就排除", () => {
+  const dishes = [
+    new Dish({name: "糖醋里脊", time_minutes: 30, role: "主菜", tags: ["酸甜", "下饭"]}),
+    new Dish({name: "麻婆豆腐", time_minutes: 20, role: "主菜", tags: ["辣", "下饭"]}),
+    new Dish({name: "可乐鸡翅", time_minutes: 35, role: "主菜", tags: ["甜口", "小孩爱"]}),
+    new Dish({name: "回锅肉", time_minutes: 25, role: "主菜", tags: ["辣"]}),
+  ];
+  const r = filterKidFriendly(dishes);
+  const names = r.map(d => d.name);
+  assert(names.includes("糖醋里脊"));
+  assert(names.includes("可乐鸡翅"));
+  assert(!names.includes("麻婆豆腐"));
+  assert(!names.includes("回锅肉"));
+});
+
+// ============ Day 8 测试 ============
+
+group("classifyNutrition");
+test("显式 nutrition 字段优先", () => {
+  const d = new Dish({name: "x", time_minutes: 5, role: "早餐", nutrition: ["碳水"]});
+  assertEqual(classifyNutrition(d), ["碳水"]);
+});
+test("子串回退：饺子→蛋白+碳水+蔬菜", () => {
+  const d = new Dish({name: "饺子", time_minutes: 45, role: "主食", ingredients: ["面粉", "猪肉馅", "白菜"]});
+  const r = classifyNutrition(d);
+  assert(r.includes("碳水"));
+  assert(r.includes("蛋白"));
+  assert(r.includes("蔬菜"));
+});
+test("子串回退：煎蛋→仅蛋白", () => {
+  const d = new Dish({name: "煎蛋", time_minutes: 5, role: "早餐", ingredients: ["鸡蛋", "油", "盐"]});
+  const r = classifyNutrition(d);
+  assert(r.includes("蛋白"));
+  assert(!r.includes("碳水"));
+});
+
+group("chooseThreeMeals");
+function threeMealPool() {
+  return [
+    new Dish({name: "早A", time_minutes: 5, role: "早餐"}),
+    new Dish({name: "早B", time_minutes: 10, role: "早餐"}),
+    new Dish({name: "主A", time_minutes: 30, role: "主菜"}),
+    new Dish({name: "主B", time_minutes: 30, role: "主菜"}),
+    new Dish({name: "食A", time_minutes: 20, role: "主食"}),
+    new Dish({name: "食B", time_minutes: 20, role: "主食"}),
+    new Dish({name: "凉A", time_minutes: 8, role: "凉菜"}),
+    new Dish({name: "凉B", time_minutes: 8, role: "凉菜"}),
+    new Dish({name: "汤A", time_minutes: 15, role: "汤"}),
+    new Dish({name: "汤B", time_minutes: 15, role: "汤"}),
+  ];
+}
+
+test("结构包含早午晚", () => {
+  const meals = chooseThreeMeals(threeMealPool(), []);
+  assert("早餐" in meals && "午餐" in meals && "晚餐" in meals);
+});
+
+test("午餐包含主菜+主食+凉菜+汤", () => {
+  const meals = chooseThreeMeals(threeMealPool(), []);
+  assert(meals["午餐"]["主菜"] !== null);
+  assert(meals["午餐"]["主食"] !== null);
+  assert(meals["午餐"]["凉菜"] !== null);
+  assert(meals["午餐"]["汤"] !== null);
+});
+
+test("晚餐包含主菜+主食+凉菜（无汤）", () => {
+  const meals = chooseThreeMeals(threeMealPool(), []);
+  assert(meals["晚餐"]["主菜"] !== null);
+  assert(meals["晚餐"]["主食"] !== null);
+  assert(meals["晚餐"]["凉菜"] !== null);
+});
+
+test("午晚不共享主菜/主食/凉菜（20 次循环）", () => {
+  const pool = threeMealPool();
+  for (let i = 0; i < 20; i++) {
+    const meals = chooseThreeMeals(pool, []);
+    const lunch = new Set([meals["午餐"]["主菜"].name, meals["午餐"]["主食"].name, meals["午餐"]["凉菜"].name]);
+    const dinner = new Set([meals["晚餐"]["主菜"].name, meals["晚餐"]["主食"].name, meals["晚餐"]["凉菜"].name]);
+    for (const name of lunch) assert(!dinner.has(name), `午晚共享了：${name}`);
+  }
+});
+
+test("历史中今天的菜不会出现在结果（窗口=7）", () => {
+  const today = new Date().toISOString().slice(0, 10);
+  const pool = threeMealPool();
+  const history = [{dish: "主A", date: today}, {dish: "食A", date: today}];
+  for (let i = 0; i < 20; i++) {
+    const meals = chooseThreeMeals(pool, history, 7);
+    assert(meals["午餐"]["主菜"].name !== "主A");
+    assert(meals["午餐"]["主食"].name !== "食A");
+  }
+});
+
+test("8 天前的历史不影响选择", () => {
+  const today = new Date();
+  const old = new Date(today.getTime() - 8 * 86400000).toISOString().slice(0, 10);
+  const recent = today.toISOString().slice(0, 10);
+  const pool = threeMealPool();
+  const history = [{dish: "主A", date: old}, {dish: "主B", date: recent}];
+  for (let i = 0; i < 20; i++) {
+    const meals = chooseThreeMeals(pool, history, 7);
+    // 主B（今天）不会出现在结果；主A（8 天前）可以出现
+    assert(meals["午餐"]["主菜"].name !== "主B");
+    assert(meals["晚餐"]["主菜"].name !== "主B");
+  }
+});
+
+// ============ 渲染结果 ============
+const passed = results.filter(r => r.pass).length;
+const failed = results.length - passed;
+
+document.getElementById('summary').className = `summary ${failed === 0 ? 'pass' : 'fail'}`;
+document.getElementById('summary').textContent = failed === 0
+  ? `✅ 全部通过：${passed} / ${results.length}`
+  : `❌ 失败 ${failed} 个：通过 ${passed} / ${results.length}`;
+
+const resultsDiv = document.getElementById('results');
+let lastGroup = "";
+for (const r of results) {
+  if (r.group !== lastGroup) {
+    lastGroup = r.group;
+    const header = document.createElement('div');
+    header.className = 'group-header';
+    header.textContent = r.group;
+    resultsDiv.appendChild(header);
+  }
+  const row = document.createElement('div');
+  row.className = `test-row ${r.pass ? 'pass' : 'fail'}`;
+  row.innerHTML = `<span class="name">${r.name}</span>` +
+    (r.error ? `<div class="error">${r.error}</div>` : '');
+  resultsDiv.appendChild(row);
+}
+</script>
+
+</body>
+</html>

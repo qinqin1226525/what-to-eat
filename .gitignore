@@ -1,0 +1,21 @@
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+
+# Mac 系统文件
+.DS_Store
+
+# 手动备份（你或我改菜谱前的 cp 备份）
+*.bak
+*.backup
+
+# 编辑器临时文件
+*.swp
+*~
+.vscode/
+.idea/
+
+# 未来如果加虚拟环境
+venv/
+.venv/
