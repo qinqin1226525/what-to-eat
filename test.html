@@ -154,6 +154,43 @@ function chooseThreeMeals(dishes, history = [], window = 7) {
   return {"早餐": breakfast, "午餐": lunch, "晚餐": dinner};
 }
 
+// ============ Day 10：做饭前确认（历史记录 status 字段）===========
+function addToHistoryWithStatus(history, dish, status, suggested) {
+  history.push({
+    date: new Date().toISOString().slice(0, 10),
+    dish: dish,
+    status: status,
+    suggested: (status === 'confirmed') ? undefined : suggested
+  });
+  return history;
+}
+
+function migrateHistory(history) {
+  // 旧格式 {dish, date} → 新格式（默认 status='confirmed'）
+  return history.map(h => {
+    if (h.status) return h;
+    return {date: h.date, dish: h.dish, status: 'confirmed', suggested: undefined};
+  });
+}
+
+// chooseCombo 改编：过滤跳过
+function chooseComboV2(dishes, history = [], window = 30) {
+  const effective = migrateHistory(history);
+  const recent = new Set(
+    effective
+      .filter(h => h.status !== 'skipped')
+      .slice(-window)
+      .map(h => h.dish)
+  );
+  function pick(role) {
+    let candidates = dishes.filter(d => d.role === role && !recent.has(d.name));
+    if (candidates.length === 0) candidates = dishes.filter(d => d.role === role);
+    if (candidates.length === 0) return null;
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+  return {"主菜": pick("主菜"), "汤": pick("汤"), "主食": pick("主食")};
+}
+
 // ============ Day 10：偏好设置 applyPrefs ============
 const PREFS_SEAFOOD_KEYS = ["鱼", "虾", "蟹", "紫菜", "海带", "扇贝", "蛤", "牡蛎", "鱿鱼"];
 const PREFS_OFFAL_KEYS   = ["肥肠", "猪肚", "肝", "腰", "心", "肚"];
@@ -191,6 +228,51 @@ function applyPrefs(dishes, prefs) {
     result = result.filter(d => d.role !== '凉菜');
   }
   return result;
+}
+
+// ============ Day 11：自催化学习 ============
+function computeTagAffinities(scores, dishes) {
+  const tagPos = {}, tagNeg = {};
+  for (const d of dishes) {
+    const s = scores[d.name] || {};
+    const pos = (s.likes || 0) + (s.cooks || 0);
+    const neg = (s.dislikes || 0);
+    if (pos + neg === 0) continue;
+    for (const t of (d.tags || [])) {
+      tagPos[t] = (tagPos[t] || 0) + pos;
+      tagNeg[t] = (tagNeg[t] || 0) + neg;
+    }
+  }
+  const aff = {};
+  const all = new Set([...Object.keys(tagPos), ...Object.keys(tagNeg)]);
+  for (const t of all) {
+    const total = (tagPos[t] || 0) + (tagNeg[t] || 0);
+    if (total < 3) { aff[t] = 0; continue; }
+    aff[t] = ((tagPos[t] / total) - 0.5) * 2;
+  }
+  return aff;
+}
+
+function weightedChoice(candidates, scores, tagAff) {
+  if (!candidates || candidates.length === 0) return null;
+  const weights = candidates.map(d => {
+    const s = scores[d.name] || {};
+    let w = 1.0;
+    w += (s.likes || 0) * 3;
+    w += (s.cooks || 0) * 2;
+    w -= (s.dislikes || 0) * 5;
+    for (const t of (d.tags || [])) {
+      w += (tagAff[t] || 0) * 4;
+    }
+    return Math.max(w, 0.1);
+  });
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < candidates.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return candidates[i];
+  }
+  return candidates[candidates.length - 1];
 }
 
 // ============ 测试框架 ============
@@ -408,6 +490,89 @@ test("8 天前的历史不影响选择", () => {
   }
 });
 
+// ============ Day 10: addToHistoryWithStatus 测试 ============
+
+group("addToHistoryWithStatus（做饭前确认）");
+test("confirmed 写入实际吃的菜", () => {
+  const h = [];
+  addToHistoryWithStatus(h, "番茄炒蛋", "confirmed", "青椒肉丝");
+  assertEqual(h.length, 1);
+  assertEqual(h[0].dish, "番茄炒蛋");
+  assertEqual(h[0].status, "confirmed");
+  assertEqual(h[0].suggested, undefined);
+});
+
+test("manual 写入实际吃的菜 + 记录抽到的原菜", () => {
+  const h = [];
+  addToHistoryWithStatus(h, "番茄炒蛋", "manual", "青椒肉丝");
+  assertEqual(h[0].dish, "番茄炒蛋");
+  assertEqual(h[0].status, "manual");
+  assertEqual(h[0].suggested, "青椒肉丝");
+});
+
+test("skipped 写入但 dish 字段就是『没做饭』标记", () => {
+  const h = [];
+  addToHistoryWithStatus(h, "外卖", "skipped", "青椒肉丝");
+  assertEqual(h[0].status, "skipped");
+  assertEqual(h[0].suggested, "青椒肉丝");
+});
+
+test("日期默认为今天（ISO 短日期）", () => {
+  const h = [];
+  addToHistoryWithStatus(h, "X", "confirmed", "Y");
+  const today = new Date().toISOString().slice(0, 10);
+  assertEqual(h[0].date, today);
+});
+
+group("migrateHistory（向下兼容）");
+test("旧格式 {dish, date} → 迁移为 confirmed", () => {
+  const old = [{dish: "西红柿炒蛋", date: "2026-08-14"}];
+  const m = migrateHistory(old);
+  assertEqual(m[0].status, "confirmed");
+  assertEqual(m[0].dish, "西红柿炒蛋");
+  assertEqual(m[0].date, "2026-08-14");
+});
+
+test("新格式原样保留", () => {
+  const newH = [{dish: "X", date: "2026-08-14", status: "manual", suggested: "Y"}];
+  const m = migrateHistory(newH);
+  assertEqual(m, newH);
+});
+
+test("混合：新旧共存旧条目都加 status", () => {
+  const mixed = [
+    {dish: "A", date: "2026-08-13"},  // 旧
+    {dish: "B", date: "2026-08-14", status: "manual", suggested: "C"}  // 新
+  ];
+  const m = migrateHistory(mixed);
+  assertEqual(m[0].status, "confirmed");
+  assertEqual(m[1].status, "manual");
+});
+
+group("chooseComboV2（过滤 skipped）");
+test("skipped 不参与 30 天不重复", () => {
+  const dishes = DISHES_DATA.map(d => new Dish(d));
+  // 历史里把『西红柿炒蛋』标成 skipped（没做饭）
+  const history = [{dish: "西红柿炒蛋", date: "2026-08-14", status: "skipped", suggested: "西红柿炒蛋"}];
+  for (let i = 0; i < 20; i++) {
+    const combo = chooseComboV2(dishes, history);
+    // skipped 的菜可以重新被选中
+    // （不强制特定菜，只验证不会因 skipped 而被排除）
+    assert(combo["主菜"] !== null);
+  }
+});
+
+test("manual 写入的『实际吃的』参与 30 天不重复", () => {
+  const dishes = DISHES_DATA.map(d => new Dish(d));
+  const history = [
+    {dish: "西红柿炒蛋", date: "2026-08-14", status: "manual", suggested: "别的菜"}
+  ];
+  for (let i = 0; i < 20; i++) {
+    const combo = chooseComboV2(dishes, history);
+    assert(combo["主菜"].name !== "西红柿炒蛋", "manual 应该当作吃过");
+  }
+});
+
 // ============ Day 10: applyPrefs 测试 ============
 
 group("applyPrefs（偏好设置）");
@@ -499,6 +664,104 @@ test("组合：川菜+不辣 → 川菜里没不辣的，结果空", () => {
   const r = applyPrefs(pool, {cuisines: ["川菜"], spicy: "none"});
   // 麻婆豆腐/宫保鸡丁都是川菜但都辣，应被过滤
   assertEqual(r, []);
+});
+
+// ============ Day 11: weightedChoice + tagAffinities 测试 ============
+
+group("weightedChoice（加权随机）");
+
+function wPool() {
+  return [
+    new Dish({name: "红烧肉", time_minutes: 60, role: "主菜", tags: ["家常", "硬菜"]}),
+    new Dish({name: "麻婆豆腐", time_minutes: 20, role: "主菜", tags: ["川菜", "辣"]}),
+    new Dish({name: "清炒时蔬", time_minutes: 10, role: "主菜", tags: ["素食", "简单"]}),
+    new Dish({name: "宫保鸡丁", time_minutes: 25, role: "主菜", tags: ["川菜", "微辣"]}),
+  ];
+}
+
+test("空 scores = 均匀（每道菜出现概率相近）", () => {
+  const pool = wPool();
+  const counts = {r: 0, m: 0, q: 0, g: 0};
+  for (let i = 0; i < 200; i++) {
+    const p = weightedChoice(pool, {}, {});
+    if (p.name === "红烧肉") counts.r++;
+    else if (p.name === "麻婆豆腐") counts.m++;
+    else if (p.name === "清炒时蔬") counts.q++;
+    else if (p.name === "宫保鸡丁") counts.g++;
+  }
+  // 每道菜期望 50 次，浮动 ±25
+  for (const k of Object.keys(counts)) {
+    assert(counts[k] > 25 && counts[k] < 75, `${k} 不均匀：${counts[k]}`);
+  }
+});
+
+test("likes 偏向喜欢的菜", () => {
+  const pool = wPool();
+  const scores = {"红烧肉": {likes: 5, dislikes: 0, cooks: 0}};
+  let rCount = 0;
+  for (let i = 0; i < 30; i++) {
+    if (weightedChoice(pool, scores, {}).name === "红烧肉") rCount++;
+  }
+  // 红烧肉权重 16，其他 1，期望 ~ 30 * 16/19 ≈ 25
+  assert(rCount > 10, `likes 不够：${rCount}/30`);
+});
+
+test("dislikes 5 倍惩罚", () => {
+  const pool = wPool();
+  const scores = {"麻婆豆腐": {likes: 0, dislikes: 10, cooks: 0}};
+  let mCount = 0;
+  for (let i = 0; i < 50; i++) {
+    if (weightedChoice(pool, scores, {}).name === "麻婆豆腐") mCount++;
+  }
+  // 麻婆权重 = max(0.1, 1 - 50) = 0.1；其他 1.0
+  // 期望 ~ 50 * 0.1/3.1 ≈ 1.6
+  assert(mCount < 5, `dislikes 惩罚不够：${mCount}/50`);
+});
+
+test("空 candidates 返回 null", () => {
+  assertEqual(weightedChoice([], {}, {}), null);
+  assertEqual(weightedChoice(null, {}, {}), null);
+});
+
+group("computeTagAffinities");
+
+test("数据不足（<3 交互）→ 全部 0", () => {
+  const pool = wPool();
+  const aff = computeTagAffinities({"红烧肉": {likes: 1, dislikes: 0, cooks: 0}}, pool);
+  for (const v of Object.values(aff)) assertEqual(v, 0);
+});
+
+test("数据充足 → 归一化到 [-1, +1]", () => {
+  const pool = wPool();
+  const scores = {
+    "麻婆豆腐":   {likes: 5, dislikes: 0, cooks: 2},
+    "宫保鸡丁":   {likes: 3, dislikes: 1, cooks: 1},
+    "红烧肉":     {likes: 0, dislikes: 5, cooks: 0},
+  };
+  const aff = computeTagAffinities(scores, pool);
+  // 川菜: 麻婆(7)+宫保(4) = 11 pos, 宫保(1) = 1 neg
+  // 归一：(11/12 - 0.5) * 2 ≈ 0.833
+  assert(aff["川菜"] > 0.5, `川菜应为正向：${aff["川菜"]}`);
+  // 家常: 仅 红烧(5 neg)
+  // 归一：(0/5 - 0.5) * 2 = -1
+  assert(aff["家常"] < -0.5, `家常应为负向：${aff["家常"]}`);
+});
+
+test("tag 推断：点赞 川菜 越多 → 川菜 越被推", () => {
+  const pool = wPool();
+  const scores = {
+    "麻婆豆腐": {likes: 10, dislikes: 0, cooks: 5},
+    "宫保鸡丁": {likes: 0,  dislikes: 0, cooks: 0},
+  };
+  const aff = computeTagAffinities(scores, pool);
+  assert(aff["川菜"] > 0.5, `川菜应为强正向：${aff["川菜"]}`);
+  // 50 次抽，川菜至少占一半
+  let sichuanCount = 0;
+  for (let i = 0; i < 50; i++) {
+    const p = weightedChoice(pool, scores, aff);
+    if (p.tags.includes("川菜")) sichuanCount++;
+  }
+  assert(sichuanCount > 25, `川菜应 > 25：${sichuanCount}/50`);
 });
 
 // ============ 渲染结果 ============

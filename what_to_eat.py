@@ -69,10 +69,24 @@ def save_history(history, path=HISTORY_FILE):
         json.dump(history, f, ensure_ascii=False, indent=2)
 
 
-def add_to_history(history, dish_name):
-    """把今天吃过的菜加进历史"""
-    history.append({"dish": dish_name, "date": str(date.today())})
+def add_to_history(history, dish_name, status="confirmed", suggested=None):
+    """把今天吃过的菜加进历史。
+    status: 'confirmed'（吃了/做了）/ 'skipped'（没吃）/ 'served'（做了的近义词）
+    """
+    entry = {"dish": dish_name, "date": str(date.today()), "status": status}
+    if status != "confirmed":
+        entry["suggested"] = suggested
+    history.append(entry)
     return history
+
+
+def migrate_history(history):
+    """旧格式 {dish, date} → 新格式（默认 status='confirmed'）。
+    用于向前兼容老的历史文件。"""
+    return [
+        h if "status" in h else {"date": h["date"], "dish": h["dish"], "status": "confirmed"}
+        for h in history
+    ]
 
 
 # ---------- 核心算法 ----------
@@ -96,8 +110,12 @@ def filter_by_ingredients(dishes, available_ingredients):
 
 
 def choose_one_no_repeat(dishes, history, window=30):
-    """从历史记录里最近 window 天没吃过的菜中随机抽一个"""
-    recent = {h["dish"] for h in history[-window:]}
+    """从历史记录里最近 window 天没吃过的菜中随机抽一个
+
+    Day 10: skipped 状态不参与去重。
+    """
+    effective = migrate_history(history or [])
+    recent = {h["dish"] for h in effective[-window:] if h["status"] != "skipped"}
     available = [d for d in dishes if d.name not in recent]
     if not available:
         # 所有菜都在最近 window 天吃过 -> 退而求其次，允许重复
@@ -105,18 +123,25 @@ def choose_one_no_repeat(dishes, history, window=30):
     return random.choice(available)
 
 
-def choose_combo(dishes, history=None, window=30, prefs=None):
+def choose_combo(dishes, history=None, window=30, prefs=None, scores=None):
     """选一套：主菜 + 汤 + 主食（30 天不重复）。
 
     prefs=None 或 {} 时不过滤（向后兼容）。
+    scores=None 或 {} 时均匀随机；非空时按权重推荐（Day 11 自催化）。
     过滤后空则回退到原列表，避免卡死。
+
+    Day 10: history 可以包含 status 字段（confirmed / manual / skipped）。
+    skipped 状态不参与『30 天不重复』算法。
     """
     history = history or []
     pool = apply_prefs(dishes, prefs)
     if not pool:
         pool = dishes  # 兜底
 
-    recent = {h["dish"] for h in history[-window:]}
+    # Day 10: 迁移旧格式 + 过滤 skipped
+    effective = migrate_history(history)
+    recent = {h["dish"] for h in effective[-window:] if h["status"] != "skipped"}
+    tag_aff = compute_tag_affinities(scores or {}, pool)
 
     def pick(role):
         # 1. 在过滤池里找
@@ -129,7 +154,7 @@ def choose_combo(dishes, history=None, window=30, prefs=None):
             candidates = [d for d in dishes if d.role == role and d.name not in recent]
         if not candidates:
             candidates = [d for d in dishes if d.role == role]
-        return random.choice(candidates) if candidates else None
+        return weighted_choice(candidates, scores or {}, tag_aff)
 
     return {
         "主菜": pick("主菜"),
@@ -176,24 +201,6 @@ def _parse_date(date_str):
         return date.fromisoformat(str(date_str))
     except (ValueError, TypeError):
         return None
-
-
-def choose_three_meals(dishes, history=None, window=30):
-    """选一日三餐（早/午/晚）—— 当前为简化版"""
-    history = history or []
-    recent = {h["dish"] for h in history[-window:]}
-
-    def pick(role):
-        candidates = [d for d in dishes if d.role == role and d.name not in recent]
-        if not candidates:
-            candidates = [d for d in dishes if d.role == role]
-        return random.choice(candidates) if candidates else None
-
-    return {
-        "早餐": pick("主食"),
-        "午餐": pick("主菜"),
-        "晚餐": pick("主菜"),
-    }
 
 
 def classify_nutrition(dishes):
@@ -325,10 +332,13 @@ def classify_nutrition(dish):
     return classes
 
 
-def choose_three_meals(dishes, history=None, window=7, prefs=None):
-    """一日三餐：早+午（主菜+主食+凉菜+汤）+晚（主菜+主食+凉菜）。
+def choose_three_meals(dishes, history=None, window=7, prefs=None, scores=None):
+    """一日三餐：早 + 午 + 晚。
+    - 早餐：单独抽（不参与午晚的『一碗一餐』逻辑）
+    - 午餐和晚餐：交给 choose_one_meal 处理（面条/饺子一碗一餐，米饭配菜+汤）
     window 按自然日计（默认 7 天），三餐不共享同一道菜。
-    prefs=None 或 {} 不过滤；过滤后空则回退到原列表。"""
+    prefs=None 或 {} 不过滤；过滤后空则回退到原列表。
+    scores=None 时不参与评分；scores={} 与 None 等价。"""
     history = history or []
     pool = apply_prefs(dishes, prefs)
     if not pool:
@@ -336,7 +346,11 @@ def choose_three_meals(dishes, history=None, window=7, prefs=None):
 
     today = date.today()
     cutoff = today - timedelta(days=window)
-    recent = {h["dish"] for h in history if _parse_date(h.get("date")) >= cutoff}
+    # Day 10: 迁移旧格式 + 过滤 skipped 状态
+    effective = migrate_history(history)
+    recent = {h["dish"] for h in effective
+              if _parse_date(h.get("date")) >= cutoff and h["status"] != "skipped"}
+    tag_aff = compute_tag_affinities(scores or {}, pool)
 
     def pick(role, exclude):
         candidates = [
@@ -361,7 +375,7 @@ def choose_three_meals(dishes, history=None, window=7, prefs=None):
             ]
         if not candidates:
             candidates = [d for d in dishes if d.role == role]
-        return random.choice(candidates) if candidates else None
+        return weighted_choice(candidates, scores or {}, tag_aff)
 
     # skipBreakfast 偏好：跳过早餐
     if prefs and prefs.get("skipBreakfast"):
@@ -371,21 +385,115 @@ def choose_three_meals(dishes, history=None, window=7, prefs=None):
 
     exclude = {breakfast.name} if breakfast else set()
 
-    lunch = {
-        "主菜": pick("主菜", exclude),
-        "主食": pick("主食", exclude),
-        "凉菜": pick("凉菜", exclude),
-        "汤":   pick("汤",   exclude),
-    }
-    exclude |= {d.name for d in lunch.values() if d}
-
-    dinner = {
-        "主菜": pick("主菜", exclude),
-        "主食": pick("主食", exclude),
-        "凉菜": pick("凉菜", exclude),
-    }
+    # 午晚饭走用户习惯版（一碗一餐 / 配菜模式）
+    lunch = choose_one_meal(dishes, history, window=window, prefs=prefs, scores=scores)
+    # 避免午晚重复同一道菜：把午餐选的菜加进 exclude
+    lunch_names = {d.name for d in lunch.values() if hasattr(d, "name")}
+    # 给晚餐一份过滤过 exclude 的临时 history
+    dinner_history = list(history) + [{"dish": n, "date": str(today)} for n in lunch_names]
+    dinner = choose_one_meal(dishes, dinner_history, window=window, prefs=prefs, scores=scores)
 
     return {"早餐": breakfast, "午餐": lunch, "晚餐": dinner}
+
+
+# ---------- 用户习惯版：一顿午饭 / 晚饭 ----------
+
+# 用户习惯：
+#   - 午饭/晚饭：要么面条，要么米饭（饺子也算一碗一餐）
+#   - 面条/饺子 = 一碗一餐（不配菜不配汤）
+#   - 米饭 = 主菜 + 汤 + 主食
+#   - 其他主食（馒头/包子/炒饭/年糕/葱油饼/烧麦）→ 跳过
+
+def is_lunch_main_allowed(dish):
+    """午饭/晚饭允许的主食：名字含『米』『面』『饺子』之一"""
+    name = dish.name or ""
+    return any(k in name for k in ("米", "面", "饺子"))
+
+
+def is_one_bowl_meal(dish):
+    """面条或饺子：一碗一餐（不配菜不配汤）"""
+    name = dish.name or ""
+    return "面" in name or "饺子" in name
+
+
+def choose_one_meal(dishes, history=None, window=30, prefs=None, scores=None):
+    """用户定制版的『一顿午饭或晚饭』。
+
+    规则：
+    - 主食池限定：米饭（名字含『米』）、面条（名字含『面』）、饺子
+    - 抽到面条/饺子 → 一碗一餐（无主菜无汤）
+    - 抽到米饭 → 主菜 + 汤 + 主食
+    - 7 天内吃过的不抽；池子空时逐级回退
+    - Day 11：scores 非空时按权重推荐（自催化）
+
+    返回 dict：
+        {"主菜": Dish|None, "汤": Dish|None, "主食": Dish|None, "模式": "一碗一餐"|"配菜模式"}
+    """
+    history = history or []
+    pool = apply_prefs(dishes, prefs)
+    if not pool:
+        pool = dishes  # 兜底
+
+    cutoff = date.today() - timedelta(days=window)
+    # Day 10: 迁移旧格式 + 过滤 skipped 状态
+    effective = migrate_history(history)
+    recent = {h["dish"] for h in effective
+              if _parse_date(h.get("date")) >= cutoff and h["status"] != "skipped"}
+    tag_aff = compute_tag_affinities(scores or {}, pool)
+
+    # 1. 抽主食（限定池）
+    def pick_main(candidate_pool, fallback_pool):
+        # candidate_pool 应用了偏好，fallback_pool 是原列表
+        cands = [
+            d for d in candidate_pool
+            if d.role == "主食" and is_lunch_main_allowed(d) and d.name not in recent
+        ]
+        if not cands:
+            cands = [d for d in candidate_pool if d.role == "主食" and is_lunch_main_allowed(d)]
+        if not cands and fallback_pool is not candidate_pool:
+            cands = [
+                d for d in fallback_pool
+                if d.role == "主食" and is_lunch_main_allowed(d) and d.name not in recent
+            ]
+        if not cands and fallback_pool is not candidate_pool:
+            cands = [d for d in fallback_pool if d.role == "主食" and is_lunch_main_allowed(d)]
+        return weighted_choice(cands, scores or {}, tag_aff)
+
+    main = pick_main(pool, dishes)
+    if not main:
+        return {"主菜": None, "汤": None, "主食": None, "模式": "无"}
+
+    # 2. 一碗一餐
+    if is_one_bowl_meal(main):
+        return {"主菜": None, "汤": None, "主食": main, "模式": "一碗一餐"}
+
+    # 3. 配菜模式：主菜 + 汤 + 主食
+    exclude = {main.name}
+
+    def pick_role(role):
+        cands = [
+            d for d in pool
+            if d.role == role and d.name not in exclude and d.name not in recent
+        ]
+        if not cands:
+            cands = [d for d in pool if d.role == role and d.name not in exclude]
+        if not cands:
+            cands = [d for d in pool if d.role == role]
+        if not cands and pool is not dishes:
+            cands = [
+                d for d in dishes
+                if d.role == role and d.name not in exclude and d.name not in recent
+            ]
+        if not cands and pool is not dishes:
+            cands = [d for d in dishes if d.role == role]
+        return weighted_choice(cands, scores or {}, tag_aff)
+
+    return {
+        "主菜": pick_role("主菜"),
+        "汤":   pick_role("汤"),
+        "主食": main,
+        "模式": "配菜模式",
+    }
 
 
 # ---------- 格式化输出 ----------
@@ -430,8 +538,57 @@ def format_feasible(available, dishes):
 MEAL_EMOJI = {"早餐": "☀️", "午餐": "🌞", "晚餐": "🌙"}
 
 
+def _format_one_meal(meal, emoji):
+    """格式化『一顿午饭/晚饭』—— 一碗一餐 或 配菜模式"""
+    lines = []
+    mode = meal.get("模式") if isinstance(meal, dict) else None
+    if mode == "一碗一餐":
+        main = meal.get("主食")
+        if main:
+            lines.append(f"  {emoji} 一碗一餐：{main.name}（约 {main.time_minutes} 分钟）")
+        else:
+            lines.append(f"  {emoji} 一碗一餐：（暂无）")
+    else:
+        # 配菜模式：主菜 + 汤 + 主食
+        lines.append(f"  {emoji} 配菜模式：")
+        for role, label in [("主菜", "主菜"), ("汤", "汤"), ("主食", "主食")]:
+            d = meal.get(role) if isinstance(meal, dict) else None
+            e = ROLE_EMOJI.get(role, "•")
+            if d:
+                lines.append(f"      {e} {label}：{d.name}（约 {d.time_minutes} 分钟）")
+            else:
+                lines.append(f"      {label}：（暂无）")
+    return lines
+
+
+def format_one_meal(meal, label="一顿"):
+    """格式化『一顿饭』（仅显示这一顿，无早餐/晚餐噪音）"""
+    lines = ["=" * 40]
+    lines.append(f"  📅 {label} —— {date.today()}")
+    lines.append("=" * 40)
+    emoji = "🍱"
+    if isinstance(meal, dict) and meal.get("模式") == "一碗一餐":
+        main = meal.get("主食")
+        if main:
+            lines.append(f"  {emoji} 一碗一餐：{main.name}（约 {main.time_minutes} 分钟）")
+        else:
+            lines.append(f"  {emoji} 一碗一餐：（暂无）")
+    else:
+        lines.append(f"  {emoji} 配菜模式：")
+        for role, label2 in [("主菜", "主菜"), ("汤", "汤"), ("主食", "主食")]:
+            d = meal.get(role) if isinstance(meal, dict) else None
+            e = ROLE_EMOJI.get(role, "•")
+            if d:
+                lines.append(f"      {e} {label2}：{d.name}（约 {d.time_minutes} 分钟）")
+            else:
+                lines.append(f"      {label2}：（暂无）")
+    lines.append("=" * 40)
+    return "\n".join(lines)
+
+
 def format_three_meals(meals):
-    """格式化『一日三餐』的输出，含营养覆盖标签"""
+    """格式化『一日三餐』的输出，含营养覆盖标签。
+    午晚饭按『一碗一餐』或『配菜模式』分别展示。"""
     lines = ["=" * 40]
     lines.append(f"  📅 {date.today()} —— 一日三餐")
     lines.append("=" * 40)
@@ -443,38 +600,21 @@ def format_three_meals(meals):
     else:
         lines.append("  ☀️ 早餐：（暂无）")
 
-    # 午餐：主菜 + 主食 + 凉菜 + 汤
-    lunch = meals.get("午餐", {})
-    lines.append("  🌞 午餐：")
-    for role, label in [("主菜", "主菜"), ("主食", "主食"), ("凉菜", "凉菜"), ("汤", "汤")]:
-        d = lunch.get(role)
-        emoji = ROLE_EMOJI.get(role, "•")
-        if d:
-            lines.append(f"      {emoji} {label}：{d.name}（约 {d.time_minutes} 分钟）")
-        else:
-            lines.append(f"      {label}：（暂无）")
+    # 午餐
+    lines.extend(_format_one_meal(meals.get("午餐"), "🌞"))
 
-    # 晚餐：主菜 + 主食 + 凉菜
-    dinner = meals.get("晚餐", {})
-    lines.append("  🌙 晚餐：")
-    for role, label in [("主菜", "主菜"), ("主食", "主食"), ("凉菜", "凉菜")]:
-        d = dinner.get(role)
-        emoji = ROLE_EMOJI.get(role, "•")
-        if d:
-            lines.append(f"      {emoji} {label}：{d.name}（约 {d.time_minutes} 分钟）")
-        else:
-            lines.append(f"      {label}：（暂无）")
+    # 晚餐
+    lines.extend(_format_one_meal(meals.get("晚餐"), "🌙"))
 
     # 营养覆盖
     all_dishes = []
     if bf:
         all_dishes.append(bf)
-    for d in lunch.values():
-        if d:
-            all_dishes.append(d)
-    for d in dinner.values():
-        if d:
-            all_dishes.append(d)
+    for meal in (meals.get("午餐"), meals.get("晚餐")):
+        if isinstance(meal, dict):
+            for v in meal.values():
+                if hasattr(v, "name"):
+                    all_dishes.append(v)
 
     covered = set()
     for d in all_dishes:
@@ -491,10 +631,118 @@ def format_three_meals(meals):
     return "\n".join(lines)
 
 
+# ---------- Day 11：自催化学习模型 ----------
+
+
+SCORES_FILE = DATA_DIR / "scores.json"
+
+
+def load_scores(path=SCORES_FILE):
+    """加载评分（每道菜的 likes / dislikes / cooks）。
+    文件不存在或损坏返回空 dict。"""
+    if not Path(path).exists():
+        return {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def save_scores(scores, path=SCORES_FILE):
+    """保存评分到 JSON"""
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(scores, f, ensure_ascii=False, indent=2)
+
+
+def add_score(scores, dish_name, action):
+    """累加一条评分。
+    action ∈ {'like', 'dislike', 'cooked'}
+    """
+    if dish_name not in scores:
+        scores[dish_name] = {"likes": 0, "dislikes": 0, "cooks": 0}
+    key = {"like": "likes", "dislike": "dislikes", "cooked": "cooks"}.get(action)
+    if key:
+        scores[dish_name][key] += 1
+    return scores
+
+
+def compute_tag_affinities(scores, dishes):
+    """根据用户评分推断对每个 tag 的偏好。
+    返回 {tag: float in [-1, +1]}；数据不足（< 3 次交互）返回 0。
+    """
+    tag_pos = {}  # tag -> 正向 (likes + cooks)
+    tag_neg = {}  # tag -> 负向 (dislikes)
+
+    for d in dishes:
+        s = scores.get(d.name, {})
+        pos = s.get("likes", 0) + s.get("cooks", 0)
+        neg = s.get("dislikes", 0)
+        total = pos + neg
+        if total == 0:
+            continue
+        for t in (d.tags or []):
+            tag_pos[t] = tag_pos.get(t, 0) + pos
+            tag_neg[t] = tag_neg.get(t, 0) + neg
+
+    affinities = {}
+    for t in set(list(tag_pos.keys()) + list(tag_neg.keys())):
+        total = tag_pos.get(t, 0) + tag_neg.get(t, 0)
+        if total < 3:
+            affinities[t] = 0.0
+            continue
+        ratio = tag_pos[t] / total
+        affinities[t] = (ratio - 0.5) * 2  # 归一到 [-1, +1]
+    return affinities
+
+
+def weighted_choice(candidates, scores, tag_aff):
+    """加权随机选择：从 candidates 中按权重抽取。
+    weight(dish) = 1 + likes*3 + cooks*2 - dislikes*5 + Σ tag_aff[t]*4 (for t in dish.tags)
+    """
+    if not candidates:
+        return None
+    weights = []
+    for d in candidates:
+        s = scores.get(d.name, {}) or {}
+        w = 1.0
+        w += s.get("likes", 0) * 3
+        w += s.get("cooks", 0) * 2
+        w -= s.get("dislikes", 0) * 5
+        for t in (d.tags or []):
+            w += tag_aff.get(t, 0) * 4
+        weights.append(max(w, 0.1))
+    total = sum(weights)
+    r = random.random() * total
+    cum = 0
+    for d, w in zip(candidates, weights):
+        cum += w
+        if r <= cum:
+            return d
+    return candidates[-1]  # 兜底
+
+
 # ---------- 演示入口 ----------
 
 if __name__ == "__main__":
     dishes = load_dishes()
+    scores = load_scores()
+
+    # Day 11：先处理 --like / --dislike / --cooked（修改评分并退出）
+    for action, flag in [("like", "--like"), ("dislike", "--dislike"), ("cooked", "--cooked")]:
+        if flag in sys.argv:
+            idx = sys.argv.index(flag)
+            if idx + 1 < len(sys.argv):
+                dish_name = sys.argv[idx + 1]
+                add_score(scores, dish_name, action)
+                save_scores(scores)
+                print(f"✅ 已记录：{dish_name} → {action}")
+                print(f"   当前评分：{scores[dish_name]}")
+                sys.exit(0)
+            else:
+                print(f"⚠️ {flag} 需要一个菜名参数", file=sys.stderr)
+                sys.exit(1)
 
     # 解析 --prefs '{"spicy":"none"}' 形式参数
     prefs = None
@@ -510,27 +758,36 @@ if __name__ == "__main__":
     if "--three-meals" in sys.argv:
         # 模式 3：一日三餐 + 7 天不重复（按自然日）
         history = load_history()
-        meals = choose_three_meals(dishes, history, prefs=prefs)
-        print(format_three_meals(meals))
-        # 模式 3：一日三餐 + 7 天不重复（按自然日）
-        history = load_history()
-        meals = choose_three_meals(dishes, history)
+        meals = choose_three_meals(dishes, history, prefs=prefs, scores=scores)
         print(format_three_meals(meals))
 
         # 把今天三餐的菜全部记录到历史
         bf = meals.get("早餐")
         if bf:
             add_to_history(history, bf.name)
-        for dish in meals.get("午餐", {}).values():
-            if dish:
-                add_to_history(history, dish.name)
-        for dish in meals.get("晚餐", {}).values():
-            if dish:
-                add_to_history(history, dish.name)
+        for meal in (meals.get("午餐"), meals.get("晚餐")):
+            if isinstance(meal, dict):
+                for v in meal.values():
+                    if hasattr(v, "name"):
+                        add_to_history(history, v.name)
         save_history(history)
 
         print(f"\n已记录到历史（最近吃过的 {min(len(history), 7)} 道）：")
         for entry in history[-7:]:
+            print(f"  - {entry['date']}: {entry['dish']}")
+    elif "--my-meal" in sys.argv:
+        # 模式 4：用户习惯版一顿午饭/晚饭（一碗一餐 / 配菜模式）
+        history = load_history()
+        meal = choose_one_meal(dishes, history, prefs=prefs)
+        print(format_one_meal(meal, label="一顿"))
+        # 记录到历史
+        for v in meal.values():
+            if hasattr(v, "name"):
+                add_to_history(history, v.name)
+        save_history(history)
+
+        print(f"\n已记录到历史（最近吃过的 {min(len(history), 5)} 道）：")
+        for entry in history[-5:]:
             print(f"  - {entry['date']}: {entry['dish']}")
     elif len(sys.argv) > 1:
         # 模式 1：按食材筛选 —— python3 what_to_eat.py 鸡蛋 西红柿
@@ -541,7 +798,7 @@ if __name__ == "__main__":
             if skip_next:
                 skip_next = False
                 continue
-            if arg in ("--three-meals",):
+            if arg in ("--three-meals", "--my-meal"):
                 continue
             if arg == "--prefs":
                 skip_next = True  # 跳过下一项（prefs 的 JSON 值）
@@ -562,7 +819,7 @@ if __name__ == "__main__":
     else:
         # 模式 2（默认）：随机套餐 + 30 天不重复
         history = load_history()
-        combo = choose_combo(dishes, history, prefs=prefs)
+        combo = choose_combo(dishes, history, prefs=prefs, scores=scores)
         print(format_combo(combo))
 
         # 把今天选中的菜记录到历史

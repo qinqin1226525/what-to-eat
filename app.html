@@ -102,6 +102,46 @@
     font-size: 11px; color: #aaa; font-weight: normal;
   }
 
+  /* ============ 反馈按钮 ============ */
+  .dish-feedback {
+    display: flex; gap: 4px; align-items: center; flex-shrink: 0;
+  }
+  .feedback-btn {
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; font-size: 16px;
+    background: #f5efe0; color: #888;
+    border: 1.5px solid #e0d5c0;
+    cursor: pointer; user-select: none;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .feedback-btn:active { transform: scale(0.92); }
+  .feedback-btn.liked    { background: #4caf50; color: white; border-color: #4caf50; }
+  .feedback-btn.disliked { background: #ef5350; color: white; border-color: #ef5350; }
+  .feedback-btn.cooked   { background: #ff9800; color: white; border-color: #ff9800; }
+
+  /* ============ 我学到了面板 ============ */
+  .stats-panel {
+    background: #fff8e8; border-radius: 10px; padding: 14px;
+    border-left: 3px solid #ffc107;
+  }
+  .stats-panel .stats-row {
+    margin: 6px 0; font-size: 13px; line-height: 1.6;
+  }
+  .stats-panel .stats-row b { color: #8b6914; }
+  .stats-panel .reset-scores {
+    margin-top: 12px; background: transparent; border: 1px solid #e0d5c0;
+    color: #c9302c; padding: 6px 12px; border-radius: 6px;
+    font-size: 12px; cursor: pointer; font-family: inherit;
+  }
+  .insight-bubble {
+    margin-bottom: 12px; padding: 10px 14px; border-radius: 10px;
+    background: linear-gradient(135deg, #fff8e8 0%, #fde4cf 100%);
+    border-left: 3px solid #ff9800;
+    font-size: 13px; color: #5d4500;
+  }
+
   .header-banner {
     background: linear-gradient(135deg, #e85d04, #f48c06);
     color: white; padding: 20px; border-radius: 16px; margin-bottom: 20px;
@@ -427,11 +467,57 @@
         <div class="chip-row" id="prefs-misc"></div>
       </section>
 
+      <!-- 📊 我学到了什么 -->
+      <section>
+        <div class="chip-group-label">📊 我学到了什么</div>
+        <div id="prefs-stats" class="stats-panel"></div>
+      </section>
+
       <!-- 按钮 -->
       <div style="display:flex;gap:10px;margin-top:20px;">
         <button class="banner-btn" style="flex:1;border-color:#e0d5c0;color:#888;" onclick="resetPrefs()">重置默认</button>
         <button class="primary" style="flex:2;margin:0;font-size:16px;padding:14px;" onclick="savePrefsFromUI()">保存设置</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Day 10：做饭前确认 Modal ============ -->
+<div id="confirm-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closeConfirmModal()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeConfirmModal()">×</button>
+    <div class="modal-header">
+      <span style="font-size:48px;display:block;margin-bottom:8px;">🍽️</span>
+      <h2 class="modal-title">今天就吃这个？</h2>
+      <div class="modal-meta" id="confirm-dishes-summary"></div>
+    </div>
+    <div class="modal-body">
+      <section id="confirm-dishes-list"></section>
+      <section>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button class="primary" style="background:#4caf50;font-size:16px;padding:14px;" onclick="confirmStatus('confirmed')">
+            ✅ 就做这个
+          </button>
+          <button class="banner-btn" style="font-size:15px;padding:12px;color:#5a4a3a;" onclick="confirmStatus('redraw')">
+            🔄 换一道
+          </button>
+          <button class="banner-btn" style="font-size:15px;padding:12px;color:#e85d04;border-color:#e85d04;" onclick="showManualInput()">
+            🍜 今天吃别的
+          </button>
+          <button class="banner-btn" style="font-size:15px;padding:12px;color:#888;" onclick="confirmStatus('skipped')">
+            ❌ 没做饭（外卖/剩菜）
+          </button>
+        </div>
+      </section>
+      <section id="confirm-manual-section" hidden>
+        <h3>🍜 今天实际吃了什么？</h3>
+        <div style="margin-bottom:8px;font-size:13px;color:#888;">从菜谱里选：</div>
+        <div id="confirm-manual-dishes" style="max-height:180px;overflow-y:auto;border:1px solid #e8dcc4;border-radius:8px;padding:8px;margin-bottom:12px;"></div>
+        <div style="margin-bottom:8px;font-size:13px;color:#888;">或者手动输入：</div>
+        <input type="text" id="confirm-manual-input" placeholder="例如：火锅 / 麦当劳 / 妈妈做的红烧肉" style="width:100%;padding:10px;border:1px solid #e8dcc4;border-radius:8px;font-size:14px;">
+        <button class="primary" style="margin-top:10px;width:100%;font-size:15px;padding:12px;" onclick="confirmStatus('manual')">确认</button>
+      </section>
     </div>
   </div>
 </div>
@@ -1687,6 +1773,128 @@ const DISHES_DATA = [
       "对角切开"
     ],
     tip: "可换成火腿/黄瓜/芝士；用吐司刀切面更整齐。"
+  },
+  {
+    name: "水煮肉片", time_minutes: 35, role: "主菜",
+    tags: ["川菜", "麻辣", "硬菜"],
+    ingredients: ["里脊肉 300g", "豆芽", "白菜"],
+    seasonings: ["豆瓣酱", "花椒", "干辣椒", "葱", "蒜", "姜", "生抽", "料酒", "淀粉", "盐", "油"],
+    steps: [
+      "里脊切薄片，用料酒+淀粉+盐腌 15 分钟",
+      "豆芽、白菜焯水铺碗底",
+      "热油爆葱姜蒜、豆瓣酱炒出红油",
+      "加适量水煮开，加生抽、盐调底味",
+      "下肉片滑散煮 2 分钟，连汤倒入碗中",
+      "撒花椒粉、干辣椒段、蒜末，浇滚油激香"
+    ],
+    tip: "肉片裹淀粉更嫩；最后浇热油是灵魂，『嗞啦』一声才地道。"
+  },
+  {
+    name: "夫妻肺片", time_minutes: 30, role: "凉菜",
+    tags: ["川菜", "麻辣", "凉菜", "下酒"],
+    ingredients: ["牛肉 100g", "牛肚 100g", "牛舌 100g", "牛百叶 100g", "芹菜"],
+    seasonings: ["红油", "花椒粉", "生抽", "醋", "糖", "蒜末", "葱花", "盐", "花生碎"],
+    steps: [
+      "所有牛杂冷水下锅焯水，再加水煮 30 分钟至熟",
+      "捞出放凉切薄片",
+      "芹菜切段垫底",
+      "调汁：红油+花椒粉+生抽+醋+糖+蒜末+盐",
+      "牛肉片摆芹菜上，浇汁",
+      "撒花生碎、葱花"
+    ],
+    tip: "正宗用牛肉+牛杂四种；红油要够多才地道。"
+  },
+  {
+    name: "口水鸡", time_minutes: 40, role: "凉菜",
+    tags: ["川菜", "麻辣", "凉菜", "下饭"],
+    ingredients: ["鸡腿 2 个", "花生碎", "葱"],
+    seasonings: ["红油", "花椒粉", "生抽", "醋", "糖", "蒜末", "姜", "料酒", "盐"],
+    steps: [
+      "鸡腿冷水下锅+姜片+料酒煮 15 分钟",
+      "关火焖 10 分钟（保证嫩），捞出过冰水",
+      "斩件装盘",
+      "调汁：红油+花椒粉+生抽+醋+糖+蒜末+盐",
+      "浇在鸡块上，撒花生碎、葱花"
+    ],
+    tip: "过冰水是关键，肉质紧实不柴；红油量要够。"
+  },
+  {
+    name: "水煮鱼", time_minutes: 30, role: "主菜",
+    tags: ["川菜", "麻辣", "硬菜", "待客"],
+    ingredients: ["草鱼 1 条", "豆芽", "白菜", "鸡蛋清"],
+    seasonings: ["豆瓣酱", "花椒", "干辣椒", "葱", "蒜", "姜", "生抽", "料酒", "淀粉", "盐", "油"],
+    steps: [
+      "草鱼片成薄片，鱼骨切块（分开）",
+      "鱼片用料酒+蛋清+淀粉+盐腌 15 分钟",
+      "豆芽、白菜焯水铺碗底",
+      "热油爆葱姜蒜+豆瓣酱炒出红油",
+      "下鱼骨煎一下，加水煮 10 分钟成汤底",
+      "捞出鱼骨，下鱼片滑散煮 2 分钟",
+      "连汤倒入铺菜的碗中",
+      "撒花椒粉、干辣椒段、蒜末，浇滚油激香"
+    ],
+    tip: "鱼片裹蛋清淀粉更嫩；浇热油是灵魂，『嗞啦』一声才地道。"
+  },
+  {
+    name: "蒜泥白肉", time_minutes: 25, role: "凉菜",
+    tags: ["川菜", "微辣", "凉菜", "下饭"],
+    ingredients: ["五花肉 300g", "黄瓜"],
+    seasonings: ["蒜", "生抽", "醋", "糖", "红油", "盐"],
+    steps: [
+      "五花肉整块冷水下锅+葱姜煮 20 分钟至熟",
+      "捞出放凉，切大薄片",
+      "黄瓜切丝垫底",
+      "调汁：蒜末+生抽+醋+糖+红油+盐",
+      "肉片铺黄瓜上，浇汁"
+    ],
+    tip: "肉要煮到筷子能轻松插入；蒜末量要大，蒜泥白肉的精髓。"
+  },
+  {
+    name: "蚂蚁上树", time_minutes: 20, role: "主菜",
+    tags: ["川菜", "微辣", "下饭"],
+    ingredients: ["猪肉末 150g", "粉丝 1 把"],
+    seasonings: ["豆瓣酱", "生抽", "料酒", "葱", "姜", "蒜", "糖", "盐", "油"],
+    steps: [
+      "粉丝温水泡软",
+      "热油爆葱姜蒜末",
+      "下肉末炒散至变色",
+      "加豆瓣酱炒出红油",
+      "加生抽、料酒、糖",
+      "下粉丝翻炒吸汁",
+      "加少量水焖 2 分钟，加盐翻匀"
+    ],
+    tip: "肉末要细碎才像『蚂蚁』；粉丝吸饱汤汁最香。"
+  },
+  {
+    name: "粉蒸肉", time_minutes: 60, role: "主菜",
+    tags: ["川菜", "下饭", "硬菜"],
+    ingredients: ["五花肉 400g", "蒸肉米粉", "红薯"],
+    seasonings: ["豆瓣酱", "生抽", "老抽", "料酒", "葱", "姜", "糖", "腐乳"],
+    steps: [
+      "五花肉切厚片",
+      "用豆瓣酱+生抽+老抽+料酒+葱姜末+糖+腐乳腌 30 分钟",
+      "肉片裹一层蒸肉米粉",
+      "红薯切块垫碗底",
+      "肉片码在红薯上",
+      "蒸锅大火蒸 50 分钟至肉软烂"
+    ],
+    tip: "蒸肉米粉是关键，可用现成或自己用米+花椒+八角炒香磨粉；红薯垫底吸油。"
+  },
+  {
+    name: "钵钵鸡", time_minutes: 40, role: "凉菜",
+    tags: ["川菜", "微辣", "凉菜", "下饭"],
+    ingredients: ["鸡腿", "藕片", "木耳", "土豆", "莴笋", "鹌鹑蛋"],
+    seasonings: ["藤椒油", "红油", "生抽", "醋", "蒜", "姜", "盐", "糖", "熟芝麻"],
+    steps: [
+      "鸡腿冷水下锅+葱姜煮 15 分钟，关火焖 10 分钟",
+      "捞出过冰水切块",
+      "藕片、土豆、莴笋切块，木耳撕小朵，分别焯水",
+      "鹌鹑蛋煮熟剥壳",
+      "所有食材摆盘",
+      "调汁：藤椒油+红油+生抽+醋+蒜末+姜末+糖+盐",
+      "浇在食材上，撒熟芝麻"
+    ],
+    tip: "藤椒油是灵魂，比花椒油更清香；食材可任意搭配。"
   }
 ];
 
@@ -1719,13 +1927,16 @@ function filterByIngredients(dishes, available) {
   return dishes.filter(d => d.ingredients.some(i => set.has(i)));
 }
 
-function chooseCombo(dishes, history = [], window = 30) {
-  const recent = new Set(history.slice(-window).map(h => h.dish));
+function chooseCombo(dishes, history = [], window = 30, scores = null) {
+  // Day 10: 过滤 skipped 状态
+  const recent = recentDishesFromHistory(history, window);
+  const useScores = scores || loadScores();
+  const tagAff = computeTagAffinities(useScores, dishes);
   function pick(role) {
     let candidates = dishes.filter(d => d.role === role && !recent.has(d.name));
     if (candidates.length === 0) candidates = dishes.filter(d => d.role === role);
     if (candidates.length === 0) return null;
-    return candidates[Math.floor(Math.random() * candidates.length)];
+    return weightedChoice(candidates, useScores, tagAff);
   }
   return {"主菜": pick("主菜"), "汤": pick("汤"), "主食": pick("主食")};
 }
@@ -1750,9 +1961,37 @@ function loadHistory() {
   catch (e) { return []; }
 }
 function saveHistory(h) { localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); }
+
+// Day 10: 向后兼容旧 addToHistory 名字
 function addToHistory(h, name) {
-  h.push({dish: name, date: new Date().toISOString().slice(0, 10)});
-  return h;
+  return addToHistoryWithStatus(h, name, 'confirmed', null);
+}
+
+// Day 10: 新版加历史函数（带 status）
+function addToHistoryWithStatus(history, dishName, status, suggested) {
+  const entry = {
+    dish: dishName,
+    date: new Date().toISOString().slice(0, 10),
+    status: status,
+  };
+  if (status !== 'confirmed') entry.suggested = suggested;
+  history.push(entry);
+  return history;
+}
+
+// Day 10: 旧格式迁移（旧 {dish, date} → 新格式含 status 字段）
+function migrateHistory(history) {
+  return history.map(h => h.status
+    ? h
+    : {date: h.date, dish: h.dish, status: 'confirmed'}
+  );
+}
+
+// Day 10: 从历史里提取『最近 N 条实际吃过的菜』，跳过 skipped
+function recentDishesFromHistory(history, window) {
+  const effective = migrateHistory(history);
+  const slice = effective.slice(-window);
+  return new Set(slice.filter(h => h.status !== 'skipped').map(h => h.dish));
 }
 
 // ============ 渲染 ============
@@ -1772,15 +2011,71 @@ function buildDishRow(dish, extra = "") {
   const row = document.createElement('div');
   row.className = 'dish-row';
   const emoji = ROLE_EMOJI[dish.role] || '•';
+  const scores = loadScores();
+  const s = scores[dish.name] || {};
+  const likeCls    = s.likes    ? 'liked'    : '';
+  const dislikeCls = s.dislikes ? 'disliked' : '';
+  const cookCls    = s.cooks    ? 'cooked'   : '';
   row.innerHTML = `
     <div class="dish-emoji">${emoji}</div>
     <div class="dish-info">
       <div class="dish-name">${escapeHtml(dish.name)}</div>
       <div class="dish-meta">${dish.role} · 约 ${dish.time_minutes} 分钟</div>
       ${extra}
+    </div>
+    <div class="dish-feedback">
+      <span class="feedback-btn like ${likeCls}" data-action="like" data-dish="${escapeHtml(dish.name)}" title="喜欢">👍</span>
+      <span class="feedback-btn dislike ${dislikeCls}" data-action="dislike" data-dish="${escapeHtml(dish.name)}" title="不喜欢">👎</span>
+      <span class="feedback-btn cook ${cookCls}" data-action="cooked" data-dish="${escapeHtml(dish.name)}" title="做了">✅</span>
     </div>`;
-  row.addEventListener('click', () => showRecipe(dish));
+  row.addEventListener('click', (e) => {
+    if (e.target.classList.contains('feedback-btn')) return;
+    showRecipe(dish);
+  });
+  // 反馈按钮事件
+  row.querySelectorAll('.feedback-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const action = btn.dataset.action;
+      const name = btn.dataset.dish;
+      toggleFeedback(name, action, btn);
+    });
+  });
   return row;
+}
+
+function toggleFeedback(dishName, action, btn) {
+  const scores = loadScores();
+  const before = scores[dishName] || {likes: 0, dislikes: 0, cooks: 0};
+  const key = {like: 'likes', dislike: 'dislikes', cooked: 'cooks'}[action];
+  const wasOn = before[key] > 0;
+  // 切换：再次点击同 action 取消
+  if (wasOn) {
+    scores[dishName] = {...before, [key]: before[key] - 1};
+    if (scores[dishName][key] === 0 && scores[dishName].likes === 0 && scores[dishName].dislikes === 0 && scores[dishName].cooks === 0) {
+      delete scores[dishName];
+    }
+  } else {
+    scores[dishName] = {...before, [key]: (before[key] || 0) + 1};
+  }
+  saveScores(scores);
+  btn.classList.toggle(action === 'like' ? 'liked' : action === 'dislike' ? 'disliked' : 'cooked');
+  // 轻提示
+  showToast(wasOn ? '↩️ 已取消' : (action === 'like' ? '👍 已记住喜欢' : action === 'dislike' ? '👎 已记住不喜欢' : '✅ 已记录做了'));
+}
+
+function showToast(text) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:white;padding:10px 20px;border-radius:20px;font-size:14px;z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.2s;';
+    document.body.appendChild(t);
+  }
+  t.textContent = text;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 1500);
 }
 
 function renderCombo(combo) {
@@ -1971,6 +2266,62 @@ function viewFeedback() {
 // ============ 偏好设置（Day 10） ============
 const PREFS_KEY = 'what-to-eat-prefs';
 
+// ============ Day 11：自催化学习 ============
+const SCORES_KEY = 'what-to-eat-scores';
+
+function loadScores() {
+  try { return JSON.parse(localStorage.getItem(SCORES_KEY) || '{}'); }
+  catch (e) { return {}; }
+}
+
+function saveScores(scores) {
+  localStorage.setItem(SCORES_KEY, JSON.stringify(scores));
+}
+
+function computeTagAffinities(scores, dishes) {
+  const tagPos = {}, tagNeg = {};
+  for (const d of dishes) {
+    const s = scores[d.name] || {};
+    const pos = (s.likes || 0) + (s.cooks || 0);
+    const neg = (s.dislikes || 0);
+    if (pos + neg === 0) continue;
+    for (const t of (d.tags || [])) {
+      tagPos[t] = (tagPos[t] || 0) + pos;
+      tagNeg[t] = (tagNeg[t] || 0) + neg;
+    }
+  }
+  const aff = {};
+  const all = new Set([...Object.keys(tagPos), ...Object.keys(tagNeg)]);
+  for (const t of all) {
+    const total = (tagPos[t] || 0) + (tagNeg[t] || 0);
+    if (total < 3) { aff[t] = 0; continue; }
+    aff[t] = ((tagPos[t] / total) - 0.5) * 2;
+  }
+  return aff;
+}
+
+function weightedChoice(candidates, scores, tagAff) {
+  if (!candidates || candidates.length === 0) return null;
+  const weights = candidates.map(d => {
+    const s = scores[d.name] || {};
+    let w = 1.0;
+    w += (s.likes || 0) * 3;
+    w += (s.cooks || 0) * 2;
+    w -= (s.dislikes || 0) * 5;
+    for (const t of (d.tags || [])) {
+      w += (tagAff[t] || 0) * 4;
+    }
+    return Math.max(w, 0.1);
+  });
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < candidates.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return candidates[i];
+  }
+  return candidates[candidates.length - 1];
+}
+
 const DEFAULT_PREFS = {
   cuisines: [],
   spicy: 'any',
@@ -2074,6 +2425,69 @@ function openPrefs() {
   document.getElementById('prefs-modal').hidden = false;
   document.body.style.overflow = 'hidden';
   renderPrefs();
+  renderStatsPanel();
+}
+
+function renderStatsPanel() {
+  const panel = document.getElementById('prefs-stats');
+  if (!panel) return;
+  const scores = loadScores();
+  const dishes = DISHES_DATA.map(d => new Dish(d));
+  const total = dishes.length;
+  const learned = Object.keys(scores).length;
+
+  // 喜欢的 Top 3
+  const liked = Object.entries(scores)
+    .filter(([n, s]) => (s.likes || 0) + (s.cooks || 0) > 0)
+    .sort((a, b) => (b[1].likes + b[1].cooks) - (a[1].likes + a[1].cooks))
+    .slice(0, 3);
+  const disliked = Object.entries(scores)
+    .filter(([n, s]) => (s.dislikes || 0) > 0)
+    .sort((a, b) => b[1].dislikes - a[1].dislikes)
+    .slice(0, 3);
+
+  // tag 推断（取 |affinity| > 0.3 的）
+  const tagAff = computeTagAffinities(scores, dishes);
+  const sigTags = Object.entries(tagAff)
+    .filter(([t, v]) => Math.abs(v) > 0.3)
+    .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+    .slice(0, 5);
+
+  let html = `<div class="stats-row"><b>${total}</b> 道菜中已学 <b>${learned}</b> 道</div>`;
+
+  if (liked.length > 0) {
+    html += `<div class="stats-row">❤️ <b>你喜欢的：</b><br>${liked.map(([n, s]) => {
+      const tags = [];
+      if (s.likes) tags.push(`👍${s.likes}`);
+      if (s.cooks) tags.push(`✅${s.cooks}`);
+      return `&nbsp;&nbsp;${escapeHtml(n)}（${tags.join(' ')}）`;
+    }).join('<br>')}</div>`;
+  }
+  if (disliked.length > 0) {
+    html += `<div class="stats-row">💔 <b>你不喜欢的：</b><br>${disliked.map(([n, s]) =>
+      `&nbsp;&nbsp;${escapeHtml(n)}（👎${s.dislikes}）`
+    ).join('<br>')}</div>`;
+  }
+  if (sigTags.length > 0) {
+    html += `<div class="stats-row">🔍 <b>我推断你偏好：</b><br>${sigTags.map(([t, v]) => {
+      const pct = Math.round(v * 100);
+      const sign = v > 0 ? '+' : '';
+      return `&nbsp;&nbsp;${escapeHtml(t)} ${sign}${pct}%`;
+    }).join('<br>')}</div>`;
+  }
+  if (learned === 0) {
+    html += `<div class="stats-row" style="color:#888;">还没记录。多抽几次菜，给菜点点 👍/👎 反馈，我就能学到你的口味 ✨</div>`;
+  }
+
+  html += `<button class="reset-scores" onclick="resetScores()">重置所有评分</button>`;
+  panel.innerHTML = html;
+}
+
+function resetScores() {
+  if (!confirm('重置所有评分（likes / dislikes / cooks）？此操作不可恢复。')) return;
+  localStorage.removeItem(SCORES_KEY);
+  renderStatsPanel();
+  showToast('🗑️ 评分已重置');
 }
 
 function closePrefs() {
@@ -2217,6 +2631,10 @@ function getDishes() {
   return DISHES_DATA.map(d => new Dish(d));
 }
 
+// ============ Day 10：做饭前确认弹窗 ============
+// pendingDraw 暂存"刚刚抽到的菜"，等用户确认后才写入历史
+let pendingDraw = null;  // {kind: "combo"|"three"|"kids", combo: {...}, meals: {...}}
+
 function drawCombo() {
   const btn = document.getElementById('draw-btn');
   btn.disabled = true;
@@ -2229,15 +2647,179 @@ function drawCombo() {
     const history = loadHistory();
     const combo = chooseCombo(pool, history);
     renderCombo(combo);
-    for (const dish of Object.values(combo)) {
-      if (dish) addToHistory(history, dish.name);
-    }
-    saveHistory(history);
-    updateHistoryHint();
+    // Day 10: 弹窗确认，不直接写历史
+    pendingDraw = {kind: "combo", combo: combo};
+    openConfirmModal(combo, "combo");
     btn.disabled = false;
     btn.textContent = '再抽一套 🔄';
   }, 250);
 }
+
+function openConfirmModal(items, kind) {
+  // items 是 dict（套餐）或 {早餐, 午餐(dish), 晚餐(dish)}（三餐）
+  const modal = document.getElementById('confirm-modal');
+  const summary = document.getElementById('confirm-dishes-summary');
+  const list = document.getElementById('confirm-dishes-list');
+  const manualSection = document.getElementById('confirm-manual-section');
+  manualSection.hidden = true;
+
+  // 摘要
+  const parts = [];
+  if (kind === "combo") {
+    for (const [role, dish] of Object.entries(items)) {
+      if (dish) parts.push(`${ROLE_EMOJI[role] || '•'} ${dish.name}`);
+    }
+    summary.textContent = parts.join(' · ');
+  } else {
+    summary.textContent = '早 + 午 + 晚 三餐';
+  }
+
+  // 详细列表
+  list.innerHTML = '';
+  if (kind === "combo") {
+    for (const [role, dish] of Object.entries(items)) {
+      if (!dish) continue;
+      const row = document.createElement('div');
+      row.className = 'dish-row';
+      row.innerHTML = `
+        <div class="dish-emoji">${ROLE_EMOJI[role] || '•'}</div>
+        <div class="dish-info">
+          <div class="dish-name">${escapeHtml(dish.name)}</div>
+          <div class="dish-meta">${role} · 约 ${dish.time_minutes} 分钟</div>
+        </div>`;
+      list.appendChild(row);
+    }
+  } else {
+    // 三餐
+    const renderMeal = (meal, emoji, label) => {
+      const h = document.createElement('div');
+      h.style.cssText = "padding:14px 0 4px 0;font-size:15px;color:#5d4500;font-weight:600;";
+      h.textContent = `${emoji} ${label}`;
+      list.appendChild(h);
+      if (!meal) return;
+      const renderDish = (dish, role) => {
+        if (!dish) return;
+        const row = document.createElement('div');
+        row.className = 'dish-row';
+        row.innerHTML = `
+          <div class="dish-emoji">${ROLE_EMOJI[role] || '•'}</div>
+          <div class="dish-info">
+            <div class="dish-name">${escapeHtml(dish.name)}</div>
+            <div class="dish-meta">${role} · 约 ${dish.time_minutes} 分钟</div>
+          </div>`;
+        list.appendChild(row);
+      };
+      if (meal.模式 === "一碗一餐") {
+        renderDish(meal["主食"], "主食");
+      } else if (meal.模式 === "配菜模式") {
+        renderDish(meal["主菜"], "主菜");
+        renderDish(meal["汤"], "汤");
+        renderDish(meal["主食"], "主食");
+      } else {
+        renderDish(meal["主菜"], "主菜");
+        renderDish(meal["汤"], "汤");
+        renderDish(meal["主食"], "主食");
+      }
+    };
+    renderMeal(items["早餐"], "🥣", "早餐");
+    renderMeal(items["午餐"], "☀️", "午餐");
+    renderMeal(items["晚餐"], "🌙", "晚餐");
+  }
+
+  modal.hidden = false;
+}
+
+function closeConfirmModal() {
+  document.getElementById('confirm-modal').hidden = true;
+  document.getElementById('confirm-manual-section').hidden = true;
+  pendingDraw = null;
+}
+
+function showManualInput() {
+  const section = document.getElementById('confirm-manual-section');
+  section.hidden = false;
+  // 填菜谱列表
+  const list = document.getElementById('confirm-manual-dishes');
+  list.innerHTML = '';
+  const dishes = getDishes();
+  dishes.forEach(d => {
+    const item = document.createElement('div');
+    item.style.cssText = "padding:6px 8px;cursor:pointer;border-radius:4px;font-size:13px;";
+    item.textContent = `${ROLE_EMOJI[d.role] || '•'} ${d.name}`;
+    item.onmouseenter = () => item.style.background = '#fdf6e3';
+    item.onmouseleave = () => item.style.background = '';
+    item.onclick = () => {
+      document.getElementById('confirm-manual-input').value = d.name;
+    };
+    list.appendChild(item);
+  });
+  document.getElementById('confirm-manual-input').focus();
+}
+
+function confirmStatus(status) {
+  if (!pendingDraw) return;
+  const history = loadHistory();
+
+  if (status === 'redraw') {
+    // 换一道：重新触发当前 draw 函数
+    closeConfirmModal();
+    if (pendingDraw.kind === 'combo') drawCombo();
+    else if (pendingDraw.kind === 'kids') drawKidCombo();
+    else drawThreeMeals();
+    return;
+  }
+
+  // 把抽到的菜名收集起来
+  const suggestedNames = collectSuggestedNames(pendingDraw);
+
+  if (status === 'confirmed') {
+    // 全部按抽到的做
+    suggestedNames.forEach(n => addToHistoryWithStatus(history, n, 'confirmed', null));
+  } else if (status === 'skipped') {
+    // 没做饭：记录 skipped
+    addToHistoryWithStatus(history, '没做饭', 'skipped', suggestedNames.join(' / ') || null);
+  } else if (status === 'manual') {
+    // 用户手动输入
+    const input = document.getElementById('confirm-manual-input').value.trim();
+    if (!input) {
+      alert('请输入或选择今天实际吃的菜');
+      return;
+    }
+    addToHistoryWithStatus(history, input, 'manual', suggestedNames.join(' / ') || null);
+  }
+
+  saveHistory(history);
+  updateHistoryHint();
+  closeConfirmModal();
+}
+
+function collectSuggestedNames(pending) {
+  if (pending.kind === 'combo') {
+    return Object.values(pending.combo).filter(d => d && d.name).map(d => d.name);
+  } else if (pending.kind === 'three') {
+    const names = [];
+    const collect = (meal) => {
+      if (!meal) return;
+      for (const d of Object.values(meal)) {
+        if (d && d.name) names.push(d.name);
+      }
+    };
+    collect(pending.meals["早餐"]);
+    collect(pending.meals["午餐"]);
+    collect(pending.meals["晚餐"]);
+    return names;
+  } else if (pending.kind === 'kids') {
+    return Object.values(pending.combo).filter(d => d && d.name).map(d => d.name);
+  }
+  return [];
+}
+
+// ESC 关闭 confirm
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !document.getElementById('confirm-modal').hidden) {
+    closeConfirmModal();
+  }
+});
 
 function checkIngredients() {
   const raw = document.getElementById('ingredient-input').value.trim();
@@ -2283,11 +2865,72 @@ function isWithinWindow(dateStr, windowDays) {
   return d >= cutoff;
 }
 
-function chooseThreeMeals(dishes, history = [], window = 7) {
-  // 按自然日过滤 recent（避免条目数计法在 3 餐/日时窗口错位）
+// 用户习惯版：一顿午饭/晚饭（面条/饺子一碗一餐，米饭配菜+汤）
+function isLunchMainAllowed(dish) {
+  return ["米", "面", "饺子"].some(k => dish.name.includes(k));
+}
+function isOneBowlMeal(dish) {
+  return dish.name.includes("面") || dish.name.includes("饺子");
+}
+
+function chooseOneMeal(dishes, history = [], window = 30, scores = null) {
+  // Day 10: 迁移旧格式 + 过滤 skipped
+  const effective = migrateHistory(history);
   const recent = new Set(
-    history.filter(h => isWithinWindow(h.date, window)).map(h => h.dish)
+    effective.filter(h => isWithinWindow(h.date, window) && h.status !== 'skipped').map(h => h.dish)
   );
+  const useScores = scores || loadScores();
+  const tagAff = computeTagAffinities(useScores, dishes);
+
+  // 抽主食：限定池
+  function pickMain(pool, fallback) {
+    let cands = pool.filter(d => d.role === "主食" && isLunchMainAllowed(d) && !recent.has(d.name));
+    if (cands.length === 0) cands = pool.filter(d => d.role === "主食" && isLunchMainAllowed(d));
+    if (cands.length === 0 && fallback !== pool) {
+      cands = fallback.filter(d => d.role === "主食" && isLunchMainAllowed(d) && !recent.has(d.name));
+    }
+    if (cands.length === 0 && fallback !== pool) {
+      cands = fallback.filter(d => d.role === "主食" && isLunchMainAllowed(d));
+    }
+    if (cands.length === 0) return null;
+    return weightedChoice(cands, useScores, tagAff);
+  }
+
+  const main = pickMain(dishes, dishes);
+  if (!main) return {"主菜": null, "汤": null, "主食": null, "模式": "无"};
+
+  // 一碗一餐
+  if (isOneBowlMeal(main)) {
+    return {"主菜": null, "汤": null, "主食": main, "模式": "一碗一餐"};
+  }
+
+  // 配菜模式
+  function pickRole(role, exclude) {
+    let cands = dishes.filter(d => d.role === role && !exclude.has(d.name) && !recent.has(d.name));
+    if (cands.length === 0) cands = dishes.filter(d => d.role === role && !exclude.has(d.name));
+    if (cands.length === 0) cands = dishes.filter(d => d.role === role);
+    if (cands.length === 0) return null;
+    return weightedChoice(cands, useScores, tagAff);
+  }
+
+  return {
+    "主菜": pickRole("主菜", new Set([main.name])),
+    "汤":   pickRole("汤",   new Set([main.name])),
+    "主食": main,
+    "模式": "配菜模式",
+  };
+}
+
+function chooseThreeMeals(dishes, history = [], window = 7, scores = null) {
+  // Day 10: 迁移旧格式 + 过滤 skipped 状态
+  const effective = migrateHistory(history);
+  const recent = new Set(
+    effective
+      .filter(h => isWithinWindow(h.date, window) && h.status !== 'skipped')
+      .map(h => h.dish)
+  );
+  const useScores = scores || loadScores();
+  const tagAff = computeTagAffinities(useScores, dishes);
   function pick(role, exclude) {
     let candidates = dishes.filter(d =>
       d.role === role && !exclude.has(d.name) && !recent.has(d.name));
@@ -2298,26 +2941,17 @@ function chooseThreeMeals(dishes, history = [], window = 7) {
       candidates = dishes.filter(d => d.role === role);
     }
     if (candidates.length === 0) return null;
-    return candidates[Math.floor(Math.random() * candidates.length)];
+    return weightedChoice(candidates, useScores, tagAff);
   }
 
   const breakfast = pick("早餐", new Set());
-  const exclude = new Set();
-  if (breakfast) exclude.add(breakfast.name);
 
-  const lunch = {
-    "主菜": pick("主菜", exclude),
-    "主食": pick("主食", exclude),
-    "凉菜": pick("凉菜", exclude),
-    "汤":   pick("汤",   exclude),
-  };
-  Object.values(lunch).forEach(d => { if (d) exclude.add(d.name); });
-
-  const dinner = {
-    "主菜": pick("主菜", exclude),
-    "主食": pick("主食", exclude),
-    "凉菜": pick("凉菜", exclude),
-  };
+  // 午晚饭走用户习惯版（一碗一餐 / 配菜模式）
+  const lunch = chooseOneMeal(dishes, effective, window, useScores);
+  // 避免午晚重复：把午餐选的菜加进历史传给晚餐
+  const lunchNames = Object.values(lunch).filter(d => d && d.name).map(d => d.name);
+  const dinnerHistory = effective.concat(lunchNames.map(n => ({dish: n, date: new Date().toISOString().slice(0, 10), status: 'confirmed'})));
+  const dinner = chooseOneMeal(dishes, dinnerHistory, window, useScores);
 
   return {"早餐": breakfast, "午餐": lunch, "晚餐": dinner};
 }
@@ -2338,7 +2972,34 @@ function renderThreeMeals(meals) {
     row.innerHTML = `<div class="dish-emoji">⚠️</div><div class="dish-info"><div class="dish-name">${text}</div></div>`;
     result.appendChild(row);
   }
+  function renderMeal(meal, emoji, label) {
+    header(`${emoji} ${label}`);
+    if (!meal || meal.模式 === "无" || !meal["主食"]) {
+      emptyRow("暂无合适");
+      return;
+    }
+    if (meal.模式 === "一碗一餐") {
+      // 只显示那一碗
+      const tag = document.createElement('div');
+      tag.style.cssText = "font-size:13px;color:#888;padding:2px 0 4px 4px;";
+      tag.textContent = "一碗一餐";
+      result.appendChild(tag);
+      result.appendChild(buildDishRow(meal["主食"]));
+    } else {
+      // 配菜模式：主菜 + 汤 + 主食
+      const tag = document.createElement('div');
+      tag.style.cssText = "font-size:13px;color:#888;padding:2px 0 4px 4px;";
+      tag.textContent = "配菜模式";
+      result.appendChild(tag);
+      for (const role of ["主菜", "汤", "主食"]) {
+        const dish = meal[role];
+        if (dish) result.appendChild(buildDishRow(dish));
+        else emptyRow(`${role}：暂无合适`);
+      }
+    }
+  }
 
+  // 早餐
   header("☀️ 早餐");
   if (meals["早餐"]) {
     result.appendChild(buildDishRow(meals["早餐"]));
@@ -2346,25 +3007,17 @@ function renderThreeMeals(meals) {
     emptyRow("暂无合适早餐");
   }
 
-  header("🌞 午餐");
-  for (const role of ["主菜", "主食", "凉菜", "汤"]) {
-    const dish = meals["午餐"][role];
-    if (dish) result.appendChild(buildDishRow(dish));
-    else emptyRow(`${role}：暂无合适`);
-  }
-
-  header("🌙 晚餐");
-  for (const role of ["主菜", "主食", "凉菜"]) {
-    const dish = meals["晚餐"][role];
-    if (dish) result.appendChild(buildDishRow(dish));
-    else emptyRow(`${role}：暂无合适`);
-  }
+  // 午餐 + 晚餐
+  renderMeal(meals["午餐"], "🌞", "午餐");
+  renderMeal(meals["晚餐"], "🌙", "晚餐");
 
   // 营养覆盖
   const allDishes = [];
   if (meals["早餐"]) allDishes.push(meals["早餐"]);
-  Object.values(meals["午餐"]).forEach(d => { if (d) allDishes.push(d); });
-  Object.values(meals["晚餐"]).forEach(d => { if (d) allDishes.push(d); });
+  for (const meal of [meals["午餐"], meals["晚餐"]]) {
+    if (!meal) continue;
+    Object.values(meal).forEach(d => { if (d && d.name) allDishes.push(d); });
+  }
   const covered = new Set();
   allDishes.forEach(d => classifyNutrition(d).forEach(c => covered.add(c)));
 
@@ -2388,15 +3041,42 @@ function drawThreeMeals() {
     const history = loadHistory();
     const meals = chooseThreeMeals(pool, history, 7);
     renderThreeMeals(meals);
-    // 写历史（按一日三餐共 7 条）
-    if (meals["早餐"]) addToHistory(history, meals["早餐"].name);
-    Object.values(meals["午餐"]).forEach(d => { if (d) addToHistory(history, d.name); });
-    Object.values(meals["晚餐"]).forEach(d => { if (d) addToHistory(history, d.name); });
-    saveHistory(history);
-    updateHistoryHint();
+    // Day 10: 弹窗确认
+    pendingDraw = {kind: "three", meals: meals};
+    openConfirmModal(meals, "three");
     btn.disabled = false;
     btn.textContent = '再抽一天 🔄';
   }, 250);
+}
+
+// 抽一顿：用户习惯版（一碗一餐 / 配菜模式）
+function drawOneMeal() {
+  const result = document.getElementById('three-result');
+  result.innerHTML = '';
+  const dishes = getDishes();
+  const prefs = loadPrefs();
+  const filtered = applyPrefs(dishes, prefs);
+  const pool = filtered.length > 0 ? filtered : dishes;
+  const history = loadHistory();
+  const meal = chooseOneMeal(pool, history, 30);
+
+  const banner = document.createElement('div');
+  banner.style.cssText = "padding:14px 0;font-size:15px;color:#5d4500;font-weight:600;";
+  banner.textContent = meal.模式 === "一碗一餐" ? "🍱 一碗一餐：" : "🍱 配菜模式：";
+  result.appendChild(banner);
+
+  if (meal.模式 === "一碗一餐") {
+    result.appendChild(buildDishRow(meal["主食"]));
+  } else {
+    for (const role of ["主菜", "汤", "主食"]) {
+      const dish = meal[role];
+      if (dish) result.appendChild(buildDishRow(dish));
+    }
+  }
+  // 写历史
+  Object.values(meal).forEach(d => { if (d && d.name) addToHistory(history, d.name); });
+  saveHistory(history);
+  updateHistoryHint();
 }
 
 function drawKidCombo() {
@@ -2411,11 +3091,9 @@ function drawKidCombo() {
     const history = loadHistory();
     const combo = chooseCombo(pool, history);
     renderComboTo(combo, 'kids-result');
-    for (const dish of Object.values(combo)) {
-      if (dish) addToHistory(history, dish.name);
-    }
-    saveHistory(history);
-    updateHistoryHint();
+    // Day 10: 弹窗确认
+    pendingDraw = {kind: "kids", combo: combo};
+    openConfirmModal(combo, "combo");
     btn.disabled = false;
     btn.textContent = '再抽一套 🔄';
   }, 250);

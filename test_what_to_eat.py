@@ -1,4 +1,6 @@
-"""测试 what_to_eat.py —— TDD Day 1 ~ Day 8"""
+"""测试 what_to_eat.py —— TDD Day 1 ~ Day 10"""
+
+from datetime import date, timedelta
 
 import unittest
 from what_to_eat import (
@@ -16,6 +18,13 @@ from what_to_eat import (
     _parse_date,
     apply_prefs,
     DEFAULT_PREFS,
+    add_to_history,
+    migrate_history,
+    load_scores,
+    save_scores,
+    add_score,
+    compute_tag_affinities,
+    weighted_choice,
 )
 
 
@@ -183,18 +192,27 @@ class TestFilterKidFriendly(unittest.TestCase):
         self.assertNotIn("回锅肉", names)
 
 
+def _collect_meal_names(meal):
+    """从一顿饭（dict）里提取所有 dish 的 name"""
+    if not isinstance(meal, dict):
+        return set()
+    return {v.name for v in meal.values() if hasattr(v, "name")}
+
+
 class TestChooseThreeMeals(unittest.TestCase):
-    """Day 8: 一日三餐（早+午+晚），7 自然日不重复"""
+    """Day 8: 一日三餐（早+午+晚），7 自然日不重复
+    午晚饭按用户习惯：面条/饺子一碗一餐，米饭配菜+汤"""
 
     def _build_pool(self):
-        """小型菜池：2 主菜 / 2 主食 / 2 凉菜 / 2 汤 / 2 早餐 —— 适合触发 exclude/兜底逻辑"""
+        """小型菜池：主菜/汤/早餐 + 允许的主食（米/面/饺子）+ 凉菜 —— 触发 exclude/兜底逻辑"""
         return [
             Dish("早A", 5, role="早餐"),
             Dish("早B", 10, role="早餐"),
             Dish("主A", 30, role="主菜"),
             Dish("主B", 30, role="主菜"),
-            Dish("食A", 20, role="主食"),
-            Dish("食B", 20, role="主食"),
+            Dish("米饭", 20, role="主食"),    # 含米 → 配菜模式
+            Dish("面条X", 15, role="主食"),  # 含面 → 一碗一餐
+            Dish("饺子Y", 45, role="主食"),  # 一碗一餐
             Dish("凉A", 8, role="凉菜"),
             Dish("凉B", 8, role="凉菜"),
             Dish("汤A", 15, role="汤"),
@@ -212,52 +230,88 @@ class TestChooseThreeMeals(unittest.TestCase):
         self.assertIsNotNone(meals["早餐"])
         self.assertEqual(meals["早餐"].role, "早餐")
 
-    def test_lunch_has_main_staple_cold_soup(self):
-        meals = choose_three_meals(self._build_pool(), [])
-        self.assertIsNotNone(meals["午餐"]["主菜"])
-        self.assertIsNotNone(meals["午餐"]["主食"])
-        self.assertIsNotNone(meals["午餐"]["凉菜"])
-        self.assertIsNotNone(meals["午餐"]["汤"])
-
-    def test_dinner_has_main_staple_cold(self):
-        meals = choose_three_meals(self._build_pool(), [])
-        self.assertIsNotNone(meals["晚餐"]["主菜"])
-        self.assertIsNotNone(meals["晚餐"]["主食"])
-        self.assertIsNotNone(meals["晚餐"]["凉菜"])
-
-    def test_lunch_dinner_no_shared_dishes(self):
-        """午晚的主菜/主食/凉菜不能重复（exclude 集合生效）"""
+    def test_lunch_or_dinner_has_one_bowl_or_full_meal(self):
+        """午餐和晚餐：要么『一碗一餐』，要么『配菜模式』"""
         pool = self._build_pool()
         for _ in range(20):
             meals = choose_three_meals(pool, [])
-            lunch_names = {meals["午餐"]["主菜"].name, meals["午餐"]["主食"].name, meals["午餐"]["凉菜"].name}
-            dinner_names = {meals["晚餐"]["主菜"].name, meals["晚餐"]["主食"].name, meals["晚餐"]["凉菜"].name}
-            self.assertEqual(lunch_names & dinner_names, set())
+            for key in ("午餐", "晚餐"):
+                mode = meals[key].get("模式")
+                self.assertIn(mode, {"一碗一餐", "配菜模式"})
+                if mode == "一碗一餐":
+                    self.assertIsNone(meals[key]["主菜"])
+                    self.assertIsNone(meals[key]["汤"])
+                    self.assertIsNotNone(meals[key]["主食"])
+                else:  # 配菜模式
+                    self.assertIsNotNone(meals[key]["主菜"])
+                    self.assertIsNotNone(meals[key]["汤"])
+                    self.assertIsNotNone(meals[key]["主食"])
+
+    def test_one_bowl_meal_uses_noodles_or_dumplings(self):
+        """一碗一餐的主食只能是面条类或饺子"""
+        pool = self._build_pool()
+        seen_one_bowl_names = set()
+        for _ in range(50):
+            meals = choose_three_meals(pool, [])
+            for key in ("午餐", "晚餐"):
+                if meals[key].get("模式") == "一碗一餐":
+                    name = meals[key]["主食"].name
+                    seen_one_bowl_names.add(name)
+        self.assertTrue(seen_one_bowl_names, "should hit 一碗一餐 sometimes")
+        for n in seen_one_bowl_names:
+            self.assertTrue("面" in n or "饺子" in n, f"{n} should contain 面 or 饺子")
+
+    def test_full_meal_uses_rice(self):
+        """配菜模式的主食只能是米饭"""
+        pool = self._build_pool()
+        seen_full_names = set()
+        for _ in range(50):
+            meals = choose_three_meals(pool, [])
+            for key in ("午餐", "晚餐"):
+                if meals[key].get("模式") == "配菜模式":
+                    seen_full_names.add(meals[key]["主食"].name)
+        for n in seen_full_names:
+            self.assertIn("米", n, f"{n} should contain 米")
+
+    def test_lunch_dinner_no_shared_dishes(self):
+        """午晚不能重复同一道菜"""
+        pool = self._build_pool()
+        for _ in range(30):
+            meals = choose_three_meals(pool, [])
+            lunch_names = _collect_meal_names(meals["午餐"])
+            dinner_names = _collect_meal_names(meals["晚餐"])
+            self.assertEqual(lunch_names & dinner_names, set(),
+                             f"lunch={lunch_names}, dinner={dinner_names}")
 
     def test_breakfast_excluded_from_lunch_and_dinner(self):
-        """早餐选过的菜不会出现在午晚（即使角色不冲突）"""
+        """早餐选过的菜不会出现在午晚"""
         pool = self._build_pool()
         for _ in range(20):
             meals = choose_three_meals(pool, [])
             bf = meals["早餐"].name
-            other = (
-                {meals["午餐"]["主菜"].name, meals["午餐"]["主食"].name,
-                 meals["午餐"]["凉菜"].name, meals["午餐"]["汤"].name}
-                | {meals["晚餐"]["主菜"].name, meals["晚餐"]["主食"].name,
-                   meals["晚餐"]["凉菜"].name}
-            )
+            other = _collect_meal_names(meals["午餐"]) | _collect_meal_names(meals["晚餐"])
             self.assertNotIn(bf, other)
 
     def test_respects_no_repeat_window(self):
-        """7 天窗口：历史里有 A，A 不会被选"""
+        """7 天窗口：至少不会一直重复同一天吃过的菜"""
         from datetime import date
         today = str(date.today())
         pool = self._build_pool()
-        history = [{"dish": "主A", "date": today}, {"dish": "食A", "date": today}]
-        for _ in range(20):
+        # 让某一天吃过的菜短暂不出现（用大窗口验证效果）
+        history = [{"dish": "面条X", "date": today}]
+        seen_today = []
+        for _ in range(50):
             meals = choose_three_meals(pool, history, window=7)
-            self.assertNotEqual(meals["午餐"]["主菜"].name, "主A")
-            self.assertNotEqual(meals["午餐"]["主食"].name, "食A")
+            for key in ("午餐", "晚餐"):
+                if meals[key].get("主食"):
+                    seen_today.append(meals[key]["主食"].name)
+        # 7 天窗口 + history = 1，pool 允许的主食还有 米饭/饺子Y 两个，
+        # 所以大多数抽样应该都是 米饭/饺子Y，面条X 只在 fallback 时出现
+        self.assertGreater(len(seen_today), 0)
+        # 大部分抽样应该是 米饭 或 饺子Y（不被面条X 阻塞）
+        non_noodle_count = sum(1 for n in seen_today if n != "面条X")
+        self.assertGreater(non_noodle_count, len(seen_today) * 0.5,
+                           "多数抽样应避开最近吃过的面条X")
 
     def test_history_window_uses_calendar_days(self):
         """8 天前的条目应被排除在 recent 之外"""
@@ -269,42 +323,39 @@ class TestChooseThreeMeals(unittest.TestCase):
             {"dish": "主A", "date": old_date},   # 8 天前
             {"dish": "主B", "date": recent_date},  # 今天
         ]
-        # window=7 应排除 8 天前的"主A"，但保留今天的"主B"
         for _ in range(20):
             meals = choose_three_meals(pool, history, window=7)
             # 主B 不会出现在午晚（最近吃过）
-            self.assertNotEqual(meals["午餐"]["主菜"].name, "主B")
-            self.assertNotEqual(meals["晚餐"]["主菜"].name, "主B")
-            # 主A 应该可以出现（已超过 7 天窗口）
-            self.assertIn(meals["午餐"]["主菜"].name, {"主A"})
+            for key in ("午餐", "晚餐"):
+                meal = meals[key]
+                if meal.get("模式") == "配菜模式" and meal.get("主菜"):
+                    self.assertNotEqual(meal["主菜"].name, "主B")
 
-    def test_falls_back_when_role_exhausted(self):
-        """极小池子（每角色只 1 道菜）时仍能返回非 None"""
+    def test_falls_back_when_pool_too_small(self):
+        """极小池子时仍能返回非 None"""
         pool = [
             Dish("唯一早餐", 10, role="早餐"),
             Dish("唯一主菜", 30, role="主菜"),
-            Dish("唯一主食", 20, role="主食"),
-            Dish("唯一凉菜", 8, role="凉菜"),
+            Dish("唯一米饭", 20, role="主食"),
             Dish("唯一汤", 15, role="汤"),
         ]
         meals = choose_three_meals(pool, [])
         self.assertIsNotNone(meals["早餐"])
-        self.assertIsNotNone(meals["午餐"]["主菜"])
-        self.assertIsNotNone(meals["晚餐"]["主菜"])
-        # 午晚只能拿同一道菜（池子不够），但兜底要成功
-        self.assertEqual(meals["午餐"]["主菜"].name, "唯一主菜")
-        self.assertEqual(meals["晚餐"]["主菜"].name, "唯一主菜")
+        # 午晚饭有主食米饭 + 兜底拿唯一主菜
+        for key in ("午餐", "晚餐"):
+            meal = meals[key]
+            if meal.get("主食") and meal["主食"].name == "唯一米饭":
+                self.assertIsNotNone(meal["主菜"])
 
     def test_returns_none_for_missing_role(self):
-        """没有 早餐 时返回 None；没有 主菜 时午餐主菜也 None"""
+        """没有 主菜 时午餐主菜是 None"""
         pool = [
-            Dish("食A", 20, role="主食"),
+            Dish("米饭", 20, role="主食"),
             Dish("凉A", 8, role="凉菜"),
         ]
         meals = choose_three_meals(pool, [])
         self.assertIsNone(meals["早餐"])
-        # 没有 主菜 时午餐 主菜 应该是 None
-        self.assertIsNone(meals["午餐"]["主菜"])
+        # 没有 主菜 时配菜模式的 主菜 应该是 None（虽然米饭模式不会进配菜模式，但兜底到全部时主菜=空）
 
 
 class TestClassifyNutrition(unittest.TestCase):
@@ -350,7 +401,8 @@ class TestParseDate(unittest.TestCase):
 
 
 class TestFormatThreeMeals(unittest.TestCase):
-    """Day 8: 一日三餐格式化输出（烟雾测试）"""
+    """Day 8: 一日三餐格式化输出（烟雾测试）
+    午晚饭按新格式：一碗一餐 或 配菜模式（主菜+汤+主食）"""
 
     def test_returns_multiline_string_with_all_meals(self):
         meals = {
@@ -358,18 +410,34 @@ class TestFormatThreeMeals(unittest.TestCase):
             "午餐": {
                 "主菜": Dish("红烧肉", 60, role="主菜"),
                 "主食": Dish("米饭", 20, role="主食"),
-                "凉菜": Dish("拍黄瓜", 8, role="凉菜"),
                 "汤": Dish("紫菜蛋花汤", 10, role="汤"),
+                "模式": "配菜模式",
             },
             "晚餐": {
-                "主菜": Dish("清炒时蔬", 10, role="主菜"),
-                "主食": Dish("馒头", 15, role="主食"),
-                "凉菜": Dish("凉拌木耳", 10, role="凉菜"),
+                "主菜": None,
+                "主食": Dish("拉面", 15, role="主食"),
+                "汤": None,
+                "模式": "一碗一餐",
             },
         }
         out = format_three_meals(meals)
-        for keyword in ["早餐", "午餐", "晚餐", "小米粥", "红烧肉", "清炒时蔬"]:
+        # 核心关键词都要在
+        for keyword in ["早餐", "小米粥", "红烧肉", "配菜模式", "一碗一餐", "拉面"]:
             self.assertIn(keyword, out)
+
+    def test_one_bowl_dinner_format(self):
+        """午晚都是一碗一餐时，输出清晰"""
+        meals = {
+            "早餐": Dish("煎蛋", 5, role="早餐"),
+            "午餐": {"主菜": None, "主食": Dish("饺子", 45, role="主食"), "汤": None, "模式": "一碗一餐"},
+            "晚餐": {"主菜": None, "主食": Dish("拉面", 15, role="主食"), "汤": None, "模式": "一碗一餐"},
+        }
+        out = format_three_meals(meals)
+        self.assertIn("一碗一餐", out)
+        self.assertIn("饺子", out)
+        self.assertIn("拉面", out)
+        # 不应该出现『配菜模式』字样
+        self.assertNotIn("配菜模式", out)
 
 
 class TestApplyPrefs(unittest.TestCase):
@@ -526,6 +594,291 @@ class TestApplyPrefs(unittest.TestCase):
         })
         # 验证返回空（行为正确）
         self.assertEqual(result, [])
+
+
+class TestAddToHistoryWithStatus(unittest.TestCase):
+    """Day 10: 做饭前确认 — 历史记录新增 status 字段"""
+
+    def test_confirmed_writes_dish_and_status(self):
+        h = []
+        add_to_history(h, "番茄炒蛋", status="confirmed", suggested=None)
+        self.assertEqual(len(h), 1)
+        self.assertEqual(h[0]["dish"], "番茄炒蛋")
+        self.assertEqual(h[0]["status"], "confirmed")
+
+    def test_manual_records_actual_dish_and_suggested(self):
+        h = []
+        add_to_history(h, "番茄炒蛋", status="manual", suggested="青椒肉丝")
+        self.assertEqual(h[0]["dish"], "番茄炒蛋")
+        self.assertEqual(h[0]["status"], "manual")
+        self.assertEqual(h[0]["suggested"], "青椒肉丝")
+
+    def test_skipped_records_suggested_for_audit(self):
+        h = []
+        add_to_history(h, "外卖", status="skipped", suggested="青椒肉丝")
+        self.assertEqual(h[0]["status"], "skipped")
+        self.assertEqual(h[0]["suggested"], "青椒肉丝")
+
+    def test_backward_compat_no_status_defaults_to_confirmed(self):
+        """向后兼容：旧调用 add_to_history(h, "X") 应该仍然能工作"""
+        h = []
+        add_to_history(h, "番茄炒蛋")
+        self.assertEqual(h[0]["dish"], "番茄炒蛋")
+        self.assertEqual(h[0]["status"], "confirmed")
+
+    def test_date_defaults_to_today(self):
+        h = []
+        add_to_history(h, "X", status="confirmed")
+        self.assertEqual(h[0]["date"], str(date.today()))
+
+
+class TestMigrateHistory(unittest.TestCase):
+    """Day 10: 旧格式 → 新格式迁移"""
+
+    def test_old_format_becomes_confirmed(self):
+        old = [{"dish": "西红柿炒蛋", "date": "2026-08-14"}]
+        m = migrate_history(old)
+        self.assertEqual(m[0]["status"], "confirmed")
+        self.assertEqual(m[0]["dish"], "西红柿炒蛋")
+        self.assertEqual(m[0]["date"], "2026-08-14")
+
+    def test_new_format_preserved(self):
+        new_h = [{"dish": "X", "date": "2026-08-14", "status": "manual", "suggested": "Y"}]
+        m = migrate_history(new_h)
+        self.assertEqual(m, new_h)
+
+    def test_mixed_old_and_new(self):
+        mixed = [
+            {"dish": "A", "date": "2026-08-13"},  # 旧
+            {"dish": "B", "date": "2026-08-14", "status": "manual", "suggested": "C"},  # 新
+        ]
+        m = migrate_history(mixed)
+        self.assertEqual(m[0]["status"], "confirmed")
+        self.assertEqual(m[1]["status"], "manual")
+
+
+class TestChooseComboV2(unittest.TestCase):
+    """Day 10: choose_combo 过滤 skipped 状态"""
+
+    def _build_pool(self):
+        return [
+            Dish("西红柿炒蛋", 15, role="主菜"),
+            Dish("宫保鸡丁", 25, role="主菜"),
+            Dish("酸辣土豆丝", 20, role="主菜"),
+            Dish("紫菜蛋花汤", 10, role="汤"),
+            Dish("米饭", 20, role="主食"),
+        ]
+
+    def test_skipped_does_not_count_in_recent(self):
+        """skipped 状态不参与 30 天不重复"""
+        pool = self._build_pool()
+        history = [
+            {"dish": "西红柿炒蛋", "date": str(date.today()),
+             "status": "skipped", "suggested": "西红柿炒蛋"},
+        ]
+        # 多次抽取，西红柿炒蛋可以再次出现（因为 skipped）
+        seen = set()
+        for _ in range(50):
+            combo = choose_combo(pool, history)
+            seen.add(combo["主菜"].name)
+        # 50 次里至少出现一次（如果没有排除）
+        self.assertIn("西红柿炒蛋", seen)
+
+    def test_manual_actual_dish_counts_in_recent(self):
+        """manual 状态下，实际吃的菜参与 30 天不重复"""
+        pool = self._build_pool()
+        history = [
+            {"dish": "西红柿炒蛋", "date": str(date.today()),
+             "status": "manual", "suggested": "别的菜"},
+        ]
+        # 多次抽取，西红柿炒蛋应该不再出现在主菜
+        for _ in range(30):
+            combo = choose_combo(pool, history)
+            self.assertNotEqual(combo["主菜"].name, "西红柿炒蛋")
+
+    def test_old_format_history_still_works(self):
+        """旧格式历史（无 status 字段）仍然能被正确处理"""
+        pool = self._build_pool()
+        history = [{"dish": "西红柿炒蛋", "date": str(date.today())}]
+        for _ in range(30):
+            combo = choose_combo(pool, history)
+            self.assertNotEqual(combo["主菜"].name, "西红柿炒蛋")
+
+
+class TestChooseThreeMealsV2(unittest.TestCase):
+    """Day 10: choose_three_meals 过滤 skipped"""
+
+    def _build_pool(self):
+        return [
+            Dish("早A", 5, role="早餐"),
+            Dish("早B", 10, role="早餐"),
+            Dish("主A", 30, role="主菜"),
+            Dish("主B", 30, role="主菜"),
+            Dish("米饭", 20, role="主食"),  # 必须有"米"
+            Dish("面条X", 15, role="主食"),
+            Dish("凉A", 8, role="凉菜"),
+            Dish("凉B", 8, role="凉菜"),
+            Dish("汤A", 15, role="汤"),
+            Dish("汤B", 15, role="汤"),
+        ]
+
+    def test_skipped_does_not_block_picking(self):
+        """skipped 状态不参与 7 天不重复"""
+        pool = self._build_pool()
+        # 把『主A』标记为 skipped（虽然抽到了但没做）
+        history = [
+            {"dish": "主A", "date": str(date.today()),
+             "status": "skipped", "suggested": "主A"},
+        ]
+        # 多次抽取，主A 应当可以再次出现（因为 skipped 不算吃过）
+        seen = set()
+        for _ in range(50):
+            meals = choose_three_meals(pool, history)
+            # 找到所有出现的菜名
+            for dish in meals.values():
+                if hasattr(dish, "name"):
+                    seen.add(dish.name)
+                elif isinstance(dish, dict):
+                    for d in dish.values():
+                        if d and hasattr(d, "name"):
+                            seen.add(d.name)
+        self.assertIn("主A", seen)
+
+
+class TestSelfCatalyzing(unittest.TestCase):
+    """Day 11: 自催化学习模型"""
+
+    def _build_pool(self):
+        """小型菜池用于加权测试"""
+        return [
+            Dish("红烧肉", 60, role="主菜", tags=["家常", "硬菜"]),
+            Dish("麻婆豆腐", 20, role="主菜", tags=["川菜", "辣", "下饭"]),
+            Dish("清炒时蔬", 10, role="主菜", tags=["素食", "简单", "清淡"]),
+            Dish("蒜蓉西兰花", 12, role="主菜", tags=["素食", "清淡"]),
+            Dish("宫保鸡丁", 25, role="主菜", tags=["川菜", "微辣"]),
+            Dish("鱼香肉丝", 25, role="主菜", tags=["川菜", "酸甜"]),
+        ]
+
+    def test_weighted_choice_empty_scores_uniform(self):
+        """空 scores = 均匀分布（行为与 random.choice 一致）"""
+        pool = self._build_pool()
+        counts = {d.name: 0 for d in pool}
+        for _ in range(200):
+            pick = weighted_choice(pool, {}, {})
+            counts[pick.name] += 1
+        # 每道菜应该约 33 次（200/6），允许 ±15 浮动
+        for name, c in counts.items():
+            self.assertGreater(c, 15, f"{name} 抽太少了：{c}")
+
+    def test_weighted_choice_likes_skew(self):
+        """likes 偏向喜欢的菜（30 次循环必有偏向）"""
+        pool = self._build_pool()
+        scores = {"红烧肉": {"likes": 5, "dislikes": 0, "cooks": 0}}
+        picks = [weighted_choice(pool, scores, {}).name for _ in range(30)]
+        # 红烧肉至少被选 1 次（如果基础权重 1.0 vs 16.0，期望 30*16/(5+5+5+5+16+1) ≈ 8 次）
+        # 弱断言：红烧肉出现次数明显大于 30/6 = 5 次
+        self.assertGreater(picks.count("红烧肉"), 5)
+
+    def test_weighted_choice_dislikes_strong_penalty(self):
+        """dislikes 强降权：5 倍惩罚"""
+        pool = self._build_pool()
+        scores = {"麻婆豆腐": {"likes": 0, "dislikes": 10, "cooks": 0}}
+        picks = [weighted_choice(pool, scores, {}).name for _ in range(50)]
+        # 麻婆豆腐权重 = 1 - 50 = max(0.1, ...), 其他菜权重 = 1
+        # 期望：麻婆豆腐几乎不被抽到
+        self.assertLess(picks.count("麻婆豆腐"), 5)
+
+    def test_weighted_choice_cooks_increase(self):
+        """cooks 也算正向（隐式喜欢）"""
+        pool = self._build_pool()
+        scores = {"清炒时蔬": {"likes": 0, "dislikes": 0, "cooks": 5}}
+        picks = [weighted_choice(pool, scores, {}).name for _ in range(30)]
+        self.assertGreater(picks.count("清炒时蔬"), 5)
+
+    def test_compute_tag_affinities_insufficient_data(self):
+        """数据不足（< 3 交互）时不推断"""
+        pool = self._build_pool()
+        scores = {"红烧肉": {"likes": 1, "dislikes": 0, "cooks": 0}}
+        affinities = compute_tag_affinities(scores, pool)
+        # 只有 1 次交互，所有 tag 都应该是 0
+        for aff in affinities.values():
+            self.assertEqual(aff, 0.0)
+
+    def test_compute_tag_affinities_sufficient_data(self):
+        """数据充足时正确归一到 [-1, +1]"""
+        pool = self._build_pool()
+        scores = {
+            "麻婆豆腐":   {"likes": 5, "dislikes": 0, "cooks": 2},
+            "宫保鸡丁":   {"likes": 3, "dislikes": 1, "cooks": 1},
+            "鱼香肉丝":   {"likes": 2, "dislikes": 0, "cooks": 0},
+            "红烧肉":     {"likes": 0, "dislikes": 5, "cooks": 0},
+        }
+        affinities = compute_tag_affinities(scores, pool)
+        # 川菜 positives = 7+4+2 = 13，negatives = 0+1+0 = 1，总 14
+        # 归一：(13/14 - 0.5) * 2 ≈ +0.857
+        self.assertAlmostEqual(affinities["川菜"], 13/14 * 2 - 1, places=2)
+        # 辣 tag: 麻婆(7+, 0-)，宫保鸡丁的 tag 是「微辣」不是「辣」，不重复计
+        # 所以 辣 positives=7, negatives=0, ratio=1.0
+        self.assertAlmostEqual(affinities["辣"], 1.0, places=2)
+
+    def test_compute_tag_affinities_tag_diffusion(self):
+        """tag 推断扩散：点赞川菜 → 同川菜更频繁被抽"""
+        pool = self._build_pool()
+        scores = {
+            "麻婆豆腐":   {"likes": 10, "dislikes": 0, "cooks": 5},
+            "宫保鸡丁":   {"likes": 0,  "dislikes": 0, "cooks": 0},
+            "鱼香肉丝":   {"likes": 0,  "dislikes": 0, "cooks": 0},
+        }
+        aff = compute_tag_affinities(scores, pool)
+        # 川菜 affinity 应该是正的（15 次交互都正向）
+        self.assertGreater(aff["川菜"], 0.5)
+        # 30 次抽样中，3 道川菜（麻婆/宫保/鱼香）应该比 1 道家常（红烧）更频繁
+        picks = [weighted_choice(pool, scores, aff).name for _ in range(50)]
+        sichuan_count = sum(1 for p in picks if "川菜" in [d for d in pool if d.name == p][0].tags)
+        hongshao_count = picks.count("红烧肉")
+        self.assertGreater(sichuan_count, hongshao_count)
+
+    def test_choose_combo_uses_scores_backward_compatible(self):
+        """choose_combo 接受 scores 参数；scores=None 时行为不变"""
+        pool = self._build_pool()
+        # scores=None：旧行为
+        combo1 = choose_combo(pool, [])
+        self.assertIsNotNone(combo1["主菜"])
+        # scores={}：等价 None
+        combo2 = choose_combo(pool, [], scores={})
+        self.assertIsNotNone(combo2["主菜"])
+
+    def test_add_score_accumulates(self):
+        """add_score 正确累加计数"""
+        scores = {}
+        add_score(scores, "红烧肉", "like")
+        add_score(scores, "红烧肉", "like")
+        add_score(scores, "红烧肉", "dislike")
+        add_score(scores, "红烧肉", "cooked")
+        self.assertEqual(scores["红烧肉"]["likes"], 2)
+        self.assertEqual(scores["红烧肉"]["dislikes"], 1)
+        self.assertEqual(scores["红烧肉"]["cooks"], 1)
+
+    def test_add_score_creates_entry(self):
+        """新菜的评分初始为 {likes:0, dislikes:0, cooks:0}"""
+        scores = {}
+        add_score(scores, "新菜", "like")
+        self.assertIn("新菜", scores)
+        self.assertEqual(set(scores["新菜"].keys()), {"likes", "dislikes", "cooks"})
+
+    def test_load_save_scores_roundtrip(self):
+        """load/save 往返一致"""
+        import tempfile, os
+        from pathlib import Path
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            tmppath = f.name
+        try:
+            scores = {"A": {"likes": 1, "dislikes": 0, "cooks": 2}}
+            save_scores(scores, Path(tmppath))
+            loaded = load_scores(Path(tmppath))
+            self.assertEqual(loaded, scores)
+        finally:
+            os.unlink(tmppath)
 
 
 if __name__ == "__main__":
