@@ -154,6 +154,45 @@ function chooseThreeMeals(dishes, history = [], window = 7) {
   return {"早餐": breakfast, "午餐": lunch, "晚餐": dinner};
 }
 
+// ============ Day 10：偏好设置 applyPrefs ============
+const PREFS_SEAFOOD_KEYS = ["鱼", "虾", "蟹", "紫菜", "海带", "扇贝", "蛤", "牡蛎", "鱿鱼"];
+const PREFS_OFFAL_KEYS   = ["肥肠", "猪肚", "肝", "腰", "心", "肚"];
+
+function applyPrefs(dishes, prefs) {
+  prefs = prefs || {};
+  let result = dishes.slice();
+
+  if (prefs.cuisines && prefs.cuisines.length > 0) {
+    result = result.filter(d => (d.tags || []).some(t => prefs.cuisines.includes(t)));
+  }
+  if (prefs.spicy === 'none') {
+    result = result.filter(d => !(d.tags || []).some(t => SPICY_TAGS.some(s => t.includes(s))));
+  } else if (prefs.spicy === 'mild') {
+    result = result.filter(d => !(d.tags || []).some(t => t === '辣' || t === '麻辣'));
+  }
+  if (prefs.noNumb) {
+    result = result.filter(d => !(d.tags || []).some(t => t.includes('麻辣')));
+  }
+  const avoid = prefs.avoid || {};
+  const hasIngredient = (d, keys) => (d.ingredients || []).some(ing => keys.some(k => ing.includes(k)));
+  if (avoid.seafood)    result = result.filter(d => !hasIngredient(d, PREFS_SEAFOOD_KEYS));
+  if (avoid.offal)      result = result.filter(d => !hasIngredient(d, PREFS_OFFAL_KEYS));
+  if (avoid.cilantro)   result = result.filter(d => !(d.ingredients || []).some(ing => ing.includes('香菜')));
+  if (avoid.beef)       result = result.filter(d => !(d.ingredients || []).some(ing => ing.includes('牛')));
+  if (avoid.lamb)       result = result.filter(d => !(d.ingredients || []).some(ing => ing.includes('羊')));
+  if (avoid.centuryEgg) result = result.filter(d => !(d.ingredients || []).some(ing => ing.includes('皮蛋')));
+  if (prefs.maxTime && prefs.maxTime > 0) {
+    result = result.filter(d => d.time_minutes <= prefs.maxTime);
+  }
+  if (prefs.vegetarian) {
+    result = result.filter(d => (d.tags || []).includes('素食'));
+  }
+  if (prefs.noCold) {
+    result = result.filter(d => d.role !== '凉菜');
+  }
+  return result;
+}
+
 // ============ 测试框架 ============
 const results = [];
 let currentGroup = "";
@@ -367,6 +406,99 @@ test("8 天前的历史不影响选择", () => {
     assert(meals["午餐"]["主菜"].name !== "主B");
     assert(meals["晚餐"]["主菜"].name !== "主B");
   }
+});
+
+// ============ Day 10: applyPrefs 测试 ============
+
+group("applyPrefs（偏好设置）");
+
+function prefsPool() {
+  return [
+    new Dish({name: "麻婆豆腐", time_minutes: 20, role: "主菜", tags: ["川菜", "辣"], ingredients: ["嫩豆腐", "牛肉末"]}),
+    new Dish({name: "清炒时蔬", time_minutes: 10, role: "主菜", tags: ["素食", "简单"], ingredients: ["青菜"]}),
+    new Dish({name: "红烧肥肠", time_minutes: 60, role: "主菜", tags: ["硬菜"], ingredients: ["肥肠 500g"]}),
+    new Dish({name: "蒜蓉西兰花", time_minutes: 12, role: "主菜", tags: ["素食", "清淡"], ingredients: ["西兰花"]}),
+    new Dish({name: "宫保鸡丁", time_minutes: 25, role: "主菜", tags: ["川菜", "微辣"], ingredients: ["鸡丁"]}),
+    new Dish({name: "拍黄瓜", time_minutes: 8, role: "凉菜", tags: ["简单"], ingredients: ["黄瓜"]}),
+    new Dish({name: "紫菜蛋花汤", time_minutes: 10, role: "汤", tags: ["清淡"], ingredients: ["紫菜", "鸡蛋"]}),
+    new Dish({name: "西红柿牛腩汤", time_minutes: 60, role: "汤", tags: [], ingredients: ["牛腩", "番茄"]}),
+    new Dish({name: "白粥", time_minutes: 15, role: "早餐", tags: ["简单"], ingredients: ["大米"]}),
+  ];
+}
+
+test("空偏好 = 不过滤（行为与原列表一致）", () => {
+  const pool = prefsPool();
+  const r = applyPrefs(pool, {});
+  assertEqual(r.length, pool.length);
+});
+
+test("空对象/None 也安全", () => {
+  const pool = prefsPool();
+  assertEqual(applyPrefs(pool, null).length, pool.length);
+  assertEqual(applyPrefs(pool, undefined).length, pool.length);
+});
+
+test("菜系筛选：只要川菜 → 只剩川菜", () => {
+  const pool = prefsPool();
+  const r = applyPrefs(pool, {cuisines: ["川菜"]});
+  const names = r.map(d => d.name);
+  assert(names.includes("麻婆豆腐"));
+  assert(names.includes("宫保鸡丁"));
+  assert(!names.includes("清炒时蔬"));
+  assert(!names.includes("红烧肥肠"));
+});
+
+test("辣度='none' → 排除所有辣味", () => {
+  const pool = prefsPool();
+  const r = applyPrefs(pool, {spicy: "none"});
+  const names = r.map(d => d.name);
+  assert(!names.includes("麻婆豆腐"));  // 辣
+  assert(!names.includes("宫保鸡丁"));  // 微辣
+  assert(names.includes("清炒时蔬"));
+});
+
+test("忌口-海鲜 → 紫菜蛋花汤被排除，西红柿牛腩汤保留", () => {
+  const pool = prefsPool();
+  const r = applyPrefs(pool, {avoid: {seafood: true}});
+  const names = r.map(d => d.name);
+  assert(!names.includes("紫菜蛋花汤"));
+  assert(names.includes("西红柿牛腩汤"));
+});
+
+test("忌口-内脏 → 红烧肥肠被排除", () => {
+  const pool = prefsPool();
+  const r = applyPrefs(pool, {avoid: {offal: true}});
+  assert(!r.map(d => d.name).includes("红烧肥肠"));
+});
+
+test("时间 ≤30min → 红烧肥肠(60) 被排除", () => {
+  const pool = prefsPool();
+  const r = applyPrefs(pool, {maxTime: 30});
+  for (const d of r) assert(d.time_minutes <= 30);
+  assert(!r.map(d => d.name).includes("红烧肥肠"));
+});
+
+test("素食 → 只保留带'素食' tag 的菜", () => {
+  const pool = prefsPool();
+  const r = applyPrefs(pool, {vegetarian: true});
+  const names = r.map(d => d.name);
+  assert(names.includes("清炒时蔬"));
+  assert(names.includes("蒜蓉西兰花"));
+  assert(!names.includes("麻婆豆腐"));
+});
+
+test("不要凉菜 → 凉菜 role 全部排除", () => {
+  const pool = prefsPool();
+  const r = applyPrefs(pool, {noCold: true});
+  for (const d of r) assert(d.role !== "凉菜");
+  assert(!r.map(d => d.name).includes("拍黄瓜"));
+});
+
+test("组合：川菜+不辣 → 川菜里没不辣的，结果空", () => {
+  const pool = prefsPool();
+  const r = applyPrefs(pool, {cuisines: ["川菜"], spicy: "none"});
+  // 麻婆豆腐/宫保鸡丁都是川菜但都辣，应被过滤
+  assertEqual(r, []);
 });
 
 // ============ 渲染结果 ============

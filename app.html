@@ -77,6 +77,31 @@
 
   .empty { color: #aaa; text-align: center; padding: 36px 20px; font-size: 15px; }
 
+  /* ============ 偏好设置 chips ============ */
+  .chip-row {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0 8px 0;
+  }
+  .chip {
+    display: inline-flex; align-items: center;
+    padding: 8px 14px; border-radius: 20px;
+    background: #fff5e6; color: #8b6914;
+    border: 1.5px solid #f3d9a8;
+    font-size: 14px; cursor: pointer; user-select: none;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .chip:active { transform: scale(0.96); }
+  .chip.active {
+    background: #e85d04; color: white; border-color: #e85d04;
+  }
+  .chip-group-label {
+    font-size: 13px; color: #888; margin: 12px 0 6px 0;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .chip-group-label .hint {
+    font-size: 11px; color: #aaa; font-weight: normal;
+  }
+
   .header-banner {
     background: linear-gradient(135deg, #e85d04, #f48c06);
     color: white; padding: 20px; border-radius: 16px; margin-bottom: 20px;
@@ -247,6 +272,7 @@
   <h1>🥢 今天吃什么</h1>
   <div class="date" id="today"></div>
   <div class="banner-actions">
+    <button class="banner-btn" onclick="openPrefs()">⚙️ 偏好设置</button>
     <button class="banner-btn" onclick="shareApp()">📤 分享</button>
     <button class="banner-btn" onclick="openFeedback()">💬 反馈</button>
   </div>
@@ -352,6 +378,60 @@
         <button class="primary" style="margin-top:8px;font-size:15px;padding:12px;" onclick="submitFeedback()">提交反馈</button>
         <button class="banner-btn" style="margin-top:8px;color:#888;border-color:#e0d5c0;" onclick="viewFeedback()">📋 查看已收到的反馈</button>
       </section>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 偏好设置 Modal ============ -->
+<div id="prefs-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closePrefs()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="closePrefs()">×</button>
+    <div class="modal-header">
+      <span style="font-size:48px;display:block;margin-bottom:8px;">⚙️</span>
+      <h2 class="modal-title">偏好设置</h2>
+      <div class="modal-meta">勾选你的口味，抽菜时会自动避开</div>
+    </div>
+    <div class="modal-body">
+      <!-- 🍜 菜系 -->
+      <section>
+        <div class="chip-group-label">🍜 菜系 <span class="hint">（多选；全不选 = 不限）</span></div>
+        <div class="chip-row" id="prefs-cuisines"></div>
+      </section>
+
+      <!-- 🌶️ 口味 -->
+      <section>
+        <div class="chip-group-label">🌶️ 口味</div>
+        <div style="font-size:13px;color:#888;margin-bottom:6px;">辣度</div>
+        <div class="chip-row" id="prefs-spicy"></div>
+        <div class="chip-row" style="margin-top:8px;">
+          <span class="chip" id="prefs-noNumb-chip">不要麻辣</span>
+        </div>
+      </section>
+
+      <!-- 🍽️ 忌口 -->
+      <section>
+        <div class="chip-group-label">🍽️ 忌口 <span class="hint">（勾上就不出现）</span></div>
+        <div class="chip-row" id="prefs-avoid"></div>
+      </section>
+
+      <!-- ⏱️ 时间 -->
+      <section>
+        <div class="chip-group-label">⏱️ 烹饪时间</div>
+        <div class="chip-row" id="prefs-time"></div>
+      </section>
+
+      <!-- 🥗 其他 -->
+      <section>
+        <div class="chip-group-label">🥗 其他</div>
+        <div class="chip-row" id="prefs-misc"></div>
+      </section>
+
+      <!-- 按钮 -->
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button class="banner-btn" style="flex:1;border-color:#e0d5c0;color:#888;" onclick="resetPrefs()">重置默认</button>
+        <button class="primary" style="flex:2;margin:0;font-size:16px;padding:14px;" onclick="savePrefsFromUI()">保存设置</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1888,6 +1968,250 @@ function viewFeedback() {
   alert(out);
 }
 
+// ============ 偏好设置（Day 10） ============
+const PREFS_KEY = 'what-to-eat-prefs';
+
+const DEFAULT_PREFS = {
+  cuisines: [],
+  spicy: 'any',
+  noNumb: false,
+  avoid: {
+    seafood: false, offal: false, cilantro: false,
+    beef: false, lamb: false, centuryEgg: false,
+  },
+  maxTime: 0,
+  vegetarian: false,
+  noCold: false,
+  skipBreakfast: false,
+};
+
+const SEAFOOD_KEYS = ["鱼", "虾", "蟹", "紫菜", "海带", "扇贝", "蛤", "牡蛎", "鱿鱼"];
+const OFFAL_KEYS   = ["肥肠", "猪肚", "肝", "腰", "心", "肚"];
+
+// 当前数据里有的菜系（自动从 DISHES_DATA 提取）
+function availableCuisines() {
+  const tags = new Set();
+  for (const d of DISHES_DATA) {
+    for (const t of (d.tags || [])) {
+      if (t === "川菜" || t === "东北菜" || t === "粤菜" || t === "鲁菜" ||
+          t === "苏菜" || t === "闽菜" || t === "浙菜" || t === "湘菜" || t === "徽菜" ||
+          t === "家常") {
+        tags.add(t);
+      }
+    }
+  }
+  return Array.from(tags);
+}
+
+function loadPrefs() {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (!raw) return JSON.parse(JSON.stringify(DEFAULT_PREFS));
+    const saved = JSON.parse(raw);
+    // 与默认值合并（防止老版本缺字段）
+    return Object.assign(JSON.parse(JSON.stringify(DEFAULT_PREFS)), saved, {
+      avoid: Object.assign({}, DEFAULT_PREFS.avoid, saved.avoid || {}),
+    });
+  } catch (e) {
+    return JSON.parse(JSON.stringify(DEFAULT_PREFS));
+  }
+}
+
+function savePrefs(prefs) {
+  localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+}
+
+function resetPrefs() {
+  if (!confirm('重置所有偏好为默认值？')) return;
+  localStorage.removeItem(PREFS_KEY);
+  openPrefs();  // 重新渲染
+}
+
+function applyPrefs(dishes, prefs) {
+  prefs = prefs || {};
+  let result = dishes.slice();
+
+  // 1. 菜系
+  if (prefs.cuisines && prefs.cuisines.length > 0) {
+    result = result.filter(d => (d.tags || []).some(t => prefs.cuisines.includes(t)));
+  }
+  // 2. 辣度
+  if (prefs.spicy === 'none') {
+    result = result.filter(d => !(d.tags || []).some(t => SPICY_TAGS.some(s => t.includes(s))));
+  } else if (prefs.spicy === 'mild') {
+    result = result.filter(d => !(d.tags || []).some(t => t === '辣' || t === '麻辣'));
+  }
+  // 3. 不要麻辣
+  if (prefs.noNumb) {
+    result = result.filter(d => !(d.tags || []).some(t => t.includes('麻辣')));
+  }
+  // 4. 忌口
+  const avoid = prefs.avoid || {};
+  const hasIngredient = (d, keys) => (d.ingredients || []).some(ing => keys.some(k => ing.includes(k)));
+  if (avoid.seafood)    result = result.filter(d => !hasIngredient(d, SEAFOOD_KEYS));
+  if (avoid.offal)      result = result.filter(d => !hasIngredient(d, OFFAL_KEYS));
+  if (avoid.cilantro)   result = result.filter(d => !(d.ingredients || []).some(ing => ing.includes('香菜')));
+  if (avoid.beef)       result = result.filter(d => !(d.ingredients || []).some(ing => ing.includes('牛')));
+  if (avoid.lamb)       result = result.filter(d => !(d.ingredients || []).some(ing => ing.includes('羊')));
+  if (avoid.centuryEgg) result = result.filter(d => !(d.ingredients || []).some(ing => ing.includes('皮蛋')));
+  // 5. 时间
+  if (prefs.maxTime && prefs.maxTime > 0) {
+    result = result.filter(d => d.time_minutes <= prefs.maxTime);
+  }
+  // 6. 素食
+  if (prefs.vegetarian) {
+    result = result.filter(d => (d.tags || []).includes('素食'));
+  }
+  // 7. 不要凉菜
+  if (prefs.noCold) {
+    result = result.filter(d => d.role !== '凉菜');
+  }
+  return result;
+}
+
+// ---------- 偏好设置 UI ----------
+function openPrefs() {
+  document.getElementById('prefs-modal').hidden = false;
+  document.body.style.overflow = 'hidden';
+  renderPrefs();
+}
+
+function closePrefs() {
+  document.getElementById('prefs-modal').hidden = true;
+  document.body.style.overflow = '';
+}
+
+function renderPrefs() {
+  const prefs = loadPrefs();
+
+  // 菜系
+  const cuisines = availableCuisines();
+  const cuisineRow = document.getElementById('prefs-cuisines');
+  cuisineRow.innerHTML = '';
+  for (const c of cuisines) {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (prefs.cuisines.includes(c) ? ' active' : '');
+    chip.textContent = c;
+    chip.dataset.cuisine = c;
+    chip.onclick = () => {
+      chip.classList.toggle('active');
+    };
+    cuisineRow.appendChild(chip);
+  }
+
+  // 辣度
+  const spicyRow = document.getElementById('prefs-spicy');
+  spicyRow.innerHTML = '';
+  [['none', '不辣'], ['mild', '微辣也行'], ['any', '随便']].forEach(([val, label]) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (prefs.spicy === val ? ' active' : '');
+    chip.textContent = label;
+    chip.dataset.spicy = val;
+    chip.onclick = () => {
+      spicyRow.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    };
+    spicyRow.appendChild(chip);
+  });
+
+  // 不要麻辣
+  const noNumbChip = document.getElementById('prefs-noNumb-chip');
+  noNumbChip.className = 'chip' + (prefs.noNumb ? ' active' : '');
+  noNumbChip.onclick = () => noNumbChip.classList.toggle('active');
+
+  // 忌口
+  const avoidRow = document.getElementById('prefs-avoid');
+  avoidRow.innerHTML = '';
+  const avoidDefs = [
+    ['seafood',    '海鲜',  '鱼/虾/蟹/紫菜'],
+    ['offal',      '内脏',  '肥肠/猪肚/肝'],
+    ['cilantro',   '香菜',  ''],
+    ['beef',       '牛肉',  ''],
+    ['lamb',       '羊肉',  ''],
+    ['centuryEgg', '皮蛋',  ''],
+  ];
+  for (const [key, label, hint] of avoidDefs) {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (prefs.avoid[key] ? ' active' : '');
+    chip.textContent = hint ? `${label}（${hint}）` : label;
+    chip.dataset.avoid = key;
+    chip.onclick = () => chip.classList.toggle('active');
+    avoidRow.appendChild(chip);
+  }
+
+  // 时间
+  const timeRow = document.getElementById('prefs-time');
+  timeRow.innerHTML = '';
+  [['0', '不限'], ['30', '≤30 分钟'], ['60', '≤60 分钟']].forEach(([val, label]) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (String(prefs.maxTime) === val ? ' active' : '');
+    chip.textContent = label;
+    chip.dataset.time = val;
+    chip.onclick = () => {
+      timeRow.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    };
+    timeRow.appendChild(chip);
+  });
+
+  // 其他
+  const miscRow = document.getElementById('prefs-misc');
+  miscRow.innerHTML = '';
+  const miscDefs = [
+    ['vegetarian',   '我是素食（只吃素菜）'],
+    ['noCold',       '不要凉菜'],
+    ['skipBreakfast','不抽早饭（三餐模式跳过）'],
+  ];
+  for (const [key, label] of miscDefs) {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (prefs[key] ? ' active' : '');
+    chip.textContent = label;
+    chip.dataset.misc = key;
+    chip.onclick = () => chip.classList.toggle('active');
+    miscRow.appendChild(chip);
+  }
+}
+
+function savePrefsFromUI() {
+  const cuisines = Array.from(document.querySelectorAll('#prefs-cuisines .chip.active'))
+    .map(c => c.dataset.cuisine);
+  const spicyEl = document.querySelector('#prefs-spicy .chip.active');
+  const spicy = spicyEl ? spicyEl.dataset.spicy : 'any';
+  const noNumb = document.getElementById('prefs-noNumb-chip').classList.contains('active');
+  const avoid = {};
+  document.querySelectorAll('#prefs-avoid .chip.active').forEach(c => { avoid[c.dataset.avoid] = true; });
+  const timeEl = document.querySelector('#prefs-time .chip.active');
+  const maxTime = timeEl ? parseInt(timeEl.dataset.time) : 0;
+  const misc = {};
+  document.querySelectorAll('#prefs-misc .chip.active').forEach(c => { misc[c.dataset.misc] = true; });
+
+  const prefs = {
+    cuisines, spicy, noNumb,
+    avoid: {
+      seafood: !!avoid.seafood, offal: !!avoid.offal, cilantro: !!avoid.cilantro,
+      beef: !!avoid.beef, lamb: !!avoid.lamb, centuryEgg: !!avoid.centuryEgg,
+    },
+    maxTime,
+    vegetarian: !!misc.vegetarian,
+    noCold: !!misc.noCold,
+    skipBreakfast: !!misc.skipBreakfast,
+  };
+  savePrefs(prefs);
+  closePrefs();
+  // 轻提示
+  const summary = [];
+  if (cuisines.length) summary.push(`菜系: ${cuisines.join('/')}`);
+  if (spicy === 'none') summary.push('不辣');
+  else if (spicy === 'mild') summary.push('可微辣');
+  if (noNumb) summary.push('不要麻辣');
+  if (Object.values(avoid).some(Boolean)) summary.push(`忌口 ${Object.values(avoid).filter(Boolean).length} 项`);
+  if (maxTime) summary.push(`≤${maxTime}min`);
+  if (prefs.vegetarian) summary.push('素食');
+  if (prefs.noCold) summary.push('不要凉菜');
+  if (prefs.skipBreakfast) summary.push('不抽早饭');
+  alert('✅ 已保存偏好\n\n' + (summary.length ? '当前：' + summary.join('、') : '（无任何偏好 = 不筛选）'));
+}
+
 // ============ 主逻辑 ============
 function getDishes() {
   return DISHES_DATA.map(d => new Dish(d));
@@ -1898,9 +2222,12 @@ function drawCombo() {
   btn.disabled = true;
   btn.textContent = '抽签中...';
   setTimeout(() => {
-    const dishes = getDishes();
+    let dishes = getDishes();
+    const prefs = loadPrefs();
+    const filtered = applyPrefs(dishes, prefs);
+    const pool = filtered.length > 0 ? filtered : dishes;
     const history = loadHistory();
-    const combo = chooseCombo(dishes, history);
+    const combo = chooseCombo(pool, history);
     renderCombo(combo);
     for (const dish of Object.values(combo)) {
       if (dish) addToHistory(history, dish.name);
@@ -1921,7 +2248,10 @@ function checkIngredients() {
   }
   const available = raw.split(/\s+/).filter(s => s);
   const dishes = getDishes();
-  const feasible = filterByIngredients(dishes, available);
+  const prefs = loadPrefs();
+  const filtered = applyPrefs(dishes, prefs);
+  const pool = filtered.length > 0 ? filtered : dishes;
+  const feasible = filterByIngredients(pool, available);
   renderFeasible(available, feasible);
 }
 
@@ -2051,9 +2381,12 @@ function drawThreeMeals() {
   btn.disabled = true;
   btn.textContent = '抽签中...';
   setTimeout(() => {
-    const dishes = getDishes();
+    let dishes = getDishes();
+    const prefs = loadPrefs();
+    const filtered = applyPrefs(dishes, prefs);
+    const pool = filtered.length > 0 ? filtered : dishes;
     const history = loadHistory();
-    const meals = chooseThreeMeals(dishes, history, 7);
+    const meals = chooseThreeMeals(pool, history, 7);
     renderThreeMeals(meals);
     // 写历史（按一日三餐共 7 条）
     if (meals["早餐"]) addToHistory(history, meals["早餐"].name);
@@ -2072,8 +2405,11 @@ function drawKidCombo() {
   btn.textContent = '抽签中...';
   setTimeout(() => {
     const kidDishes = filterKidFriendly(getDishes());
+    const prefs = loadPrefs();
+    const filtered = applyPrefs(kidDishes, prefs);
+    const pool = filtered.length > 0 ? filtered : kidDishes;
     const history = loadHistory();
-    const combo = chooseCombo(kidDishes, history);
+    const combo = chooseCombo(pool, history);
     renderComboTo(combo, 'kids-result');
     for (const dish of Object.values(combo)) {
       if (dish) addToHistory(history, dish.name);
@@ -2111,9 +2447,12 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   }
 });
 
-// ESC 关闭菜谱
+// ESC 关闭菜谱 / 反馈 / 偏好
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeRecipe();
+  if (e.key !== 'Escape') return;
+  if (!document.getElementById('prefs-modal').hidden) closePrefs();
+  else if (!document.getElementById('feedback-modal').hidden) closeFeedback();
+  else if (!document.getElementById('recipe-modal').hidden) closeRecipe();
 });
 
 document.getElementById('today').textContent =

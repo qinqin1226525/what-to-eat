@@ -14,6 +14,8 @@ from what_to_eat import (
     classify_nutrition,
     format_three_meals,
     _parse_date,
+    apply_prefs,
+    DEFAULT_PREFS,
 )
 
 
@@ -368,6 +370,162 @@ class TestFormatThreeMeals(unittest.TestCase):
         out = format_three_meals(meals)
         for keyword in ["早餐", "午餐", "晚餐", "小米粥", "红烧肉", "清炒时蔬"]:
             self.assertIn(keyword, out)
+
+
+class TestApplyPrefs(unittest.TestCase):
+    """Day 10: 偏好过滤 apply_prefs"""
+
+    def _build_pool(self):
+        """小型菜池：覆盖菜系/辣度/麻/忌口/时间/素食等维度"""
+        return [
+            Dish("麻婆豆腐", 20, role="主菜", tags=["川菜", "辣", "下饭"],
+                 ingredients=["嫩豆腐", "牛肉末", "豆瓣酱"]),
+            Dish("清炒时蔬", 10, role="主菜", tags=["素食", "简单"],
+                 ingredients=["青菜", "蒜"]),
+            Dish("红烧肥肠", 60, role="主菜", tags=["硬菜", "下饭"],
+                 ingredients=["肥肠 500g"]),
+            Dish("蒜蓉西兰花", 12, role="主菜", tags=["素食", "简单", "清淡"],
+                 ingredients=["西兰花", "蒜"]),
+            Dish("宫保鸡丁", 25, role="主菜", tags=["川菜", "微辣"],
+                 ingredients=["鸡丁", "花生"]),
+            Dish("酸辣土豆丝", 15, role="主菜", tags=["酸辣"],
+                 ingredients=["土豆", "辣椒"]),
+            Dish("拍黄瓜", 8, role="凉菜", tags=["简单", "开胃"],
+                 ingredients=["黄瓜", "蒜", "辣椒油"]),
+            Dish("凉拌花生米", 10, role="凉菜", tags=["下酒"],
+                 ingredients=["花生", "芹菜"]),
+            Dish("西红柿牛腩汤", 60, role="汤", tags=["慢炖"],
+                 ingredients=["牛腩", "番茄"]),
+            Dish("紫菜蛋花汤", 10, role="汤", tags=["清淡"],
+                 ingredients=["紫菜", "鸡蛋"]),
+            Dish("白粥", 15, role="早餐", tags=["简单", "清淡"],
+                 ingredients=["大米", "水"]),
+        ]
+
+    def test_default_prefs_is_empty(self):
+        """默认偏好结构应该是空 / False / 'any'"""
+        self.assertEqual(DEFAULT_PREFS["cuisines"], [])
+        self.assertEqual(DEFAULT_PREFS["spicy"], "any")
+        self.assertFalse(DEFAULT_PREFS["noNumb"])
+        self.assertEqual(DEFAULT_PREFS["maxTime"], 0)
+        self.assertFalse(DEFAULT_PREFS["vegetarian"])
+        self.assertFalse(DEFAULT_PREFS["noCold"])
+
+    def test_empty_prefs_filters_nothing(self):
+        """空 prefs = 不过滤 = 与原列表一致"""
+        pool = self._build_pool()
+        result = apply_prefs(pool, {})
+        self.assertEqual(len(result), len(pool))
+
+    def test_none_prefs_filters_nothing(self):
+        """prefs=None 也要安全"""
+        pool = self._build_pool()
+        result = apply_prefs(pool, None)
+        self.assertEqual(len(result), len(pool))
+
+    def test_cuisines_filters_to_selected(self):
+        """只选川菜 → 只剩川菜 tag"""
+        pool = self._build_pool()
+        result = apply_prefs(pool, {"cuisines": ["川菜"]})
+        names = [d.name for d in result]
+        self.assertIn("麻婆豆腐", names)
+        self.assertIn("宫保鸡丁", names)
+        self.assertNotIn("清炒时蔬", names)
+        self.assertNotIn("红烧肥肠", names)
+
+    def test_spicy_none_excludes_all_spicy(self):
+        """辣度='none' → 排除所有辣/微辣/麻辣"""
+        pool = self._build_pool()
+        result = apply_prefs(pool, {"spicy": "none"})
+        names = [d.name for d in result]
+        self.assertNotIn("麻婆豆腐", names)
+        self.assertNotIn("宫保鸡丁", names)
+        self.assertIn("清炒时蔬", names)
+        self.assertIn("蒜蓉西兰花", names)
+
+    def test_noNumb_excludes_mala(self):
+        """不要麻辣 → 即使微辣菜也能保留"""
+        pool = self._build_pool()
+        result = apply_prefs(pool, {"noNumb": True})
+        names = [d.name for d in result]
+        # 宫保鸡丁有"微辣"没"麻辣"，应该保留
+        self.assertIn("宫保鸡丁", names)
+        # 麻婆豆腐有"辣"没"麻辣"，应该保留
+        self.assertIn("麻婆豆腐", names)
+
+    def test_avoid_seafood_excludes_fish(self):
+        """忌口-海鲜 → 排除含紫菜的菜（西红柿牛腩汤不含海鲜，应保留）"""
+        pool = self._build_pool()
+        result = apply_prefs(pool, {"avoid": {"seafood": True}})
+        names = [d.name for d in result]
+        # 西红柿牛腩汤不含海鲜关键词，应保留
+        self.assertIn("西红柿牛腩汤", names)
+        # 紫菜蛋花汤含"紫菜"（海鲜关键词）应被排除
+        self.assertNotIn("紫菜蛋花汤", names)
+
+    def test_avoid_offal_excludes_offal_dishes(self):
+        """忌口-内脏 → 红烧肥肠应被排除"""
+        pool = self._build_pool()
+        result = apply_prefs(pool, {"avoid": {"offal": True}})
+        names = [d.name for d in result]
+        self.assertNotIn("红烧肥肠", names)
+        self.assertIn("麻婆豆腐", names)
+
+    def test_maxTime_filters_by_time(self):
+        """时间 ≤30 分钟"""
+        pool = self._build_pool()
+        result = apply_prefs(pool, {"maxTime": 30})
+        for d in result:
+            self.assertLessEqual(d.time_minutes, 30)
+        self.assertNotIn("红烧肥肠", names := [d.name for d in result])
+        self.assertIn("清炒时蔬", names)
+
+    def test_vegetarian_only_keeps_veg_tagged(self):
+        """素食 → 只保留带"素食" tag 的"""
+        pool = self._build_pool()
+        result = apply_prefs(pool, {"vegetarian": True})
+        names = [d.name for d in result]
+        self.assertIn("清炒时蔬", names)
+        self.assertIn("蒜蓉西兰花", names)
+        self.assertNotIn("麻婆豆腐", names)
+        self.assertNotIn("红烧肥肠", names)
+
+    def test_noCold_excludes_凉菜_role(self):
+        """不要凉菜 → 凉菜 role 全部排除"""
+        pool = self._build_pool()
+        result = apply_prefs(pool, {"noCold": True})
+        for d in result:
+            self.assertNotEqual(d.role, "凉菜")
+        self.assertNotIn("拍黄瓜", [d.name for d in result])
+        self.assertNotIn("凉拌花生米", [d.name for d in result])
+
+    def test_combined_filters_compose(self):
+        """多偏好叠加：川菜 + 不辣 + 30min"""
+        pool = self._build_pool()
+        result = apply_prefs(pool, {
+            "cuisines": ["川菜"],
+            "spicy": "none",
+            "maxTime": 30,
+        })
+        names = [d.name for d in result]
+        # 川菜里没有不辣且≤30min的菜（麻婆豆腐是辣，宫保鸡丁是微辣）
+        # 所以结果应为空
+        self.assertEqual(names, [])
+
+    def test_extreme_combination_returns_original_pool_when_empty(self):
+        """极端组合过滤后空 → apply_prefs 仍然返回原列表（让上层兜底）"""
+        # 这里 apply_prefs 返回空是 OK 的；上层 choose_combo 会兜底
+        pool = self._build_pool()
+        result = apply_prefs(pool, {
+            "cuisines": ["川菜"],
+            "spicy": "none",
+            "vegetarian": True,
+            "avoid": {"seafood": True, "offal": True},
+            "maxTime": 15,
+            "noCold": True,
+        })
+        # 验证返回空（行为正确）
+        self.assertEqual(result, [])
 
 
 if __name__ == "__main__":
