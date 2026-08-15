@@ -836,6 +836,104 @@ test("tag 推断：点赞 川菜 越多 → 川菜 越被推", () => {
   assert(sichuanCount > 25, `川菜应 > 25：${sichuanCount}/50`);
 });
 
+// ============ Day 12：手动记录（纯自由文本 → 写 history + scores） ============
+// 复制自 app.html 的核心函数（测试不依赖 DOM，用 stub）
+
+function parseMealInput(str) {
+  if (!str) return [];
+  const seen = new Set();
+  const out = [];
+  for (const raw of String(str).split(',')) {
+    const name = raw.trim();
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    out.push(name);
+  }
+  return out;
+}
+
+const VALID_MEALS_JS = ["早餐", "午餐", "晚餐"];
+function logManualJS(history, meals, dateStr, scores) {
+  let written = 0;
+  for (const mealKey of VALID_MEALS_JS) {
+    const names = parseMealInput(meals[mealKey]);
+    for (const name of names) {
+      history.push({ dish: name, date: dateStr, status: 'manual', meal: mealKey });
+      if (scores && !scores[name]) scores[name] = { likes: 0, dislikes: 0, cooks: 0 };
+      if (scores) scores[name].cooks += 1;
+      written++;
+    }
+  }
+  return written;
+}
+
+group("parseMealInput");
+test("空串返回 []", () => assertEqual(parseMealInput(""), []));
+test("null 返回 []", () => assertEqual(parseMealInput(null), []));
+test("单个菜返回单元素数组", () => assertEqual(parseMealInput("小米粥"), ["小米粥"]));
+test("逗号分隔返回多元素", () => assertEqual(parseMealInput("米饭, 红烧肉, 紫菜蛋花汤"), ["米饭", "红烧肉", "紫菜蛋花汤"]));
+test("去空白", () => assertEqual(parseMealInput("  米饭  ,  红烧肉  "), ["米饭", "红烧肉"]));
+test("同餐重复去重", () => assertEqual(parseMealInput("米饭, 米饭, 米饭"), ["米饭"]));
+test("空项过滤", () => assertEqual(parseMealInput("米饭, , 红烧肉,"), ["米饭", "红烧肉"]));
+
+group("logManualJS");
+test("写入 3 条对应早午晚", () => {
+  const h = [];
+  const meals = {"早餐": "小米粥", "午餐": "米饭", "晚餐": "面条"};
+  logManualJS(h, meals, "2026-08-15", null);
+  assertEqual(h.length, 3);
+  assertEqual(h[0].dish, "小米粥");
+  assertEqual(h[0].meal, "早餐");
+  assertEqual(h[0].status, "manual");
+  assertEqual(h[0].date, "2026-08-15");
+});
+test("一餐多个菜各写一条", () => {
+  const h = [];
+  logManualJS(h, {"午餐": "米饭, 红烧肉"}, "2026-08-15", null);
+  assertEqual(h.length, 2);
+  assert(h.every(e => e.meal === "午餐"));
+});
+test("空餐不写入", () => {
+  const h = [];
+  logManualJS(h, {"早餐": "", "午餐": "米饭", "晚餐": null}, "2026-08-15", null);
+  assertEqual(h.length, 1);
+  assertEqual(h[0].dish, "米饭");
+});
+test("非法 meal key 静默忽略", () => {
+  const h = [];
+  logManualJS(h, {"宵夜": "麻辣烫", "下午茶": "蛋糕"}, "2026-08-15", null);
+  assertEqual(h.length, 0);
+});
+test("scores 累加 cooks +1", () => {
+  const scores = {"米饭": {likes: 0, dislikes: 0, cooks: 0}};
+  logManualJS([], {"午餐": "米饭"}, "2026-08-15", scores);
+  assertEqual(scores["米饭"].cooks, 1);
+});
+test("新菜初始化评分", () => {
+  const scores = {};
+  logManualJS([], {"午餐": "新菜"}, "2026-08-15", scores);
+  assert(scores["新菜"]);
+  assertEqual(scores["新菜"].cooks, 1);
+  assertEqual(scores["新菜"].likes, 0);
+  assertEqual(scores["新菜"].dislikes, 0);
+});
+test("scores=null 不报错", () => {
+  logManualJS([], {"午餐": "米饭"}, "2026-08-15", null);
+  assert(true);
+});
+test("一餐多菜 cooks 各自 +1", () => {
+  const scores = {"米饭": {likes: 0, dislikes: 0, cooks: 3}, "红烧肉": {likes: 0, dislikes: 0, cooks: 0}};
+  logManualJS([], {"午餐": "米饭, 红烧肉"}, "2026-08-15", scores);
+  assertEqual(scores["米饭"].cooks, 4);
+  assertEqual(scores["红烧肉"].cooks, 1);
+});
+test("追加到已有 history 末尾", () => {
+  const h = [{dish: "旧菜", date: "2026-08-14", status: "confirmed"}];
+  logManualJS(h, {"午餐": "新菜"}, "2026-08-15", null);
+  assertEqual(h.length, 2);
+  assertEqual(h[1].dish, "新菜");
+});
+
 // ============ 渲染结果 ============
 const passed = results.filter(r => r.pass).length;
 const failed = results.length - passed;
