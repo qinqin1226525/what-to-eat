@@ -2928,11 +2928,12 @@ document.getElementById('today').textContent =
 
 updateHistoryHint();
 
-// ============ 全局错误捕获（debug 用，显示在页面上） ============
+// ============ 全局错误捕获（debug 用，显示在页面右下角小标签） ============
 window.addEventListener('error', e => {
   const div = document.createElement('div');
-  div.style.cssText = "position:fixed;top:0;left:0;right:0;background:#ffcccc;color:#c00;padding:12px;z-index:99999;font-size:14px;border-bottom:2px solid #c00;";
-  div.innerHTML = `❌ JS 错误: <b>${e.message}</b><br>行号 ${e.lineno}`;
+  div.style.cssText = "position:fixed;bottom:10px;right:10px;max-width:300px;background:#fff3cd;color:#856404;padding:8px 12px;z-index:99999;font-size:12px;border-radius:6px;border:1px solid #ffc107;box-shadow:0 2px 8px rgba(0,0,0,0.15);cursor:pointer;";
+  div.innerHTML = `⚠️ ${e.message}`;
+  div.onclick = () => alert(`JS Error\n${e.message}\n行号 ${e.lineno}`);
   document.body.appendChild(div);
 });
 </script>
