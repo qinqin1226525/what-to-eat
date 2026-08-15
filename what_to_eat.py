@@ -106,11 +106,18 @@ def filter_by_max_time(dishes, max_minutes):
 
 
 def filter_by_ingredients(dishes, available_ingredients):
-    """返回至少有一种食材在 available_ingredients 里的菜"""
+    """返回至少有一种食材在 available_ingredients 里的菜。
+    支持子串双向匹配：用户输入『西葫芦』能匹配菜的『西葫芦 1 根』。
+    """
     if not available_ingredients:
         return []
     available_set = set(available_ingredients)
-    return [d for d in dishes if any(ing in available_set for ing in d.ingredients)]
+    return [
+        d for d in dishes
+        if any(kw in ing or ing in kw
+               for ing in (d.ingredients or [])
+               for kw in available_set)
+    ]
 
 
 def choose_one_no_repeat(dishes, history, window=30):

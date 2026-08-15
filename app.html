@@ -1942,8 +1942,12 @@ function filterByMaxTime(dishes, max) {
 
 function filterByIngredients(dishes, available) {
   if (!available || available.length === 0) return [];
-  const set = new Set(available);
-  return dishes.filter(d => d.ingredients.some(i => set.has(i)));
+  // 双向子串匹配：用户输入『西葫芦』能匹配菜的『西葫芦 1 根』
+  return dishes.filter(d =>
+    (d.ingredients || []).some(ing =>
+      available.some(kw => ing.includes(kw) || kw.includes(ing))
+    )
+  );
 }
 
 function chooseCombo(dishes, history = [], window = 30, scores = null) {
