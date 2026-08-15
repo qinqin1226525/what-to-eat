@@ -1151,6 +1151,138 @@ test("跨入口模拟：PWA 写入 → Safari 读取", () => {
   storeDel('cross-key');
 });
 
+// ============ Day 14: 月度报告聚合 ============
+function getCurrentMonth() {
+  const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth() + 1 };
+}
+
+function filterHistoryByMonth(history, year, month) {
+  const prefix = `${year}-${String(month).padStart(2, '0')}-`;
+  return history.filter(e => e.date && e.date.startsWith(prefix));
+}
+
+function topDishes(history, n) {
+  const counts = {};
+  for (const e of history) {
+    counts[e.dish] = (counts[e.dish] || 0) + 1;
+  }
+  return Object.entries(counts)
+    .map(([dish, count]) => ({ dish, count }))
+    .sort((a, b) => b.count - a.count || a.dish.localeCompare(b.dish))
+    .slice(0, n || 5);
+}
+
+function mealDistribution(history) {
+  const dist = { '早餐': 0, '午餐': 0, '晚餐': 0, '未指定': 0 };
+  for (const e of history) {
+    const k = e.meal || '未指定';
+    dist[k] = (dist[k] || 0) + 1;
+  }
+  return dist;
+}
+
+function statusDistribution(history) {
+  const dist = { confirmed: 0, manual: 0, skipped: 0 };
+  for (const e of history) {
+    const k = e.status || 'confirmed';
+    dist[k] = (dist[k] || 0) + 1;
+  }
+  return dist;
+}
+
+function uniqueDishCount(history) {
+  const set = new Set();
+  for (const e of history) set.add(e.dish);
+  return set.size;
+}
+
+function tagDistribution(history, dishesData) {
+  const nameToTags = {};
+  for (const d of (dishesData || [])) nameToTags[d.name] = d.tags || [];
+  const counts = {};
+  for (const e of history) {
+    const tags = nameToTags[e.dish] || [];
+    for (const t of tags) counts[t] = (counts[t] || 0) + 1;
+  }
+  // 转成数组并按 count 降序
+  return Object.entries(counts)
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+test("Day14 getCurrentMonth 返回当前年/月（1-12）", () => {
+  const { year, month } = getCurrentMonth();
+  const now = new Date();
+  assertEqual(year, now.getFullYear());
+  assertEqual(month, now.getMonth() + 1);
+});
+
+test("Day14 filterHistoryByMonth 只留当月（YYYY-MM-DD 字符串前缀）", () => {
+  const h = [
+    { date: "2026-08-01", dish: "A" },
+    { date: "2026-08-15", dish: "B" },
+    { date: "2026-07-31", dish: "C" },
+    { date: "2026-09-01", dish: "D" },
+  ];
+  const r = filterHistoryByMonth(h, 2026, 8);
+  assertEqual(r.length, 2);
+  assertEqual(r.map(e => e.dish).sort(), ["A", "B"]);
+});
+
+test("Day14 filterHistoryByMonth 空历史", () => {
+  assertEqual(filterHistoryByMonth([], 2026, 8), []);
+});
+
+test("Day14 topDishes 按出现次数排序，平局按字母", () => {
+  const h = [{ dish: "A" }, { dish: "A" }, { dish: "A" }, { dish: "B" }, { dish: "B" }, { dish: "C" }];
+  const t = topDishes(h, 3);
+  assertEqual(t[0], { dish: "A", count: 3 });
+  assertEqual(t[1], { dish: "B", count: 2 });
+  assertEqual(t[2], { dish: "C", count: 1 });
+});
+
+test("Day14 topDishes 默认前 5", () => {
+  const h = [{ dish: "A" }, { dish: "B" }, { dish: "C" }, { dish: "D" }, { dish: "E" }, { dish: "F" }];
+  assertEqual(topDishes(h).length, 5);
+});
+
+test("Day14 mealDistribution 统计早午晚 + 未指定", () => {
+  const h = [{ meal: "早餐" }, { meal: "早餐" }, { meal: "午餐" }, { meal: "晚餐" }, { meal: "晚餐" }, { meal: "晚餐" }, {}];
+  const d = mealDistribution(h);
+  assertEqual(d["早餐"], 2);
+  assertEqual(d["午餐"], 1);
+  assertEqual(d["晚餐"], 3);
+  assertEqual(d["未指定"], 1);
+});
+
+test("Day14 statusDistribution 统计抽签/手动/跳过", () => {
+  const h = [{ status: "confirmed" }, { status: "confirmed" }, { status: "manual" }, { status: "skipped" }];
+  const d = statusDistribution(h);
+  assertEqual(d.confirmed, 2);
+  assertEqual(d.manual, 1);
+  assertEqual(d.skipped, 1);
+});
+
+test("Day14 uniqueDishCount 数不同菜名", () => {
+  const h = [{ dish: "A" }, { dish: "A" }, { dish: "B" }, { dish: "C" }, { dish: "C" }];
+  assertEqual(uniqueDishCount(h), 3);
+});
+
+test("Day14 tagDistribution 根据 dish 找 tag 计数，没找到的菜跳过", () => {
+  const h = [{ dish: "A" }, { dish: "A" }, { dish: "B" }];
+  const dishes = [
+    { name: "A", tags: ["川菜", "辣"] },
+    { name: "B", tags: ["川菜"] },
+    { name: "C", tags: ["素食"] },
+  ];
+  const d = tagDistribution(h, dishes);
+  assertEqual(d[0], { tag: "川菜", count: 3 });
+  assertEqual(d[1], { tag: "辣", count: 2 });
+  // 素食不出现
+  assert(!d.find(x => x.tag === "素食"));
+});
+
 // ============ 渲染结果 ============
 const passed = results.filter(r => r.pass).length;
 const failed = results.length - passed;

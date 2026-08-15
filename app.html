@@ -309,6 +309,115 @@
     box-sizing: border-box;
   }
   #feedback-input:focus { border-color: #e85d04; }
+
+  /* ============ Day 14：月度报告 Modal ============ */
+  .report-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .report-stat-card {
+    background: #fff5e8;
+    border-radius: 12px;
+    padding: 14px 8px;
+    text-align: center;
+  }
+  .report-stat-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: #e85d04;
+    line-height: 1.1;
+  }
+  .report-stat-label {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+  }
+  .report-top-list { list-style: none; padding: 0; margin: 0; }
+  .report-top-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0ebe0;
+    font-size: 15px;
+  }
+  .report-top-list li:last-child { border-bottom: none; }
+  .report-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #e0d5c0;
+    color: #5d4500;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .report-rank.top1 { background: #e85d04; color: #fff; }
+  .report-rank.top2 { background: #f4a261; color: #fff; }
+  .report-rank.top3 { background: #e9c46a; color: #fff; }
+  .report-dish-name { flex: 1; }
+  .report-dish-count {
+    background: #f0ebe0;
+    color: #5d4500;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .report-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+    font-size: 14px;
+  }
+  .report-bar-label { width: 50px; color: #5d4500; }
+  .report-bar-track {
+    flex: 1;
+    height: 10px;
+    background: #f0ebe0;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .report-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #e85d04, #f4a261);
+    border-radius: 5px;
+    transition: width 0.3s;
+  }
+  .report-bar-num {
+    width: 40px;
+    text-align: right;
+    color: #888;
+    font-size: 13px;
+  }
+  .report-source-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    font-size: 14px;
+  }
+  .report-source-badge {
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    color: white;
+  }
+  .report-source-badge.confirmed { background: #a8a8a8; }
+  .report-source-badge.manual { background: #e85d04; }
+  .report-source-badge.skipped { background: #ccc; }
+  .report-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+    font-size: 15px;
+  }
+
 </style>
 </head>
 <body>
@@ -318,6 +427,7 @@
   <div class="date" id="today"></div>
   <div class="banner-actions">
     <button class="banner-btn" onclick="openManualLog()">📝 手动记录</button>
+    <button class="banner-btn" onclick="openMonthlyReport()">📊 月度报告</button>
     <button class="banner-btn" onclick="shareApp()">📤 分享</button>
     <button class="banner-btn" onclick="openFeedback()">💬 反馈</button>
   </div>
@@ -479,6 +589,23 @@
     </div>
     <div class="modal-body">
       <div id="logbook-content"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============ Day 14：月度报告 Modal ============ -->
+<div id="monthly-report-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closeMonthlyReport()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeMonthlyReport()">×</button>
+    <div class="modal-header">
+      <span style="font-size:48px;display:block;margin-bottom:8px;">📊</span>
+      <h2 class="modal-title" id="monthly-report-title">本月报告</h2>
+      <div class="modal-meta" id="monthly-report-meta"></div>
+    </div>
+    <div class="modal-body">
+      <div id="monthly-report-content"></div>
     </div>
   </div>
 </div>
@@ -2726,6 +2853,165 @@ function renderLogbook() {
   }
 }
 
+
+// ============ Day 14：月度报告 ============
+function getCurrentMonth() {
+  const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth() + 1 };
+}
+function filterHistoryByMonth(history, year, month) {
+  const prefix = `${year}-${String(month).padStart(2, '0')}-`;
+  return history.filter(e => e.date && e.date.startsWith(prefix));
+}
+function topDishes(history, n) {
+  const counts = {};
+  for (const e of history) { counts[e.dish] = (counts[e.dish] || 0) + 1; }
+  return Object.entries(counts)
+    .map(([dish, count]) => ({ dish, count }))
+    .sort((a, b) => b.count - a.count || a.dish.localeCompare(b.dish))
+    .slice(0, n || 5);
+}
+function mealDistribution(history) {
+  const dist = { '早餐': 0, '午餐': 0, '晚餐': 0, '未指定': 0 };
+  for (const e of history) { const k = e.meal || '未指定'; dist[k] = (dist[k] || 0) + 1; }
+  return dist;
+}
+function statusDistribution(history) {
+  const dist = { confirmed: 0, manual: 0, skipped: 0 };
+  for (const e of history) { const k = e.status || 'confirmed'; dist[k] = (dist[k] || 0) + 1; }
+  return dist;
+}
+function uniqueDishCount(history) {
+  const set = new Set(); for (const e of history) set.add(e.dish); return set.size;
+}
+function tagDistribution(history, dishesData) {
+  const nameToTags = {};
+  for (const d of (dishesData || [])) nameToTags[d.name] = d.tags || [];
+  const counts = {};
+  for (const e of history) {
+    const tags = nameToTags[e.dish] || [];
+    for (const t of tags) counts[t] = (counts[t] || 0) + 1;
+  }
+  return Object.entries(counts)
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+function renderMonthlyReport() {
+  const wrap = document.getElementById('monthly-report-content');
+  const meta = document.getElementById('monthly-report-meta');
+  const title = document.getElementById('monthly-report-title');
+  const { year, month } = getCurrentMonth();
+  title.textContent = `${year}年${month}月 · 饮食报告`;
+  const allHistory = loadHistory();
+  const monthHistory = filterHistoryByMonth(allHistory, year, month);
+  meta.textContent = `本月共 ${allHistory.length} 条历史 · 本月 ${monthHistory.length} 条`;
+
+  if (monthHistory.length === 0) {
+    wrap.innerHTML = '<div class="report-empty">本月还没有记录 ✨<br><br>先去抽几套菜,或者手动记录今天吃了啥,<br>下个月再来这里看报告</div>';
+    return;
+  }
+
+  // === 概览数字 ===
+  const dishCount = uniqueDishCount(monthHistory);
+  const activeDays = new Set(monthHistory.map(e => e.date)).size;
+  const mealDist = mealDistribution(monthHistory);
+  const totalMeals = mealDist['早餐'] + mealDist['午餐'] + mealDist['晚餐'];
+  const avgPerDay = activeDays > 0 ? (totalMeals / activeDays).toFixed(1) : '0';
+
+  // === Top 5 菜 ===
+  const top = topDishes(monthHistory, 5);
+
+  // === 三餐分布 ===
+  const maxMeal = Math.max(mealDist['早餐'], mealDist['午餐'], mealDist['晚餐'], 1);
+
+  // === 来源 ===
+  const statusDist = statusDistribution(monthHistory);
+  const sourceTotal = statusDist.confirmed + statusDist.manual + statusDist.skipped;
+
+  // === 标签 Top 5 ===
+  const tagDist = tagDistribution(monthHistory, DISHES_DATA).slice(0, 5);
+
+  wrap.innerHTML = `
+    <section>
+      <h3>📈 数据概览</h3>
+      <div class="report-stats">
+        <div class="report-stat-card">
+          <div class="report-stat-num">${dishCount}</div>
+          <div class="report-stat-label">本月吃了(道)</div>
+        </div>
+        <div class="report-stat-card">
+          <div class="report-stat-num">${activeDays}</div>
+          <div class="report-stat-label">有记录的天数</div>
+        </div>
+        <div class="report-stat-card">
+          <div class="report-stat-num">${avgPerDay}</div>
+          <div class="report-stat-label">平均每天(餐)</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h3>🏆 本月 Top 5</h3>
+      <ol class="report-top-list">
+        ${top.map((t, i) => `
+          <li>
+            <span class="report-rank ${i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : ''}">${i + 1}</span>
+            <span class="report-dish-name">${escapeHtml(t.dish)}</span>
+            <span class="report-dish-count">${t.count} 次</span>
+          </li>
+        `).join('')}
+      </ol>
+    </section>
+
+    <section>
+      <h3>🍽️ 三餐分布</h3>
+      <div class="report-bar-row">
+        <span class="report-bar-label">☀️ 早餐</span>
+        <div class="report-bar-track"><div class="report-bar-fill" style="width:${(mealDist['早餐']/maxMeal)*100}%"></div></div>
+        <span class="report-bar-num">${mealDist['早餐']}</span>
+      </div>
+      <div class="report-bar-row">
+        <span class="report-bar-label">🌞 午餐</span>
+        <div class="report-bar-track"><div class="report-bar-fill" style="width:${(mealDist['午餐']/maxMeal)*100}%"></div></div>
+        <span class="report-bar-num">${mealDist['午餐']}</span>
+      </div>
+      <div class="report-bar-row">
+        <span class="report-bar-label">🌙 晚餐</span>
+        <div class="report-bar-track"><div class="report-bar-fill" style="width:${(mealDist['晚餐']/maxMeal)*100}%"></div></div>
+        <span class="report-bar-num">${mealDist['晚餐']}</span>
+      </div>
+      ${mealDist['未指定'] > 0 ? `<div class="report-bar-row">
+        <span class="report-bar-label" style="color:#888;">🍽️ 未指定</span>
+        <div class="report-bar-track"><div class="report-bar-fill" style="width:${(mealDist['未指定']/maxMeal)*100}%;background:#ccc"></div></div>
+        <span class="report-bar-num">${mealDist['未指定']}</span>
+      </div>` : ''}
+    </section>
+
+    <section>
+      <h3>📝 记录来源</h3>
+      <div class="report-source-row"><span class="report-source-badge confirmed">🎲 抽签</span><span>${statusDist.confirmed} 条 (${sourceTotal ? Math.round(statusDist.confirmed/sourceTotal*100) : 0}%)</span></div>
+      <div class="report-source-row"><span class="report-source-badge manual">📝 手动</span><span>${statusDist.manual} 条 (${sourceTotal ? Math.round(statusDist.manual/sourceTotal*100) : 0}%)</span></div>
+      <div class="report-source-row"><span class="report-source-badge skipped">⏭️ 跳过</span><span>${statusDist.skipped} 条 (${sourceTotal ? Math.round(statusDist.skipped/sourceTotal*100) : 0}%)</span></div>
+    </section>
+
+    ${tagDist.length > 0 ? `<section>
+      <h3>🏷️ 本月标签偏好</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${tagDist.map(t => `<span style="background:#fff5e8;color:#e85d04;padding:6px 14px;border-radius:14px;font-size:13px;font-weight:600;">${escapeHtml(t.tag)} <span style="color:#888;font-weight:400;">${t.count}</span></span>`).join('')}
+      </div>
+    </section>` : ''}
+  `;
+}
+
+function openMonthlyReport() {
+  renderMonthlyReport();
+  document.getElementById('monthly-report-modal').hidden = false;
+}
+function closeMonthlyReport() {
+  document.getElementById('monthly-report-modal').hidden = true;
+}
+
 // ============ 主逻辑 ============
 function getDishes() {
   return DISHES_DATA.map(d => new Dish(d));
@@ -3222,6 +3508,7 @@ document.addEventListener('keydown', e => {
   if (!document.getElementById('feedback-modal').hidden) closeFeedback();
   else if (!document.getElementById('manual-log-modal').hidden) closeManualLog();
   else if (!document.getElementById('logbook-modal').hidden) closeLogbook();
+  else if (!document.getElementById('monthly-report-modal').hidden) closeMonthlyReport();
   else if (!document.getElementById('recipe-modal').hidden) closeRecipe();
 });
 
