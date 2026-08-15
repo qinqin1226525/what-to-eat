@@ -69,7 +69,11 @@ function filterByIngredients(dishes, available) {
   if (!available || available.length === 0) return [];
   // 测试副本：保持与 app.html 同款（同义词扩展 + 多字段搜索）
   const INGREDIENT_SYNONYMS = {
-    '肉': ['肉', '猪肉', '牛肉', '羊肉', '五花肉', '里脊肉', '排骨', '肉末', '肉丝', '肉片', '鸡肉', '鸭肉'],
+    '肉': ['肉', '猪肉', '牛肉', '羊肉', '鸡肉', '鸭肉', '鹅肉', '五花肉', '里脊肉', '肉末', '肉丝', '肉片', '肉块', '排骨', '牛里脊', '牛腱子', '牛腩', '牛排', '羊肉片', '鸡腿', '鸡翅', '鸡胸', '鸡块', '鸡丁', '鸭腿', '鸭翅'],
+    '牛': ['牛', '牛肉', '牛里脊', '牛腱子', '牛腩', '牛排'],
+    '羊': ['羊', '羊肉', '羊肉片'],
+    '鸡': ['鸡', '鸡肉', '鸡腿', '鸡翅', '鸡胸', '鸡块', '鸡丁'],
+    '鸭': ['鸭', '鸭肉', '鸭腿', '鸭翅'],
     '菜': ['菜', '蔬', '白菜', '萝卜', '芹', '茄', '黄瓜', '菠', '韭菜', '青菜'],
     '蛋': ['蛋', '鸡蛋', '蛋花'],
     '豆': ['豆', '豆腐', '豆浆'],
@@ -1281,6 +1285,58 @@ test("Day14 tagDistribution 根据 dish 找 tag 计数，没找到的菜跳过",
   assertEqual(d[1], { tag: "辣", count: 2 });
   // 素食不出现
   assert(!d.find(x => x.tag === "素食"));
+});
+
+// ============ Day 14.1：冰箱搜索 bug 修复（肉能搜到所有肉）===========
+test("Day14.1 输入'肉'能搜到牛里脊/鸡腿/鸭腿（之前漏搜）", () => {
+  const dishes = [
+    { name: "黑椒牛柳", ingredients: ["牛里脊 300g", "洋葱", "青椒"] },
+    { name: "黄焖鸡", ingredients: ["鸡腿 2 个", "土豆", "香菇"] },
+    { name: "大盘鸡", ingredients: ["鸡腿 2 个", "土豆", "番茄"] },
+    { name: "葱爆羊肉", ingredients: ["羊肉片 300g", "大葱"] },
+    { name: "红烧肉", ingredients: ["五花肉 500g"] },
+    { name: "西红柿炒蛋", ingredients: ["鸡蛋", "西红柿"] },  // 不应匹配
+  ];
+  const r = filterByIngredients(dishes, ["肉"]);
+  const names = r.map(d => d.name);
+  assert(names.includes("黑椒牛柳"), "牛里脊应匹配'肉'");
+  assert(names.includes("黄焖鸡"), "鸡腿应匹配'肉'");
+  assert(names.includes("大盘鸡"), "鸡腿应匹配'肉'");
+  assert(names.includes("葱爆羊肉"), "羊肉片应匹配'肉'");
+  assert(names.includes("红烧肉"), "五花肉应匹配'肉'");
+  assert(!names.includes("西红柿炒蛋"), "鸡蛋不算肉");
+});
+
+test("Day14.1 输入'牛'只搜到牛肉类（不包含鸡）", () => {
+  const dishes = [
+    { name: "黑椒牛柳", ingredients: ["牛里脊 300g"] },
+    { name: "番茄牛腩", ingredients: ["牛腩 500g"] },
+    { name: "黄焖鸡", ingredients: ["鸡腿 2 个"] },
+    { name: "红烧肉", ingredients: ["五花肉"] },  // 不应匹配
+  ];
+  const r = filterByIngredients(dishes, ["牛"]);
+  const names = r.map(d => d.name);
+  assert(names.includes("黑椒牛柳"));
+  assert(names.includes("番茄牛腩"));
+  assert(!names.includes("黄焖鸡"), "鸡不应被'牛'搜到");
+  assert(!names.includes("红烧肉"), "猪肉不应被'牛'搜到");
+});
+
+test("Day14.1 输入'鸡'只搜到鸡（不包含牛/羊）", () => {
+  const dishes = [
+    { name: "黄焖鸡", ingredients: ["鸡腿 2 个"] },
+    { name: "大盘鸡", ingredients: ["鸡腿 2 个"] },
+    { name: "宫保鸡丁", ingredients: ["鸡腿肉"] },
+    { name: "黑椒牛柳", ingredients: ["牛里脊"] },
+    { name: "葱爆羊肉", ingredients: ["羊肉片"] },
+  ];
+  const r = filterByIngredients(dishes, ["鸡"]);
+  const names = r.map(d => d.name);
+  assert(names.includes("黄焖鸡"));
+  assert(names.includes("大盘鸡"));
+  assert(names.includes("宫保鸡丁"));
+  assert(!names.includes("黑椒牛柳"), "牛不应被'鸡'搜到");
+  assert(!names.includes("葱爆羊肉"), "羊不应被'鸡'搜到");
 });
 
 // ============ 渲染结果 ============
