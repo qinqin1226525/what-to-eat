@@ -2286,9 +2286,13 @@ const VALID_MEALS_JS = ["早餐", "午餐", "晚餐"];
 
 function openManualLog() {
   const modal = document.getElementById('manual-log-modal');
+  if (!modal) {
+    alert('❌ 找不到手动记录弹弹（手动记录 modal 不存在）。请刷新页面或清缓存。');
+    return;
+  }
   // 默认日期 = 今天
   const dateInput = document.getElementById('manual-log-date');
-  if (!dateInput.value) {
+  if (dateInput && !dateInput.value) {
     const today = new Date().toISOString().slice(0, 10);
     dateInput.value = today;
   }
