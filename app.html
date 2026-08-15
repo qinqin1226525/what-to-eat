@@ -431,7 +431,7 @@
     <div class="modal-header">
       <span style="font-size:48px;display:block;margin-bottom:8px;">📝</span>
       <h2 class="modal-title">手动记录今天吃了啥</h2>
-      <div class="modal-meta">纯自由文本 · 多个菜用逗号分隔 · 会记进历史</div>
+      <div class="modal-meta">纯自由文本 · 多个菜用逗号分隔 · Safari/桌面App 自动同步</div>
     </div>
     <div class="modal-body">
       <section>
@@ -1914,11 +1914,74 @@ function filterKidFriendly(dishes) {
 
 // ============ 历史（localStorage） ============
 const HISTORY_KEY = 'what-to-eat-history';
+
+// ============ 跨入口同步存储（iOS Safari vs 桌面 PWA 不隔离 cookie） ============
+// localStorage 在 iOS 上隔离，但 cookie 是两个入口共享的唯一渠道。
+// 写入双写（localStorage + cookie），读取优先 localStorage，空时从 cookie 拉回。
+// 单 cookie 上限 4KB，超过自动分片（每片 3500 字符，留 596 字节余量）。
+const COOKIE_PREFIX = 'wte2-';
+
+function cookieSet(name, value) {
+  const maxChunk = 3500;
+  const chunks = Math.ceil(value.length / maxChunk);
+  const expDays = 365;
+  for (let i = 0; i < chunks; i++) {
+    const chunk = value.slice(i * maxChunk, (i + 1) * maxChunk);
+    document.cookie = `${COOKIE_PREFIX}${name}-${i}=${encodeURIComponent(chunk)}; max-age=${expDays*86400}; path=/; SameSite=Lax`;
+  }
+  document.cookie = `${COOKIE_PREFIX}${name}-n=${chunks}; max-age=${expDays*86400}; path=/; SameSite=Lax`;
+}
+
+function cookieGet(name) {
+  const lenMatch = document.cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_PREFIX}${name}-n=(\\d+)`));
+  const n = lenMatch ? parseInt(lenMatch[1]) : 1;
+  if (n === 0) return null;
+  let value = '';
+  for (let i = 0; i < n; i++) {
+    const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_PREFIX}${name}-${i}=([^;]*)`));
+    if (match) value += decodeURIComponent(match[1]);
+    else return null;  // 分片缺失 → 视为无效
+  }
+  return value || null;
+}
+
+function cookieDel(name) {
+  const lenMatch = document.cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_PREFIX}${name}-n=(\\d+)`));
+  const n = lenMatch ? parseInt(lenMatch[1]) : 1;
+  for (let i = 0; i < n; i++) {
+    document.cookie = `${COOKIE_PREFIX}${name}-${i}=; max-age=0; path=/`;
+  }
+  document.cookie = `${COOKIE_PREFIX}${name}-n=; max-age=0; path=/`;
+}
+
+function storeGet(key) {
+  // 优先 localStorage（快）
+  const local = localStorage.getItem(key);
+  if (local !== null && local !== '') return local;
+  // localStorage 空 → 尝试 cookie（跨入口同步关键）
+  const cookie = cookieGet(key);
+  if (cookie !== null && cookie !== '') {
+    try { localStorage.setItem(key, cookie); } catch (e) {}  // 拉回本地，下次快
+    return cookie;
+  }
+  return null;
+}
+
+function storeSet(key, value) {
+  try { localStorage.setItem(key, value); } catch (e) {}
+  try { cookieSet(key, value); } catch (e) {}
+}
+
+function storeDel(key) {
+  try { localStorage.removeItem(key); } catch (e) {}
+  try { cookieDel(key); } catch (e) {}
+}
+
 function loadHistory() {
-  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+  try { return JSON.parse(storeGet(HISTORY_KEY) || '[]'); }
   catch (e) { return []; }
 }
-function saveHistory(h) { localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); }
+function saveHistory(h) { storeSet(HISTORY_KEY, JSON.stringify(h)); }
 
 // Day 10: 向后兼容旧 addToHistory 名字
 function addToHistory(h, name) {
@@ -2228,12 +2291,12 @@ const PREFS_KEY = 'what-to-eat-prefs';
 const SCORES_KEY = 'what-to-eat-scores';
 
 function loadScores() {
-  try { return JSON.parse(localStorage.getItem(SCORES_KEY) || '{}'); }
+  try { return JSON.parse(storeGet(SCORES_KEY) || '{}'); }
   catch (e) { return {}; }
 }
 
 function saveScores(scores) {
-  localStorage.setItem(SCORES_KEY, JSON.stringify(scores));
+  storeSet(SCORES_KEY, JSON.stringify(scores));
 }
 
 function computeTagAffinities(scores, dishes) {
@@ -2375,10 +2438,10 @@ function saveManualLog() {
 // ============ Day 12：scores 的 JS 端读写（与 history 同款 localStorage） ============
 // SCORES_KEY 已在上面定义过
 function loadScoresJS() {
-  try { return JSON.parse(localStorage.getItem(SCORES_KEY) || '{}'); }
+  try { return JSON.parse(storeGet(SCORES_KEY) || '{}'); }
   catch (e) { return {}; }
 }
-function saveScoresJS(s) { localStorage.setItem(SCORES_KEY, JSON.stringify(s)); }
+function saveScoresJS(s) { storeSet(SCORES_KEY, JSON.stringify(s)); }
 function bumpScoreJS(scores, dishName, action) {
   if (!scores[dishName]) scores[dishName] = { likes: 0, dislikes: 0, cooks: 0 };
   const key = { like: 'likes', dislike: 'dislikes', cooked: 'cooks' }[action];
@@ -2907,7 +2970,7 @@ document.getElementById('ingredient-input').addEventListener('keydown', e => {
 });
 document.getElementById('reset-btn').addEventListener('click', () => {
   if (confirm('清空所有历史？30 天不重复会重置。')) {
-    localStorage.removeItem(HISTORY_KEY);
+    storeDel(HISTORY_KEY);
     updateHistoryHint();
     document.getElementById('combo-result').innerHTML =
       '<div class="empty">历史已清空 ✨</div>';

@@ -934,6 +934,157 @@ test("追加到已有 history 末尾", () => {
   assertEqual(h[1].dish, "新菜");
 });
 
+// ============ Day 13：跨入口同步（cookie + localStorage 双写） ============
+// iOS 上 localStorage 在 Safari vs 桌面 PWA 隔离，但 cookie 不隔离
+// 复制 app.html 中的 cookie + store 辅助函数用于测试
+
+const COOKIE_PREFIX_TEST = 'wte2-';
+
+function cookieSet(name, value) {
+  const maxChunk = 3500;
+  const chunks = Math.ceil(value.length / maxChunk);
+  const expDays = 365;
+  for (let i = 0; i < chunks; i++) {
+    const chunk = value.slice(i * maxChunk, (i + 1) * maxChunk);
+    document.cookie = `${COOKIE_PREFIX_TEST}${name}-${i}=${encodeURIComponent(chunk)}; max-age=${expDays*86400}; path=/; SameSite=Lax`;
+  }
+  document.cookie = `${COOKIE_PREFIX_TEST}${name}-n=${chunks}; max-age=${expDays*86400}; path=/; SameSite=Lax`;
+}
+
+function cookieGet(name) {
+  const lenMatch = document.cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_PREFIX_TEST}${name}-n=(\\d+)`));
+  const n = lenMatch ? parseInt(lenMatch[1]) : 1;
+  if (n === 0) return null;
+  let value = '';
+  for (let i = 0; i < n; i++) {
+    const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_PREFIX_TEST}${name}-${i}=([^;]*)`));
+    if (match) value += decodeURIComponent(match[1]);
+    else return null;
+  }
+  return value || null;
+}
+
+function cookieDel(name) {
+  const lenMatch = document.cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_PREFIX_TEST}${name}-n=(\\d+)`));
+  const n = lenMatch ? parseInt(lenMatch[1]) : 1;
+  for (let i = 0; i < n; i++) {
+    document.cookie = `${COOKIE_PREFIX_TEST}${name}-${i}=; max-age=0; path=/`;
+  }
+  document.cookie = `${COOKIE_PREFIX_TEST}${name}-n=; max-age=0; path=/`;
+}
+
+function storeGet(key) {
+  const local = localStorage.getItem(key);
+  if (local !== null && local !== '') return local;
+  const cookie = cookieGet(key);
+  if (cookie !== null && cookie !== '') {
+    try { localStorage.setItem(key, cookie); } catch (e) {}
+    return cookie;
+  }
+  return null;
+}
+
+function storeSet(key, value) {
+  try { localStorage.setItem(key, value); } catch (e) {}
+  try { cookieSet(key, value); } catch (e) {}
+}
+
+function storeDel(key) {
+  try { localStorage.removeItem(key); } catch (e) {}
+  try { cookieDel(key); } catch (e) {}
+}
+
+group("Day 13：跨入口同步存储");
+
+test("cookie 小数据 round-trip", () => {
+  cookieDel('test-key');
+  cookieSet('test-key', 'hello');
+  assertEqual(cookieGet('test-key'), 'hello');
+  cookieDel('test-key');
+});
+
+test("cookie 边界 3500 字符（单片）round-trip", () => {
+  cookieDel('edge-key');
+  const s = 'a'.repeat(3500);
+  cookieSet('edge-key', s);
+  assertEqual(cookieGet('edge-key'), s);
+  cookieDel('edge-key');
+});
+
+test("cookie 5000 字符（2 片）round-trip", () => {
+  cookieDel('big-key');
+  const s = 'a'.repeat(5000);
+  cookieSet('big-key', s);
+  assertEqual(cookieGet('big-key').length, 5000);
+  assertEqual(cookieGet('big-key'), s);
+  cookieDel('big-key');
+});
+
+test("cookie 10KB（多片）round-trip", () => {
+  cookieDel('huge-key');
+  const s = 'x'.repeat(10000);
+  cookieSet('huge-key', s);
+  assertEqual(cookieGet('huge-key'), s);
+  cookieDel('huge-key');
+});
+
+test("cookie 特殊字符（=, ;, 中文, emoji）正确编码", () => {
+  cookieDel('special');
+  const tricky = 'a=b; c;d 中文 🥢🚀';
+  cookieSet('special', tricky);
+  assertEqual(cookieGet('special'), tricky);
+  cookieDel('special');
+});
+
+test("cookie 不存在返回 null", () => {
+  cookieDel('nonexistent');
+  assertEqual(cookieGet('nonexistent'), null);
+});
+
+test("storeGet 优先 localStorage（不会从 cookie 覆盖本地数据）", () => {
+  storeDel('prio-key');
+  localStorage.setItem('prio-key', 'from-local');
+  cookieSet('prio-key', 'from-cookie');
+  assertEqual(storeGet('prio-key'), 'from-local');
+  storeDel('prio-key');
+});
+
+test("storeGet 在 localStorage 空时从 cookie 拉回", () => {
+  storeDel('sync-key');
+  cookieSet('sync-key', 'cookie-only-data');
+  assertEqual(storeGet('sync-key'), 'cookie-only-data');
+  // 拉回后 localStorage 也应该被填充
+  assertEqual(localStorage.getItem('sync-key'), 'cookie-only-data');
+  storeDel('sync-key');
+});
+
+test("storeSet 双写 localStorage + cookie", () => {
+  storeDel('dual-key');
+  storeSet('dual-key', 'dual-value');
+  assertEqual(localStorage.getItem('dual-key'), 'dual-value');
+  assertEqual(cookieGet('dual-key'), 'dual-value');
+  storeDel('dual-key');
+});
+
+test("storeDel 双清 localStorage + cookie", () => {
+  storeSet('del-key', 'to-delete');
+  storeDel('del-key');
+  assertEqual(localStorage.getItem('del-key'), null);
+  assertEqual(cookieGet('del-key'), null);
+});
+
+test("跨入口模拟：PWA 写入 → Safari 读取", () => {
+  // 模拟场景：Safari 的 localStorage 是空的（用户在 PWA 写过）
+  storeDel('cross-key');
+  // PWA 端：双写
+  storeSet('cross-key', '[{"dish":"红烧肉","date":"2026-08-15"}]');
+  // Safari 端：清空 localStorage（模拟另一个 context），只留 cookie
+  localStorage.removeItem('cross-key');
+  // Safari 读取 → 应该从 cookie 拿到
+  assertEqual(storeGet('cross-key'), '[{"dish":"红烧肉","date":"2026-08-15"}]');
+  storeDel('cross-key');
+});
+
 // ============ 渲染结果 ============
 const passed = results.filter(r => r.pass).length;
 const failed = results.length - passed;
