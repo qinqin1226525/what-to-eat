@@ -313,6 +313,7 @@
   <div class="date" id="today"></div>
   <div class="banner-actions">
     <button class="banner-btn" onclick="openPrefs()">⚙️ 偏好设置</button>
+    <button class="banner-btn" onclick="openManualLog()">📝 手动记录</button>
     <button class="banner-btn" onclick="shareApp()">📤 分享</button>
     <button class="banner-btn" onclick="openFeedback()">💬 反馈</button>
   </div>
@@ -482,45 +483,7 @@
   </div>
 </div>
 
-<!-- ============ Day 10：做饭前确认 Modal ============ -->
-<div id="confirm-modal" class="modal" hidden>
-  <div class="modal-backdrop" onclick="closeConfirmModal()"></div>
-  <div class="modal-card">
-    <button class="modal-close" onclick="closeConfirmModal()">×</button>
-    <div class="modal-header">
-      <span style="font-size:48px;display:block;margin-bottom:8px;">🍽️</span>
-      <h2 class="modal-title">今天就吃这个？</h2>
-      <div class="modal-meta" id="confirm-dishes-summary"></div>
-    </div>
-    <div class="modal-body">
-      <section id="confirm-dishes-list"></section>
-      <section>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <button class="primary" style="background:#4caf50;font-size:16px;padding:14px;" onclick="confirmStatus('confirmed')">
-            ✅ 就做这个
-          </button>
-          <button class="banner-btn" style="font-size:15px;padding:12px;color:#5a4a3a;" onclick="confirmStatus('redraw')">
-            🔄 换一道
-          </button>
-          <button class="banner-btn" style="font-size:15px;padding:12px;color:#e85d04;border-color:#e85d04;" onclick="showManualInput()">
-            🍜 今天吃别的
-          </button>
-          <button class="banner-btn" style="font-size:15px;padding:12px;color:#888;" onclick="confirmStatus('skipped')">
-            ❌ 没做饭（外卖/剩菜）
-          </button>
-        </div>
-      </section>
-      <section id="confirm-manual-section" hidden>
-        <h3>🍜 今天实际吃了什么？</h3>
-        <div style="margin-bottom:8px;font-size:13px;color:#888;">从菜谱里选：</div>
-        <div id="confirm-manual-dishes" style="max-height:180px;overflow-y:auto;border:1px solid #e8dcc4;border-radius:8px;padding:8px;margin-bottom:12px;"></div>
-        <div style="margin-bottom:8px;font-size:13px;color:#888;">或者手动输入：</div>
-        <input type="text" id="confirm-manual-input" placeholder="例如：火锅 / 麦当劳 / 妈妈做的红烧肉" style="width:100%;padding:10px;border:1px solid #e8dcc4;border-radius:8px;font-size:14px;">
-        <button class="primary" style="margin-top:10px;width:100%;font-size:15px;padding:12px;" onclick="confirmStatus('manual')">确认</button>
-      </section>
-    </div>
-  </div>
-</div>
+<!-- ============ Day 10.2：每道菜的内联选择器（在主面板里渲染，不需要单独 modal） ============ -->
 
 <script>
 // ============ 菜品数据（与 Python dishes.json 一致） ============
@@ -2631,9 +2594,146 @@ function getDishes() {
   return DISHES_DATA.map(d => new Dish(d));
 }
 
-// ============ Day 10：做饭前确认弹窗 ============
-// pendingDraw 暂存"刚刚抽到的菜"，等用户确认后才写入历史
-let pendingDraw = null;  // {kind: "combo"|"three"|"kids", combo: {...}, meals: {...}}
+// ============ Day 10.2：每道菜的内联确认按钮 ============
+// 不弹窗。每道菜下面直接放 4 个按钮：✅ 就做 / 🔄 换一道 / 🍜 别的 / ❌ 跳过
+// 点完直接写历史（status 区分），用户可继续操作其他菜或重新抽
+//
+// 数据流：
+// 1. drawCombo/drawThreeMeals/drawKidCombo 抽出菜 → 渲染带按钮的 dish-row
+// 2. 用户对每道菜点 4 个按钮之一 → 即时写历史 + 标记该菜状态
+// 3. 用户点「再抽一套」→ 重新抽（已确认的菜留历史；未确认的菜不写）
+
+// 渲染带内联按钮的菜
+function buildDishRowWithConfirm(dish, role, slotId, onAction) {
+  if (!dish) return null;
+  const row = document.createElement('div');
+  row.className = 'dish-row';
+  row.id = slotId;
+  row.dataset.dishName = dish.name;
+  row.dataset.role = role;
+  row.innerHTML = `
+    <div class="dish-emoji">${ROLE_EMOJI[role] || '•'}</div>
+    <div class="dish-info">
+      <div class="dish-name">${escapeHtml(dish.name)}</div>
+      <div class="dish-meta">${role} · 约 ${dish.time_minutes} 分钟</div>
+      <div class="dish-status" id="${slotId}-status" style="margin-top:6px;font-size:13px;color:#888;"></div>
+    </div>
+    <div class="dish-actions" style="display:flex;flex-direction:column;gap:6px;padding:6px 0;">
+      <button class="confirm-btn" data-action="confirmed" style="background:#4caf50;color:white;border:none;padding:6px 10px;border-radius:6px;font-size:13px;cursor:pointer;">✅ 就做</button>
+      <button class="confirm-btn" data-action="redraw" style="background:#fff7e6;color:#5a4a3a;border:1px solid #e8dcc4;padding:6px 10px;border-radius:6px;font-size:13px;cursor:pointer;">🔄 换一道</button>
+      <button class="confirm-btn" data-action="manual" style="background:#fff;color:#e85d04;border:1px solid #e85d04;padding:6px 10px;border-radius:6px;font-size:13px;cursor:pointer;">🍜 别的</button>
+      <button class="confirm-btn" data-action="skipped" style="background:#fff;color:#888;border:1px solid #e8dcc4;padding:6px 10px;border-radius:6px;font-size:13px;cursor:pointer;">❌ 跳过</button>
+    </div>`;
+  // 整行可点查看菜谱（但不要点按钮时触发）
+  const info = row.querySelector('.dish-info');
+  info.addEventListener('click', () => showRecipe(dish));
+
+  // 绑定按钮
+  row.querySelectorAll('.confirm-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      onAction(btn.dataset.action, dish, row);
+    });
+  });
+
+  return row;
+}
+
+// 给某道菜标状态（写历史 + UI 高亮）
+function applyDecisionToSlot(row, dish, action, suggestedName) {
+  const history = loadHistory();
+  const status = action === 'redraw' ? null : action; // redraw 不写历史
+  if (action === 'confirmed') {
+    addToHistoryWithStatus(history, dish.name, 'confirmed', null);
+    markSlotDone(row, '✅ 已记录：就做这个');
+  } else if (action === 'skipped') {
+    addToHistoryWithStatus(history, '没做饭', 'skipped', dish.name);
+    markSlotDone(row, '❌ 已记录：跳过');
+  } else if (action === 'manual') {
+    // 由调用方弹输入层；这里只负责收输入
+    addToHistoryWithStatus(history, suggestedName, 'manual', dish.name);
+    markSlotDone(row, `🍜 已记录：实际吃了 ${suggestedName}`);
+  }
+  if (status) {
+    saveHistory(history);
+    updateHistoryHint();
+  }
+}
+
+function markSlotDone(row, msg) {
+  const status = document.getElementById(row.id + '-status');
+  if (status) {
+    status.textContent = msg;
+    status.style.color = '#2e7d32';
+    status.style.fontWeight = '600';
+  }
+  // 灰显按钮
+  row.querySelectorAll('.confirm-btn').forEach(b => {
+    b.disabled = true;
+    b.style.opacity = '0.4';
+  });
+  row.style.background = '#f0f9f0';
+}
+
+// 弹「吃别的」输入层（在菜下方插入）
+function promptManualDish(row, originalDish) {
+  // 移除已有输入框
+  const existing = row.parentNode.querySelector('.manual-input-wrap');
+  if (existing) existing.remove();
+
+  const wrap = document.createElement('div');
+  wrap.className = 'manual-input-wrap';
+  wrap.style.cssText = "background:#fff7e6;padding:12px;border-radius:8px;margin:8px 0 16px 0;border:1px solid #e8dcc4;";
+  wrap.innerHTML = `
+    <div style="font-size:13px;color:#888;margin-bottom:6px;">🍜 实际吃了什么？</div>
+    <div class="manual-dish-list" style="max-height:120px;overflow-y:auto;border:1px solid #e8dcc4;border-radius:6px;padding:6px;margin-bottom:8px;background:white;"></div>
+    <input type="text" class="manual-input" placeholder="或者手动输入" style="width:100%;padding:8px;border:1px solid #e8dcc4;border-radius:6px;font-size:13px;">
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="manual-confirm" style="flex:1;background:#e85d04;color:white;border:none;padding:8px;border-radius:6px;font-size:13px;cursor:pointer;">确认</button>
+      <button class="manual-cancel" style="background:#fff;color:#888;border:1px solid #e8dcc4;padding:8px 12px;border-radius:6px;font-size:13px;cursor:pointer;">取消</button>
+    </div>`;
+  // 填菜谱列表
+  const list = wrap.querySelector('.manual-dish-list');
+  getDishes().forEach(d => {
+    const item = document.createElement('div');
+    item.style.cssText = "padding:4px 6px;cursor:pointer;border-radius:4px;font-size:13px;";
+    item.textContent = `${ROLE_EMOJI[d.role] || '•'} ${d.name}`;
+    item.onmouseenter = () => item.style.background = '#fdf6e3';
+    item.onmouseleave = () => item.style.background = '';
+    item.onclick = () => { wrap.querySelector('.manual-input').value = d.name; };
+    list.appendChild(item);
+  });
+
+  const input = wrap.querySelector('.manual-input');
+  const confirm = wrap.querySelector('.manual-confirm');
+  const cancel = wrap.querySelector('.manual-cancel');
+  confirm.onclick = () => {
+    const val = input.value.trim();
+    if (!val) { alert('请输入或选择菜名'); return; }
+    applyDecisionToSlot(row, originalDish, 'manual', val);
+    wrap.remove();
+  };
+  cancel.onclick = () => wrap.remove();
+  input.onkeydown = e => { if (e.key === 'Enter') confirm.onclick(); };
+
+  row.parentNode.insertBefore(wrap, row.nextSibling);
+  input.focus();
+}
+
+// 处理单个菜按钮点击
+function handleDishAction(action, dish, row) {
+  if (action === 'redraw') {
+    // 换一道：重新抽这一道菜（不写历史）
+    // 实际实现：把整个面板重新抽一遍
+    if (row.dataset.source === 'combo') drawCombo();
+    else if (row.dataset.source === 'kids') drawKidCombo();
+    else drawThreeMeals();
+  } else if (action === 'manual') {
+    promptManualDish(row, dish);
+  } else {
+    applyDecisionToSlot(row, dish, action, null);
+  }
+}
 
 function drawCombo() {
   const btn = document.getElementById('draw-btn');
@@ -2646,180 +2746,24 @@ function drawCombo() {
     const pool = filtered.length > 0 ? filtered : dishes;
     const history = loadHistory();
     const combo = chooseCombo(pool, history);
-    renderCombo(combo);
-    // Day 10: 弹窗确认，不直接写历史
-    pendingDraw = {kind: "combo", combo: combo};
-    openConfirmModal(combo, "combo");
+    renderComboWithConfirm(combo);
     btn.disabled = false;
     btn.textContent = '再抽一套 🔄';
   }, 250);
 }
 
-function openConfirmModal(items, kind) {
-  // items 是 dict（套餐）或 {早餐, 午餐(dish), 晚餐(dish)}（三餐）
-  const modal = document.getElementById('confirm-modal');
-  const summary = document.getElementById('confirm-dishes-summary');
-  const list = document.getElementById('confirm-dishes-list');
-  const manualSection = document.getElementById('confirm-manual-section');
-  manualSection.hidden = true;
-
-  // 摘要
-  const parts = [];
-  if (kind === "combo") {
-    for (const [role, dish] of Object.entries(items)) {
-      if (dish) parts.push(`${ROLE_EMOJI[role] || '•'} ${dish.name}`);
+function renderComboWithConfirm(combo) {
+  const result = document.getElementById('combo-result');
+  result.innerHTML = '';
+  for (const [role, dish] of Object.entries(combo)) {
+    const slotId = `slot-combo-${role}`;
+    const row = buildDishRowWithConfirm(dish, role, slotId, handleDishAction);
+    if (row) {
+      row.dataset.source = 'combo';
+      result.appendChild(row);
     }
-    summary.textContent = parts.join(' · ');
-  } else {
-    summary.textContent = '早 + 午 + 晚 三餐';
   }
-
-  // 详细列表
-  list.innerHTML = '';
-  if (kind === "combo") {
-    for (const [role, dish] of Object.entries(items)) {
-      if (!dish) continue;
-      const row = document.createElement('div');
-      row.className = 'dish-row';
-      row.innerHTML = `
-        <div class="dish-emoji">${ROLE_EMOJI[role] || '•'}</div>
-        <div class="dish-info">
-          <div class="dish-name">${escapeHtml(dish.name)}</div>
-          <div class="dish-meta">${role} · 约 ${dish.time_minutes} 分钟</div>
-        </div>`;
-      list.appendChild(row);
-    }
-  } else {
-    // 三餐
-    const renderMeal = (meal, emoji, label) => {
-      const h = document.createElement('div');
-      h.style.cssText = "padding:14px 0 4px 0;font-size:15px;color:#5d4500;font-weight:600;";
-      h.textContent = `${emoji} ${label}`;
-      list.appendChild(h);
-      if (!meal) return;
-      const renderDish = (dish, role) => {
-        if (!dish) return;
-        const row = document.createElement('div');
-        row.className = 'dish-row';
-        row.innerHTML = `
-          <div class="dish-emoji">${ROLE_EMOJI[role] || '•'}</div>
-          <div class="dish-info">
-            <div class="dish-name">${escapeHtml(dish.name)}</div>
-            <div class="dish-meta">${role} · 约 ${dish.time_minutes} 分钟</div>
-          </div>`;
-        list.appendChild(row);
-      };
-      if (meal.模式 === "一碗一餐") {
-        renderDish(meal["主食"], "主食");
-      } else if (meal.模式 === "配菜模式") {
-        renderDish(meal["主菜"], "主菜");
-        renderDish(meal["汤"], "汤");
-        renderDish(meal["主食"], "主食");
-      } else {
-        renderDish(meal["主菜"], "主菜");
-        renderDish(meal["汤"], "汤");
-        renderDish(meal["主食"], "主食");
-      }
-    };
-    renderMeal(items["早餐"], "🥣", "早餐");
-    renderMeal(items["午餐"], "☀️", "午餐");
-    renderMeal(items["晚餐"], "🌙", "晚餐");
-  }
-
-  modal.hidden = false;
 }
-
-function closeConfirmModal() {
-  document.getElementById('confirm-modal').hidden = true;
-  document.getElementById('confirm-manual-section').hidden = true;
-  pendingDraw = null;
-}
-
-function showManualInput() {
-  const section = document.getElementById('confirm-manual-section');
-  section.hidden = false;
-  // 填菜谱列表
-  const list = document.getElementById('confirm-manual-dishes');
-  list.innerHTML = '';
-  const dishes = getDishes();
-  dishes.forEach(d => {
-    const item = document.createElement('div');
-    item.style.cssText = "padding:6px 8px;cursor:pointer;border-radius:4px;font-size:13px;";
-    item.textContent = `${ROLE_EMOJI[d.role] || '•'} ${d.name}`;
-    item.onmouseenter = () => item.style.background = '#fdf6e3';
-    item.onmouseleave = () => item.style.background = '';
-    item.onclick = () => {
-      document.getElementById('confirm-manual-input').value = d.name;
-    };
-    list.appendChild(item);
-  });
-  document.getElementById('confirm-manual-input').focus();
-}
-
-function confirmStatus(status) {
-  if (!pendingDraw) return;
-  const history = loadHistory();
-
-  if (status === 'redraw') {
-    // 换一道：重新触发当前 draw 函数
-    closeConfirmModal();
-    if (pendingDraw.kind === 'combo') drawCombo();
-    else if (pendingDraw.kind === 'kids') drawKidCombo();
-    else drawThreeMeals();
-    return;
-  }
-
-  // 把抽到的菜名收集起来
-  const suggestedNames = collectSuggestedNames(pendingDraw);
-
-  if (status === 'confirmed') {
-    // 全部按抽到的做
-    suggestedNames.forEach(n => addToHistoryWithStatus(history, n, 'confirmed', null));
-  } else if (status === 'skipped') {
-    // 没做饭：记录 skipped
-    addToHistoryWithStatus(history, '没做饭', 'skipped', suggestedNames.join(' / ') || null);
-  } else if (status === 'manual') {
-    // 用户手动输入
-    const input = document.getElementById('confirm-manual-input').value.trim();
-    if (!input) {
-      alert('请输入或选择今天实际吃的菜');
-      return;
-    }
-    addToHistoryWithStatus(history, input, 'manual', suggestedNames.join(' / ') || null);
-  }
-
-  saveHistory(history);
-  updateHistoryHint();
-  closeConfirmModal();
-}
-
-function collectSuggestedNames(pending) {
-  if (pending.kind === 'combo') {
-    return Object.values(pending.combo).filter(d => d && d.name).map(d => d.name);
-  } else if (pending.kind === 'three') {
-    const names = [];
-    const collect = (meal) => {
-      if (!meal) return;
-      for (const d of Object.values(meal)) {
-        if (d && d.name) names.push(d.name);
-      }
-    };
-    collect(pending.meals["早餐"]);
-    collect(pending.meals["午餐"]);
-    collect(pending.meals["晚餐"]);
-    return names;
-  } else if (pending.kind === 'kids') {
-    return Object.values(pending.combo).filter(d => d && d.name).map(d => d.name);
-  }
-  return [];
-}
-
-// ESC 关闭 confirm
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && !document.getElementById('confirm-modal').hidden) {
-    closeConfirmModal();
-  }
-});
 
 function checkIngredients() {
   const raw = document.getElementById('ingredient-input').value.trim();
@@ -2872,8 +2816,11 @@ function isLunchMainAllowed(dish) {
 function isOneBowlMeal(dish) {
   return dish.name.includes("面") || dish.name.includes("饺子");
 }
+function isRice(dish) {
+  return dish.name.includes("米") && !dish.name.includes("面");
+}
 
-function chooseOneMeal(dishes, history = [], window = 30, scores = null) {
+function chooseOneMeal(dishes, history = [], window = 30, scores = null, mustBeRice = false) {
   // Day 10: 迁移旧格式 + 过滤 skipped
   const effective = migrateHistory(history);
   const recent = new Set(
@@ -2884,13 +2831,15 @@ function chooseOneMeal(dishes, history = [], window = 30, scores = null) {
 
   // 抽主食：限定池
   function pickMain(pool, fallback) {
-    let cands = pool.filter(d => d.role === "主食" && isLunchMainAllowed(d) && !recent.has(d.name));
-    if (cands.length === 0) cands = pool.filter(d => d.role === "主食" && isLunchMainAllowed(d));
+    // mustBeRice=true 时主食池只含米饭（用于『不能两顿面』约束）
+    const mainFilter = mustBeRice ? isRice : isLunchMainAllowed;
+    let cands = pool.filter(d => d.role === "主食" && mainFilter(d) && !recent.has(d.name));
+    if (cands.length === 0) cands = pool.filter(d => d.role === "主食" && mainFilter(d));
     if (cands.length === 0 && fallback !== pool) {
-      cands = fallback.filter(d => d.role === "主食" && isLunchMainAllowed(d) && !recent.has(d.name));
+      cands = fallback.filter(d => d.role === "主食" && mainFilter(d) && !recent.has(d.name));
     }
     if (cands.length === 0 && fallback !== pool) {
-      cands = fallback.filter(d => d.role === "主食" && isLunchMainAllowed(d));
+      cands = fallback.filter(d => d.role === "主食" && mainFilter(d));
     }
     if (cands.length === 0) return null;
     return weightedChoice(cands, useScores, tagAff);
@@ -2951,7 +2900,9 @@ function chooseThreeMeals(dishes, history = [], window = 7, scores = null) {
   // 避免午晚重复：把午餐选的菜加进历史传给晚餐
   const lunchNames = Object.values(lunch).filter(d => d && d.name).map(d => d.name);
   const dinnerHistory = effective.concat(lunchNames.map(n => ({dish: n, date: new Date().toISOString().slice(0, 10), status: 'confirmed'})));
-  const dinner = chooseOneMeal(dishes, dinnerHistory, window, useScores);
+  // 『一天不能两顿面条』：午餐若是一碗一餐，晚餐强制米饭模式
+  const mustBeRiceDinner = (lunch.模式 === "一碗一餐");
+  const dinner = chooseOneMeal(dishes, dinnerHistory, window, useScores, mustBeRiceDinner);
 
   return {"早餐": breakfast, "午餐": lunch, "晚餐": dinner};
 }
@@ -2972,6 +2923,14 @@ function renderThreeMeals(meals) {
     row.innerHTML = `<div class="dish-emoji">⚠️</div><div class="dish-info"><div class="dish-name">${text}</div></div>`;
     result.appendChild(row);
   }
+  function addWithConfirm(dish, role, slotId) {
+    const row = buildDishRowWithConfirm(dish, role, slotId, handleDishAction);
+    if (row) {
+      row.dataset.source = 'three';
+      result.appendChild(row);
+    }
+  }
+
   function renderMeal(meal, emoji, label) {
     header(`${emoji} ${label}`);
     if (!meal || meal.模式 === "无" || !meal["主食"]) {
@@ -2979,21 +2938,19 @@ function renderThreeMeals(meals) {
       return;
     }
     if (meal.模式 === "一碗一餐") {
-      // 只显示那一碗
       const tag = document.createElement('div');
       tag.style.cssText = "font-size:13px;color:#888;padding:2px 0 4px 4px;";
       tag.textContent = "一碗一餐";
       result.appendChild(tag);
-      result.appendChild(buildDishRow(meal["主食"]));
+      addWithConfirm(meal["主食"], "主食", `slot-three-${label}-main`);
     } else {
-      // 配菜模式：主菜 + 汤 + 主食
       const tag = document.createElement('div');
       tag.style.cssText = "font-size:13px;color:#888;padding:2px 0 4px 4px;";
       tag.textContent = "配菜模式";
       result.appendChild(tag);
       for (const role of ["主菜", "汤", "主食"]) {
         const dish = meal[role];
-        if (dish) result.appendChild(buildDishRow(dish));
+        if (dish) addWithConfirm(dish, role, `slot-three-${label}-${role}`);
         else emptyRow(`${role}：暂无合适`);
       }
     }
@@ -3002,14 +2959,14 @@ function renderThreeMeals(meals) {
   // 早餐
   header("☀️ 早餐");
   if (meals["早餐"]) {
-    result.appendChild(buildDishRow(meals["早餐"]));
+    addWithConfirm(meals["早餐"], "早餐", "slot-three-早餐");
   } else {
     emptyRow("暂无合适早餐");
   }
 
   // 午餐 + 晚餐
-  renderMeal(meals["午餐"], "🌞", "午餐");
-  renderMeal(meals["晚餐"], "🌙", "晚餐");
+  renderMeal(meals["午餐"], "午餐", "午餐");
+  renderMeal(meals["晚餐"], "晚餐", "晚餐");
 
   // 营养覆盖
   const allDishes = [];
@@ -3041,9 +2998,6 @@ function drawThreeMeals() {
     const history = loadHistory();
     const meals = chooseThreeMeals(pool, history, 7);
     renderThreeMeals(meals);
-    // Day 10: 弹窗确认
-    pendingDraw = {kind: "three", meals: meals};
-    openConfirmModal(meals, "three");
     btn.disabled = false;
     btn.textContent = '再抽一天 🔄';
   }, 250);
@@ -3090,13 +3044,23 @@ function drawKidCombo() {
     const pool = filtered.length > 0 ? filtered : kidDishes;
     const history = loadHistory();
     const combo = chooseCombo(pool, history);
-    renderComboTo(combo, 'kids-result');
-    // Day 10: 弹窗确认
-    pendingDraw = {kind: "kids", combo: combo};
-    openConfirmModal(combo, "combo");
+    renderKidsComboWithConfirm(combo);
     btn.disabled = false;
     btn.textContent = '再抽一套 🔄';
   }, 250);
+}
+
+function renderKidsComboWithConfirm(combo) {
+  const result = document.getElementById('kids-result');
+  result.innerHTML = '';
+  for (const [role, dish] of Object.entries(combo)) {
+    const slotId = `slot-kids-${role}`;
+    const row = buildDishRowWithConfirm(dish, role, slotId, handleDishAction);
+    if (row) {
+      row.dataset.source = 'kids';
+      result.appendChild(row);
+    }
+  }
 }
 
 // ============ 事件绑定 ============

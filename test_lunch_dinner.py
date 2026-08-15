@@ -220,5 +220,108 @@ class TestFormatOneMeal(unittest.TestCase):
         self.assertIn("=" * 40, out)
 
 
+class TestNoTwoNoodlesConstraint(unittest.TestCase):
+    """约束：一天不能两顿面条（一碗一餐只能出现 1 次）"""
+
+    def _build_pool(self):
+        """带足够多样本的池子，确保午晚能各自走不同模式"""
+        return [
+            # 主菜
+            Dish("宫保鸡丁", 25, role="主菜"),
+            Dish("清炒时蔬", 10, role="主菜"),
+            Dish("糖醋里脊", 30, role="主菜"),
+            Dish("鱼香肉丝", 25, role="主菜"),
+            # 汤
+            Dish("紫菜蛋花汤", 10, role="汤"),
+            Dish("番茄蛋汤", 10, role="汤"),
+            Dish("酸辣汤", 15, role="汤"),
+            # 早餐
+            Dish("豆浆", 15, role="早餐"),
+            Dish("白粥", 15, role="早餐"),
+            # 允许的主食（米饭需要多份，方便两顿都是米饭）
+            Dish("米饭A", 20, role="主食"),     # 米饭
+            Dish("米饭B", 20, role="主食"),     # 米饭（第二份让晚餐也能抽到）
+            Dish("拉面", 15, role="主食"),      # 一碗一餐
+            Dish("番茄面", 15, role="主食"),    # 一碗一餐
+            Dish("饺子", 45, role="主食"),      # 一碗一餐
+        ]
+
+    def test_lunch_one_bowl_forces_dinner_rice(self):
+        """午餐是一碗一餐 → 晚餐必须是配菜模式（主食=米饭）"""
+        from what_to_eat import choose_three_meals
+        pool = self._build_pool()
+        for _ in range(30):
+            meals = choose_three_meals(pool, [])
+            if meals["午餐"].get("模式") == "一碗一餐":
+                # 晚餐必须是配菜模式
+                self.assertEqual(meals["晚餐"].get("模式"), "配菜模式",
+                                 f"午餐是一碗一餐时晚餐应强制配菜模式，实际={meals['晚餐']}")
+                # 晚餐主食必须含米
+                self.assertIn("米", meals["晚餐"]["主食"].name)
+                # 晚餐必须有主菜+汤
+                self.assertIsNotNone(meals["晚餐"]["主菜"])
+                self.assertIsNotNone(meals["晚餐"]["汤"])
+
+    def test_never_two_one_bowls(self):
+        """任何情况下，午晚不能同时是一碗一餐"""
+        from what_to_eat import choose_three_meals
+        pool = self._build_pool()
+        for _ in range(100):
+            meals = choose_three_meals(pool, [])
+            lunch_mode = meals["午餐"].get("模式")
+            dinner_mode = meals["晚餐"].get("模式")
+            # 不允许：两个都是一碗一餐
+            self.assertFalse(
+                lunch_mode == "一碗一餐" and dinner_mode == "一碗一餐",
+                f"出现两顿面条！午={meals['午餐']} 晚={meals['晚餐']}"
+            )
+
+    def test_two_rice_meals_allowed(self):
+        """两顿米饭是允许的"""
+        from what_to_eat import choose_three_meals
+        pool = self._build_pool()
+        seen_two_rice = False
+        for _ in range(100):
+            meals = choose_three_meals(pool, [])
+            if (meals["午餐"].get("模式") == "配菜模式"
+                    and meals["晚餐"].get("模式") == "配菜模式"):
+                seen_two_rice = True
+                # 两顿主食都应是米饭（含『米』字即可）
+                self.assertIn("米", meals["午餐"]["主食"].name)
+                self.assertIn("米", meals["晚餐"]["主食"].name)
+                break
+        self.assertTrue(seen_two_rice, "至少应见到一次『两顿米饭』的组合")
+
+    def test_mixed_one_bowl_plus_rice_allowed(self):
+        """一顿面 + 一顿米是允许的"""
+        from what_to_eat import choose_three_meals
+        pool = self._build_pool()
+        seen_mixed = False
+        for _ in range(100):
+            meals = choose_three_meals(pool, [])
+            modes = (meals["午餐"].get("模式"), meals["晚餐"].get("模式"))
+            if "一碗一餐" in modes and "配菜模式" in modes:
+                seen_mixed = True
+                # 一碗一餐的必须是面条/饺子
+                for key in ("午餐", "晚餐"):
+                    if meals[key].get("模式") == "一碗一餐":
+                        self.assertTrue(
+                            "面" in meals[key]["主食"].name
+                            or "饺子" in meals[key]["主食"].name
+                        )
+                break
+        self.assertTrue(seen_mixed, "应见到『一顿面一顿米』的组合")
+
+    def test_must_be_rice_excludes_noodles(self):
+        """must_be_rice=True 时只抽米饭，不抽面/饺子"""
+        pool = self._build_pool()
+        for _ in range(50):
+            meal = choose_one_meal(pool, [], must_be_rice=True)
+            if meal["主食"]:
+                self.assertIn("米", meal["主食"].name,
+                              f"must_be_rice 时主食必须是米，实际={meal['主食'].name}")
+                self.assertEqual(meal["模式"], "配菜模式")
+
+
 if __name__ == "__main__":
     unittest.main()

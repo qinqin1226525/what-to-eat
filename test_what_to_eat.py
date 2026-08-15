@@ -25,6 +25,7 @@ from what_to_eat import (
     add_score,
     compute_tag_affinities,
     weighted_choice,
+    log_manual,
 )
 
 
@@ -879,6 +880,118 @@ class TestSelfCatalyzing(unittest.TestCase):
             self.assertEqual(loaded, scores)
         finally:
             os.unlink(tmppath)
+
+
+class TestLogManual(unittest.TestCase):
+    """Day 11: 手动记录三餐 —— 纯自由文本，进 history + 评分"""
+
+    def test_log_manual_returns_appended_history(self):
+        h = []
+        meals = {"早餐": "小米粥", "午餐": "米饭", "晚餐": "面条"}
+        new_h = log_manual(h, meals, target_date="2026-08-15")
+        self.assertEqual(len(new_h), 3)
+
+    def test_log_manual_uses_specified_date(self):
+        h = []
+        new_h = log_manual(h, {"早餐": "小米粥"}, target_date="2026-08-10")
+        self.assertEqual(new_h[0]["date"], "2026-08-10")
+
+    def test_log_manual_date_defaults_to_today(self):
+        h = []
+        new_h = log_manual(h, {"午餐": "米饭"})
+        self.assertEqual(new_h[0]["date"], str(date.today()))
+
+    def test_log_manual_records_meal_type(self):
+        h = []
+        meals = {"早餐": "小米粥", "午餐": "米饭", "晚餐": "面条"}
+        new_h = log_manual(h, meals, target_date="2026-08-15")
+        meals_recorded = {entry["meal"] for entry in new_h}
+        self.assertEqual(meals_recorded, {"早餐", "午餐", "晚餐"})
+
+    def test_log_manual_status_is_manual(self):
+        new_h = log_manual([], {"午餐": "米饭"})
+        self.assertEqual(new_h[0]["status"], "manual")
+
+    def test_log_manual_supports_multiple_dishes_per_meal(self):
+        """每餐支持逗号分隔多菜"""
+        new_h = log_manual([], {"午餐": "米饭, 红烧肉, 紫菜蛋花汤"})
+        dish_names = [entry["dish"] for entry in new_h]
+        self.assertEqual(set(dish_names), {"米饭", "红烧肉", "紫菜蛋花汤"})
+        self.assertTrue(all(e["meal"] == "午餐" for e in new_h))
+
+    def test_log_manual_skips_empty_dishes(self):
+        new_h = log_manual([], {"早餐": "", "午餐": "米饭", "晚餐": None})
+        self.assertEqual(len(new_h), 1)
+        self.assertEqual(new_h[0]["dish"], "米饭")
+
+    def test_log_manual_strips_whitespace(self):
+        new_h = log_manual([], {"午餐": " 米饭 , 红烧肉 "})
+        dish_names = [entry["dish"] for entry in new_h]
+        self.assertEqual(set(dish_names), {"米饭", "红烧肉"})
+
+    def test_log_manual_writes_scores_cooks_plus_one(self):
+        scores = {"米饭": {"likes": 0, "dislikes": 0, "cooks": 0}}
+        log_manual([], {"午餐": "米饭"}, target_date="2026-08-15", scores=scores)
+        self.assertEqual(scores["米饭"]["cooks"], 1)
+
+    def test_log_manual_init_scores_for_new_dishes(self):
+        scores = {}
+        log_manual([], {"午餐": "新菜"}, scores=scores)
+        self.assertIn("新菜", scores)
+        self.assertEqual(scores["新菜"]["cooks"], 1)
+        self.assertEqual(scores["新菜"]["likes"], 0)
+        self.assertEqual(scores["新菜"]["dislikes"], 0)
+
+    def test_log_manual_does_not_error_when_scores_not_provided(self):
+        """scores=None 时不报错（允许纯 history 写入）"""
+        new_h = log_manual([], {"午餐": "米饭"})
+        self.assertEqual(len(new_h), 1)
+
+    def test_log_manual_appends_to_existing_history(self):
+        h = [{"dish": "旧菜", "date": "2026-08-14", "status": "confirmed"}]
+        new_h = log_manual(h, {"午餐": "新菜"}, target_date="2026-08-15")
+        self.assertEqual(len(new_h), 2)
+        self.assertEqual(new_h[0]["dish"], "旧菜")
+        self.assertEqual(new_h[1]["dish"], "新菜")
+
+    def test_log_manual_dedupes_dishes_within_same_meal(self):
+        """同一餐重复输入只记录一次（防呆）"""
+        new_h = log_manual([], {"午餐": "米饭, 米饭, 米饭"})
+        self.assertEqual(len(new_h), 1)
+
+    def test_log_manual_invalid_meal_key_ignored(self):
+        """meal 必须是早/午/晚之一；其他 key 静默忽略"""
+        new_h = log_manual([], {"宵夜": "麻辣烫", "下午茶": "蛋糕"})
+        self.assertEqual(len(new_h), 0)
+
+    def test_log_manual_cooks_accumulates_across_multiple_dishes(self):
+        """一餐多个菜，每个菜的 cooks 都 +1"""
+        scores = {"米饭": {"likes": 0, "dislikes": 0, "cooks": 3},
+                  "红烧肉": {"likes": 0, "dislikes": 0, "cooks": 0}}
+        log_manual([], {"午餐": "米饭, 红烧肉"}, scores=scores)
+        self.assertEqual(scores["米饭"]["cooks"], 4)
+        self.assertEqual(scores["红烧肉"]["cooks"], 1)
+
+    def test_log_manual_uses_default_date_when_only_today(self):
+        """target_date=None → date.today()"""
+        h = []
+        new_h = log_manual(h, {"午餐": "米饭"})
+        self.assertEqual(new_h[0]["date"], str(date.today()))
+
+
+class TestAddToHistoryWithMeal(unittest.TestCase):
+    """Day 11: add_to_history 支持 meal 字段"""
+
+    def test_add_to_history_includes_meal_field(self):
+        h = []
+        add_to_history(h, "小米粥", status="manual", meal="早餐")
+        self.assertEqual(h[0]["meal"], "早餐")
+
+    def test_add_to_history_meal_omitted_when_none(self):
+        """meal=None → 不写入字段（兼容老数据）"""
+        h = []
+        add_to_history(h, "小米粥")
+        self.assertNotIn("meal", h[0])
 
 
 if __name__ == "__main__":

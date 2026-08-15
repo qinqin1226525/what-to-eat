@@ -69,13 +69,17 @@ def save_history(history, path=HISTORY_FILE):
         json.dump(history, f, ensure_ascii=False, indent=2)
 
 
-def add_to_history(history, dish_name, status="confirmed", suggested=None):
+def add_to_history(history, dish_name, status="confirmed", suggested=None, meal=None, date_str=None):
     """把今天吃过的菜加进历史。
-    status: 'confirmed'（吃了/做了）/ 'skipped'（没吃）/ 'served'（做了的近义词）
+    status: 'confirmed'（吃了/做了）/ 'skipped'（没吃）/ 'manual'（手动记录）
+    meal: '早餐'/'午餐'/'晚餐'（手动记录时使用）
+    date_str: ISO 日期字符串；None → 今天
     """
-    entry = {"dish": dish_name, "date": str(date.today()), "status": status}
+    entry = {"dish": dish_name, "date": date_str or str(date.today()), "status": status}
     if status != "confirmed":
         entry["suggested"] = suggested
+    if meal:
+        entry["meal"] = meal
     history.append(entry)
     return history
 
@@ -391,7 +395,12 @@ def choose_three_meals(dishes, history=None, window=7, prefs=None, scores=None):
     lunch_names = {d.name for d in lunch.values() if hasattr(d, "name")}
     # 给晚餐一份过滤过 exclude 的临时 history
     dinner_history = list(history) + [{"dish": n, "date": str(today)} for n in lunch_names]
-    dinner = choose_one_meal(dishes, dinner_history, window=window, prefs=prefs, scores=scores)
+    # 『一天不能两顿面条』：午餐若是一碗一餐，晚餐强制米饭模式
+    must_be_rice_dinner = (lunch.get("模式") == "一碗一餐")
+    dinner = choose_one_meal(
+        dishes, dinner_history, window=window, prefs=prefs, scores=scores,
+        must_be_rice=must_be_rice_dinner,
+    )
 
     return {"早餐": breakfast, "午餐": lunch, "晚餐": dinner}
 
@@ -403,11 +412,18 @@ def choose_three_meals(dishes, history=None, window=7, prefs=None, scores=None):
 #   - 面条/饺子 = 一碗一餐（不配菜不配汤）
 #   - 米饭 = 主菜 + 汤 + 主食
 #   - 其他主食（馒头/包子/炒饭/年糕/葱油饼/烧麦）→ 跳过
+#   - 一天不能两顿面条：午餐若是一碗一餐，晚餐强制米饭模式
 
 def is_lunch_main_allowed(dish):
     """午饭/晚饭允许的主食：名字含『米』『面』『饺子』之一"""
     name = dish.name or ""
     return any(k in name for k in ("米", "面", "饺子"))
+
+
+def is_rice(dish):
+    """米饭：含『米』字但不含『面』的主食（避免『玉米萝卜清汤面』被误判）"""
+    name = dish.name or ""
+    return "米" in name and "面" not in name
 
 
 def is_one_bowl_meal(dish):
@@ -416,7 +432,7 @@ def is_one_bowl_meal(dish):
     return "面" in name or "饺子" in name
 
 
-def choose_one_meal(dishes, history=None, window=30, prefs=None, scores=None):
+def choose_one_meal(dishes, history=None, window=30, prefs=None, scores=None, must_be_rice=False):
     """用户定制版的『一顿午饭或晚饭』。
 
     规则：
@@ -444,19 +460,21 @@ def choose_one_meal(dishes, history=None, window=30, prefs=None, scores=None):
     # 1. 抽主食（限定池）
     def pick_main(candidate_pool, fallback_pool):
         # candidate_pool 应用了偏好，fallback_pool 是原列表
+        # must_be_rice=True 时，主食池只含米饭（用于『不能两顿面』约束）
+        main_filter = is_rice if must_be_rice else is_lunch_main_allowed
         cands = [
             d for d in candidate_pool
-            if d.role == "主食" and is_lunch_main_allowed(d) and d.name not in recent
+            if d.role == "主食" and main_filter(d) and d.name not in recent
         ]
         if not cands:
-            cands = [d for d in candidate_pool if d.role == "主食" and is_lunch_main_allowed(d)]
+            cands = [d for d in candidate_pool if d.role == "主食" and main_filter(d)]
         if not cands and fallback_pool is not candidate_pool:
             cands = [
                 d for d in fallback_pool
-                if d.role == "主食" and is_lunch_main_allowed(d) and d.name not in recent
+                if d.role == "主食" and main_filter(d) and d.name not in recent
             ]
         if not cands and fallback_pool is not candidate_pool:
-            cands = [d for d in fallback_pool if d.role == "主食" and is_lunch_main_allowed(d)]
+            cands = [d for d in fallback_pool if d.role == "主食" and main_filter(d)]
         return weighted_choice(cands, scores or {}, tag_aff)
 
     main = pick_main(pool, dishes)
@@ -631,6 +649,49 @@ def format_three_meals(meals):
     return "\n".join(lines)
 
 
+# ---------- Day 11：手动记录三餐 ----------
+
+
+VALID_MEALS = ("早餐", "午餐", "晚餐")
+
+
+def log_manual(history, meals, target_date=None, scores=None):
+    """手动记录今天（或指定日期）吃了什么。
+
+    Args:
+        history: 历史列表（会被修改 + 返回）
+        meals: dict {meal_key: dish_str}，meal_key ∈ {'早餐','午餐','晚餐'}
+               dish_str 可逗号分隔多菜，如 "米饭, 红烧肉"
+        target_date: ISO 格式日期字符串；None → 今天
+        scores: 评分字典（可选）；每个菜的 cooks +1
+
+    Returns:
+        更新后的 history 列表
+    """
+    effective_date = target_date or str(date.today())
+    history = history or []
+
+    for meal_key, dish_str in (meals or {}).items():
+        if meal_key not in VALID_MEALS:
+            continue  # 非法 key 静默忽略
+        if not dish_str:
+            continue
+        # 解析多菜（逗号分隔 + 去空白 + 同餐去重）
+        names = []
+        seen = set()
+        for raw in str(dish_str).split(","):
+            name = raw.strip()
+            if not name or name in seen:
+                continue
+            seen.add(name)
+            names.append(name)
+        for name in names:
+            add_to_history(history, name, status="manual", meal=meal_key, date_str=effective_date)
+            if scores is not None:
+                add_score(scores, name, "cooked")
+    return history
+
+
 # ---------- Day 11：自催化学习模型 ----------
 
 
@@ -743,6 +804,31 @@ if __name__ == "__main__":
             else:
                 print(f"⚠️ {flag} 需要一个菜名参数", file=sys.stderr)
                 sys.exit(1)
+
+    # Day 12：处理 --log '{"date":"...","meals":{...}}'（手动记录三餐）
+    if "--log" in sys.argv:
+        idx = sys.argv.index("--log")
+        if idx + 1 >= len(sys.argv):
+            print("⚠️ --log 需要 JSON 参数，如 '{\"早餐\":\"小米粥\"}'", file=sys.stderr)
+            sys.exit(1)
+        try:
+            payload = json.loads(sys.argv[idx + 1])
+        except json.JSONDecodeError as e:
+            print(f"⚠️ --log JSON 解析失败：{e}", file=sys.stderr)
+            sys.exit(1)
+        target_date = payload.get("date")
+        meals = payload.get("meals") or {}
+        history = load_history()
+        new_h = log_manual(history, meals, target_date=target_date, scores=scores)
+        save_history(new_h)
+        save_scores(scores)
+        written = sum(1 for e in new_h if e.get("status") == "manual" and (not target_date or e.get("date") == target_date))
+        print(f"✅ 手动记录完成：{written} 条写入历史（{target_date or '今天'}）")
+        print("   写入明细：")
+        for e in new_h:
+            if e.get("status") == "manual" and (not target_date or e.get("date") == target_date):
+                print(f"      · {e.get('meal', '?')}：{e['dish']}")
+        sys.exit(0)
 
     # 解析 --prefs '{"spicy":"none"}' 形式参数
     prefs = None

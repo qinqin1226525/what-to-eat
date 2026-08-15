@@ -573,6 +573,78 @@ test("manual 写入的『实际吃的』参与 30 天不重复", () => {
   }
 });
 
+// ============ Day 10.2：内联按钮 → status 映射契约 ============
+// 模拟 applyDecisionToSlot 的核心逻辑（不带 DOM）
+function slotAction(history, action, originalDish, manualName) {
+  if (action === 'confirmed') {
+    addToHistoryWithStatus(history, originalDish.name, 'confirmed', null);
+  } else if (action === 'skipped') {
+    addToHistoryWithStatus(history, '没做饭', 'skipped', originalDish.name);
+  } else if (action === 'manual') {
+    addToHistoryWithStatus(history, manualName, 'manual', originalDish.name);
+  }
+  // 'redraw' 不写历史
+}
+
+group("slotAction（内联按钮）");
+test("✅ 就做 → status=confirmed，无 suggested", () => {
+  const h = [];
+  const dish = {name: "番茄炒蛋"};
+  slotAction(h, 'confirmed', dish, null);
+  assertEqual(h[0].status, 'confirmed');
+  assertEqual(h[0].dish, '番茄炒蛋');
+  assertEqual(h[0].suggested, undefined);
+});
+
+test("🔄 换一道 → 不写历史", () => {
+  const h = [];
+  const dish = {name: "番茄炒蛋"};
+  slotAction(h, 'redraw', dish, null);
+  assertEqual(h.length, 0);
+});
+
+test("🍜 别的 → status=manual，suggested=原菜", () => {
+  const h = [];
+  const dish = {name: "番茄炒蛋"};
+  slotAction(h, 'manual', dish, "火锅");
+  assertEqual(h[0].status, 'manual');
+  assertEqual(h[0].dish, '火锅');
+  assertEqual(h[0].suggested, '番茄炒蛋');
+});
+
+test("❌ 跳过 → status=skipped，dish='没做饭'", () => {
+  const h = [];
+  const dish = {name: "番茄炒蛋"};
+  slotAction(h, 'skipped', dish, null);
+  assertEqual(h[0].status, 'skipped');
+  assertEqual(h[0].dish, '没做饭');
+  assertEqual(h[0].suggested, '番茄炒蛋');
+});
+
+test("每道菜独立：3 道菜 → 3 条历史", () => {
+  const h = [];
+  slotAction(h, 'confirmed', {name: "主菜"}, null);
+  slotAction(h, 'skipped', {name: "汤"}, null);
+  slotAction(h, 'manual', {name: "主食"}, "火锅");
+  assertEqual(h.length, 3);
+  assertEqual(h[0].status, 'confirmed');
+  assertEqual(h[1].status, 'skipped');
+  assertEqual(h[2].status, 'manual');
+});
+
+test("部分跳过不影响其他菜的 30 天不重复", () => {
+  // 主菜跳过 + 汤 confirmed 后，下次抽菜应该不重复『汤』但可以重复『主菜』
+  const h = [];
+  slotAction(h, 'skipped', {name: "主菜"}, null);
+  slotAction(h, 'confirmed', {name: "汤"}, null);
+  const effective = migrateHistory(h);
+  const recent = new Set(
+    effective.filter(e => e.status !== 'skipped').map(e => e.dish)
+  );
+  assert(!recent.has("主菜"), "跳过的主菜不应进入 recent");
+  assert(recent.has("汤"), "做的汤应进入 recent");
+});
+
 // ============ Day 10: applyPrefs 测试 ============
 
 group("applyPrefs（偏好设置）");
