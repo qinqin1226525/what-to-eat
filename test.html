@@ -67,8 +67,30 @@ function filterByMaxTime(dishes, max) {
 }
 function filterByIngredients(dishes, available) {
   if (!available || available.length === 0) return [];
-  const set = new Set(available);
-  return dishes.filter(d => d.ingredients.some(i => set.has(i)));
+  // 测试副本：保持与 app.html 同款（同义词扩展 + 多字段搜索）
+  const INGREDIENT_SYNONYMS = {
+    '肉': ['肉', '猪肉', '牛肉', '羊肉', '五花肉', '里脊肉', '排骨', '肉末', '肉丝', '肉片', '鸡肉', '鸭肉'],
+    '菜': ['菜', '蔬', '白菜', '萝卜', '芹', '茄', '黄瓜', '菠', '韭菜', '青菜'],
+    '蛋': ['蛋', '鸡蛋', '蛋花'],
+    '豆': ['豆', '豆腐', '豆浆'],
+    '海鲜': ['虾', '蟹', '鱼', '鱿', '蛤', '海带', '紫菜'],
+    '辣': ['辣', '椒', '麻辣', '红油'],
+  };
+  const keywords = new Set(available);
+  for (const kw of available) {
+    if (INGREDIENT_SYNONYMS[kw]) {
+      for (const syn of INGREDIENT_SYNONYMS[kw]) keywords.add(syn);
+    }
+  }
+  return dishes.filter(d => {
+    const haystack = [
+      d.name || '',
+      ...(d.ingredients || []),
+      ...(d.tags || []),
+      ...(d.seasonings || []),
+    ].join(' ');
+    return [...keywords].some(kw => haystack.includes(kw));
+  });
 }
 function chooseCombo(dishes, history = [], window = 30) {
   const recent = new Set(history.slice(-window).map(h => h.dish));
@@ -319,6 +341,50 @@ test("匹配至少一种食材", () => {
 test("空冰箱返回空", () => {
   const dishes = [new Dish({name: "x", time_minutes: 1, ingredients: ["a"]})];
   assertEqual(filterByIngredients(dishes, []), []);
+});
+test("『肉』同义词展开：匹配 猪/牛/羊/鸡/鸭/排骨", () => {
+  const dishes = [
+    new Dish({name: "红烧肉", time_minutes: 60, ingredients: ["五花肉 500g"]}),
+    new Dish({name: "麻婆豆腐", time_minutes: 20, ingredients: ["豆腐", "牛肉末"]}),
+    new Dish({name: "宫保鸡丁", time_minutes: 25, ingredients: ["鸡腿肉"]}),
+    new Dish({name: "冬瓜排骨汤", time_minutes: 40, ingredients: ["冬瓜", "排骨"]}),
+    new Dish({name: "西红柿炒蛋", time_minutes: 15, ingredients: ["鸡蛋", "西红柿"]}),  // 含鸡蛋但不是肉
+    new Dish({name: "凉拌黄瓜", time_minutes: 5, ingredients: ["黄瓜"]}),
+  ];
+  const names = filterByIngredients(dishes, ["肉"]).map(d => d.name);
+  assert(names.includes("红烧肉"));
+  assert(names.includes("麻婆豆腐"));
+  assert(names.includes("宫保鸡丁"));
+  assert(names.includes("冬瓜排骨汤"));
+  assert(!names.includes("西红柿炒蛋"), "鸡蛋不算肉");
+  assert(!names.includes("凉拌黄瓜"));
+});
+test("按菜名匹配", () => {
+  const dishes = [
+    new Dish({name: "肉末茄子", time_minutes: 25, ingredients: ["茄子", "猪肉末"]}),
+    new Dish({name: "西红柿炒蛋", time_minutes: 15, ingredients: ["鸡蛋", "西红柿"]}),
+  ];
+  const names = filterByIngredients(dishes, ["肉"]).map(d => d.name);
+  assert(names.includes("肉末茄子"));  // 名字有肉 + 食材有猪肉
+  assert(!names.includes("西红柿炒蛋"));
+});
+test("按 tags 匹配", () => {
+  const dishes = [
+    new Dish({name: "x", time_minutes: 15, ingredients: ["unknown"], tags: ["肉类"]}),
+    new Dish({name: "y", time_minutes: 10, ingredients: ["蔬菜"], tags: ["素食"]}),
+  ];
+  const names = filterByIngredients(dishes, ["肉"]).map(d => d.name);
+  assert(names.includes("x"));
+  assert(!names.includes("y"));
+});
+test("具体词不展开：输入『牛肉』只匹配牛肉", () => {
+  const dishes = [
+    new Dish({name: "麻婆豆腐", time_minutes: 20, ingredients: ["豆腐", "牛肉末"]}),
+    new Dish({name: "红烧肉", time_minutes: 60, ingredients: ["五花肉 500g"]}),
+  ];
+  const names = filterByIngredients(dishes, ["牛肉"]).map(d => d.name);
+  assert(names.includes("麻婆豆腐"));
+  assert(!names.includes("红烧肉"), "牛肉不应该匹配五花肉（无『牛』字）");
 });
 
 group("chooseCombo");

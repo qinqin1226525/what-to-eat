@@ -147,6 +147,58 @@ class TestFilterByIngredients(unittest.TestCase):
         self.assertIn("凉拌黄瓜", names)
         self.assertNotIn("宫保鸡丁", names)
 
+    def test_肉_synonym_expansion_to_pork_beef_lamb_chicken(self):
+        """Day 16: 输入『肉』→ 同义词扩展到 猪/牛/羊/鸡，应该匹配多类肉菜"""
+        dishes = [
+            Dish("红烧肉", 60, ingredients=["五花肉 500g"]),
+            Dish("麻婆豆腐", 20, ingredients=["豆腐", "牛肉末"]),
+            Dish("宫保鸡丁", 25, ingredients=["鸡腿肉"]),
+            Dish("西红柿炒蛋", 15, ingredients=["鸡蛋", "西红柿"]),  # 不含任何肉
+            Dish("凉拌黄瓜", 5, ingredients=["黄瓜"]),
+        ]
+        result = filter_by_ingredients(dishes, ["肉"])
+        names = [d.name for d in result]
+        self.assertIn("红烧肉", names)   # 五花肉 → 肉
+        self.assertIn("麻婆豆腐", names) # 牛肉 → 牛（肉同义词）
+        self.assertIn("宫保鸡丁", names) # 鸡腿肉 → 鸡
+        self.assertNotIn("西红柿炒蛋", names)
+        self.assertNotIn("凉拌黄瓜", names)
+
+    def test_match_by_dish_name(self):
+        """Day 16: 菜名里有关键词也要能匹配"""
+        dishes = [
+            Dish("肉末茄子", 25, ingredients=["茄子", "猪肉末"]),
+            Dish("木耳炒肉", 15, ingredients=["木耳", "里脊肉"]),
+            Dish("西红柿炒蛋", 15, ingredients=["鸡蛋", "西红柿"]),
+        ]
+        result = filter_by_ingredients(dishes, ["肉"])
+        names = [d.name for d in result]
+        self.assertIn("肉末茄子", names)   # name 有肉
+        self.assertIn("木耳炒肉", names)    # name 有肉
+        self.assertNotIn("西红柿炒蛋", names)
+
+    def test_match_by_tags(self):
+        """Day 16: tag 里有关键词也要能匹配"""
+        dishes = [
+            Dish("某道菜", 15, ingredients=["未知"], tags=["肉类", "硬菜"]),
+            Dish("另一道菜", 10, ingredients=["蔬菜"], tags=["素食"]),
+        ]
+        result = filter_by_ingredients(dishes, ["肉"])
+        names = [d.name for d in result]
+        self.assertIn("某道菜", names)
+        self.assertNotIn("另一道菜", names)
+
+    def test_specific_keyword_no_synonym_expansion(self):
+        """Day 16: 输入具体词（无同义词）→ 不展开，只匹配自己"""
+        dishes = [
+            Dish("红烧肉", 60, ingredients=["五花肉 500g"]),
+            Dish("麻婆豆腐", 20, ingredients=["豆腐", "牛肉末"]),
+        ]
+        result = filter_by_ingredients(dishes, ["牛肉"])
+        names = [d.name for d in result]
+        self.assertIn("麻婆豆腐", names)
+        self.assertNotIn("红烧肉", names)
+
 
 class TestFilterKidFriendly(unittest.TestCase):
     """Day 10: 儿童餐筛选"""

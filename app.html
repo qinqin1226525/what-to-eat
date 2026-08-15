@@ -1941,14 +1941,42 @@ function filterByMaxTime(dishes, max) {
   return dishes.filter(d => d.time_minutes <= max);
 }
 
+// 常见同义词：输入『肉』时扩展到所有肉类相关词
+// 用具体词（不单字『鸡』，否则会误中『鸡蛋』）
+const INGREDIENT_SYNONYMS = {
+  '肉': ['肉', '猪肉', '牛肉', '羊肉', '五花肉', '里脊肉', '排骨', '肉末', '肉丝', '肉片', '鸡肉', '鸭肉'],
+  '菜': ['菜', '蔬', '白菜', '萝卜', '芹', '茄', '黄瓜', '菠', '韭菜', '青菜'],
+  '蛋': ['蛋', '鸡蛋', '蛋花'],
+  '豆': ['豆', '豆腐', '豆浆'],
+  '海鲜': ['虾', '蟹', '鱼', '鱿', '蛤', '海带', '紫菜'],
+  '辣': ['辣', '椒', '麻辣', '红油'],
+};
+
+function expandSynonyms(keywords) {
+  const out = new Set();
+  for (const kw of keywords) {
+    out.add(kw);
+    if (INGREDIENT_SYNONYMS[kw]) {
+      for (const syn of INGREDIENT_SYNONYMS[kw]) out.add(syn);
+    }
+  }
+  return Array.from(out);
+}
+
 function filterByIngredients(dishes, available) {
   if (!available || available.length === 0) return [];
-  // 双向子串匹配：用户输入『西葫芦』能匹配菜的『西葫芦 1 根』
-  return dishes.filter(d =>
-    (d.ingredients || []).some(ing =>
-      available.some(kw => ing.includes(kw) || kw.includes(ing))
-    )
-  );
+  // 同义词扩展：输入『肉』→ 也查 猪/牛/羊/鸡 等
+  const keywords = expandSynonyms(available);
+  // 多字段匹配：name / ingredients / tags / seasonings 都查
+  return dishes.filter(d => {
+    const haystack = [
+      d.name || '',
+      ...(d.ingredients || []),
+      ...(d.tags || []),
+      ...(d.seasonings || []),
+    ].join(' ');
+    return keywords.some(kw => haystack.includes(kw));
+  });
 }
 
 function chooseCombo(dishes, history = [], window = 30, scores = null) {

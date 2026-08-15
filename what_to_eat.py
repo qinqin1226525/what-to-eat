@@ -105,19 +105,44 @@ def filter_by_max_time(dishes, max_minutes):
     return [d for d in dishes if d.time_minutes <= max_minutes]
 
 
+INGREDIENT_SYNONYMS = {
+    # 用具体肉类词（不要单字『鸡』，否则会误中『鸡蛋』）
+    '肉': ['肉', '猪肉', '牛肉', '羊肉', '五花肉', '里脊肉', '排骨', '肉末', '肉丝', '肉片', '鸡肉', '鸭肉'],
+    '菜': ['菜', '蔬', '白菜', '萝卜', '芹', '茄', '黄瓜', '菠', '韭菜', '青菜'],
+    '蛋': ['蛋', '鸡蛋', '蛋花'],
+    '豆': ['豆', '豆腐', '豆浆'],
+    '海鲜': ['虾', '蟹', '鱼', '鱿', '蛤', '海带', '紫菜'],
+    '辣': ['辣', '椒', '麻辣', '红油'],
+}
+
+
+def expand_synonyms(keywords):
+    out = set()
+    for kw in keywords:
+        out.add(kw)
+        for syn in INGREDIENT_SYNONYMS.get(kw, []):
+            out.add(syn)
+    return list(out)
+
+
 def filter_by_ingredients(dishes, available_ingredients):
     """返回至少有一种食材在 available_ingredients 里的菜。
-    支持子串双向匹配：用户输入『西葫芦』能匹配菜的『西葫芦 1 根』。
+    - 子串双向匹配：用户输入『西葫芦』能匹配菜的『西葫芦 1 根』
+    - 同义词扩展：输入『肉』→ 自动展开到 猪/牛/羊/鸡 等所有肉类
+    - 多字段搜索：同时查 name / ingredients / tags / seasonings
     """
     if not available_ingredients:
         return []
-    available_set = set(available_ingredients)
-    return [
-        d for d in dishes
-        if any(kw in ing or ing in kw
-               for ing in (d.ingredients or [])
-               for kw in available_set)
-    ]
+    keywords = expand_synonyms(available_ingredients)
+    out = []
+    for d in dishes:
+        haystack = (d.name + ' '
+                    + ' '.join(d.ingredients or [])
+                    + ' ' + ' '.join(d.tags or [])
+                    + ' ' + ' '.join(getattr(d, 'seasonings', []) or []))
+        if any(kw in haystack for kw in keywords):
+            out.append(d)
+    return out
 
 
 def choose_one_no_repeat(dishes, history, window=30):
