@@ -2936,6 +2936,19 @@ window.addEventListener('error', e => {
   div.onclick = () => alert(`JS Error\n${e.message}\n行号 ${e.lineno}`);
   document.body.appendChild(div);
 });
+
+// ============ Debug: 把所有 onclick 函数贴到 body，方便看哪些没定义 ============
+setTimeout(() => {
+  const funcs = ['drawCombo','drawThreeMeals','drawKidCombo','checkIngredients','openManualLog','openFeedback','shareApp','submitFeedback','viewFeedback','saveManualLog','viewLog','closeRecipe','closeFeedback','closeManualLog','closeLogbook'];
+  const lines = [];
+  for (const f of funcs) {
+    lines.push(`${typeof window[f] === 'function' ? '✅' : '❌'} ${f}`);
+  }
+  const div = document.createElement('div');
+  div.style.cssText = "position:fixed;bottom:60px;right:10px;max-width:300px;background:#f0f0f0;color:#333;padding:8px 12px;z-index:99999;font-size:11px;border-radius:6px;border:1px solid #ccc;font-family:monospace;";
+  div.innerHTML = '<b>Func check:</b><br>' + lines.join('<br>');
+  document.body.appendChild(div);
+}, 500);
 </script>
 
 </body>
