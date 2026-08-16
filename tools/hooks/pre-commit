@@ -1,0 +1,32 @@
+#!/bin/sh
+# 自动跑安全检查 —— 防止按钮失灵 / JS SyntaxError / 数据不同步 被 commit 进去
+# (Day 15+ 教训：手动 grill 不靠谱，每次 commit 必须自动检查)
+
+echo "🔍 pre-commit：自动 grill myself..."
+echo ""
+
+# 显示本次 commit 会改哪些文件
+CHANGED=$(git diff --cached --name-only)
+if [ -n "$CHANGED" ]; then
+    echo "📝 本次改动:"
+    echo "$CHANGED" | sed 's/^/   /'
+    echo ""
+fi
+
+# 跑安全检查（快速模式：跳过 Python 测试，commit 后再单独跑）
+python3 tools/safety_check.py --quick
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "❌ 安全检查失败，commit 已阻止"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    echo "修复后再次 commit，或用 'git commit --no-verify' 跳过（不推荐）"
+    echo ""
+    exit 1
+fi
+
+echo ""
+echo "✅ 安全检查通过，准备 commit"
