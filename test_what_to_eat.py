@@ -165,6 +165,36 @@ class TestFilterByIngredients(unittest.TestCase):
         self.assertNotIn("西红柿炒蛋", names)
         self.assertNotIn("凉拌黄瓜", names)
 
+    def test_排骨_does_not_match_beef_or_lamb(self):
+        """Day 16 修复：『排骨』只匹配排骨相关,不能误拉到牛排/羊肉"""
+        dishes = [
+            Dish("红烧排骨", 60, ingredients=["排骨 500g"]),
+            Dish("冬瓜排骨汤", 90, ingredients=["排骨", "冬瓜"]),
+            Dish("牛排", 30, ingredients=["牛排 200g"]),
+            Dish("羊肉汤", 90, ingredients=["羊肉 500g", "白萝卜"]),
+            Dish("宫保鸡丁", 25, ingredients=["鸡丁"]),  # 也不应被排骨拉出
+        ]
+        result = filter_by_ingredients(dishes, ["排骨"])
+        names = [d.name for d in result]
+        self.assertIn("红烧排骨", names)
+        self.assertIn("冬瓜排骨汤", names)
+        self.assertNotIn("牛排", names)
+        self.assertNotIn("羊肉汤", names)
+        self.assertNotIn("宫保鸡丁", names)
+
+    def test_五花肉_does_not_match_other_meat(self):
+        """Day 16 修复：『五花肉』只匹配五花肉相关,不拉到鸡/牛/羊"""
+        dishes = [
+            Dish("红烧肉", 60, ingredients=["五花肉 500g"]),
+            Dish("宫保鸡丁", 25, ingredients=["鸡丁"]),
+            Dish("孜然羊肉", 40, ingredients=["羊肉"]),
+        ]
+        result = filter_by_ingredients(dishes, ["五花肉"])
+        names = [d.name for d in result]
+        self.assertIn("红烧肉", names)
+        self.assertNotIn("宫保鸡丁", names)
+        self.assertNotIn("孜然羊肉", names)
+
     def test_match_by_dish_name(self):
         """Day 16: 菜名里有关键词也要能匹配"""
         dishes = [
