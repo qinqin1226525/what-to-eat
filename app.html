@@ -709,9 +709,11 @@
       <section>
         <h3>✍️ 留个言（保存在你手机）</h3>
         <textarea id="feedback-input" placeholder="说点什么吧... 例如：希望加一个'按辣度筛'功能 / 红烧肉做法跟我想的不一样 / 推荐得太辣了..."></textarea>
-        <button class="primary" style="margin-top:8px;font-size:15px;padding:12px;" onclick="submitFeedback()">提交反馈</button>
+        <button class="primary" style="margin-top:8px;font-size:15px;padding:12px;" onclick="submitFeedback()">提交反馈（本地）</button>
+        <button class="banner-btn" style="margin-top:8px;color:#e85d04;border-color:#e85d04;font-weight:600;" onclick="submitFeedbackToGitHub()">🚀 提交到 GitHub Issues（开发者能看到）</button>
         <button class="banner-btn" style="margin-top:8px;color:#888;border-color:#e0d5c0;" onclick="toggleFeedbackList()">📋 查看已收到的反馈</button>
         <div id="feedback-list-wrap" hidden style="margin-top:14px;"></div>
+        <p style="font-size:11px;color:#aaa;margin-top:10px;">💡 "提交到 GitHub Issues" 会打开 GitHub 创建 issue 页面（你登录后点提交即可）。无需任何 token，安全。</p>
       </section>
     </div>
   </div>
@@ -3288,6 +3290,45 @@ function viewFeedback() {
 }
 
 // 在 feedback modal 里以列表形式展示已提交的反馈（替代 alert 弹窗）
+// 把反馈作为 GitHub Issue 提交（开发者真正能收到）
+// 安全设计：不需要 token，浏览器跳转到 GitHub Issues 创建页（预填 title + body）
+//          用户在 GitHub 上登录后点"Submit new issue" → 自动在 repo 创建 issue
+//          整个流程 GitHub 处理认证，不暴露任何 secret
+const GITHUB_REPO_FOR_FEEDBACK = 'qinqin1226525/what-to-eat';
+
+function submitFeedbackToGitHub() {
+  const text = document.getElementById('feedback-input').value.trim();
+  if (!text) {
+    alert('请先输入反馈');
+    return;
+  }
+  // 先本地存一份（万一 GitHub 没提交成功，用户也不丢内容）
+  submitFeedback();
+  // 构建 GitHub Issue 创建 URL（带预填 title + body）
+  const title = `[用户反馈] ${text.split('\n')[0].substring(0, 60)}`;
+  const body = [
+    text,
+    '',
+    '---',
+    '',
+    '*来自 iPhone PWA 用户*',
+    `*提交时间: ${new Date().toLocaleString('zh-CN')}*`,
+    `*User-Agent: ${(navigator.userAgent || '').substring(0, 200)}*`,
+  ].join('\n');
+  const url = `https://github.com/${GITHUB_REPO_FOR_FEEDBACK}/issues/new`
+    + `?title=${encodeURIComponent(title)}`
+    + `&body=${encodeURIComponent(body)}`
+    + `&labels=${encodeURIComponent('user-feedback')}`;
+  // 用 _blank 打开新 tab，让用户自己确认提交
+  const newWindow = window.open(url, '_blank');
+  if (!newWindow) {
+    // 弹窗被拦截的兜底：提示用户手动复制
+    alert('浏览器拦截了新窗口。\n\n请手动打开：\n' + url);
+  } else {
+    showToast('✅ 反馈已存本地 + 已打开 GitHub Issues 页面');
+  }
+}
+
 function toggleFeedbackList() {
   const wrap = document.getElementById('feedback-list-wrap');
   if (!wrap) return;
