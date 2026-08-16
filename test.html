@@ -506,10 +506,21 @@ test("套餐遵守不重复", () => {
 });
 
 // ============ Day 17: 套餐份量（两菜一汤/三菜一汤/四菜一汤） ============
+// 用更大的 fixture 避免 DISHES_DATA 只有 2 道主菜时三菜一汤/四菜一汤卡死
+function COMBO_SIZE_DISHES() {
+  return [
+    new Dish({name: "A", time_minutes: 10, role: "主菜"}),
+    new Dish({name: "B", time_minutes: 10, role: "主菜"}),
+    new Dish({name: "C", time_minutes: 10, role: "主菜"}),
+    new Dish({name: "D", time_minutes: 10, role: "主菜"}),
+    new Dish({name: "E", time_minutes: 10, role: "主菜"}),
+    new Dish({name: "T", time_minutes: 10, role: "汤"}),
+    new Dish({name: "R", time_minutes: 10, role: "主食"}),
+  ];
+}
 group("chooseCombo（按份量）");
 test("两菜一汤：2 道主菜 + 1 道汤，无主食", () => {
-  const dishes = DISHES_DATA.map(d => new Dish(d));
-  const combo = chooseCombo(dishes, [], 30, null, '2-1');
+  const combo = chooseCombo(COMBO_SIZE_DISHES(), [], 30, null, '2-1');
   assert(combo["主菜"] !== null && combo["主菜2"] !== null, "应有 主菜 + 主菜2");
   assert(combo["汤"] !== null, "应有 汤");
   assert(combo["主食"] === undefined, "两菜一汤 不应有主食");
@@ -517,8 +528,7 @@ test("两菜一汤：2 道主菜 + 1 道汤，无主食", () => {
   assert(combo["主菜"].role === "主菜" && combo["主菜2"].role === "主菜");
 });
 test("三菜一汤：3 道主菜 + 1 道汤，无主食", () => {
-  const dishes = DISHES_DATA.map(d => new Dish(d));
-  const combo = chooseCombo(dishes, [], 30, null, '3-1');
+  const combo = chooseCombo(COMBO_SIZE_DISHES(), [], 30, null, '3-1');
   const mains = [combo["主菜"], combo["主菜2"], combo["主菜3"]];
   assert(mains.every(d => d !== null), "应有 主菜 + 主菜2 + 主菜3");
   assert(combo["主食"] === undefined, "三菜一汤 不应有主食");
@@ -526,21 +536,18 @@ test("三菜一汤：3 道主菜 + 1 道汤，无主食", () => {
   assert(new Set(names).size === names.length, "三道主菜必须各不相同");
 });
 test("四菜一汤：4 道主菜 + 1 道汤，无主食", () => {
-  const dishes = DISHES_DATA.map(d => new Dish(d));
-  const combo = chooseCombo(dishes, [], 30, null, '4-1');
+  const combo = chooseCombo(COMBO_SIZE_DISHES(), [], 30, null, '4-1');
   const mains = [combo["主菜"], combo["主菜2"], combo["主菜3"], combo["主菜4"]];
   assert(mains.every(d => d !== null), "应有 4 道主菜");
   const names = mains.map(d => d.name);
   assert(new Set(names).size === names.length, "四道主菜必须各不相同");
 });
 test("非法 comboSize 回退默认（1-1-1）", () => {
-  const dishes = DISHES_DATA.map(d => new Dish(d));
-  const combo = chooseCombo(dishes, [], 30, null, 'abc');
+  const combo = chooseCombo(COMBO_SIZE_DISHES(), [], 30, null, 'abc');
   assert(combo["主菜"] && combo["汤"] && combo["主食"], "非法值回退默认应有 主菜+汤+主食");
 });
 test("默认（1-1-1）行为保持不变", () => {
-  const dishes = DISHES_DATA.map(d => new Dish(d));
-  const combo = chooseCombo(dishes, []);
+  const combo = chooseCombo(COMBO_SIZE_DISHES(), []);
   assert(combo["主菜"] && combo["汤"] && combo["主食"]);
   assert(Object.keys(combo).length === 3);
 });

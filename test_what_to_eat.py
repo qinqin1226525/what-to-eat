@@ -118,6 +118,75 @@ class TestChooseCombo(unittest.TestCase):
         self.assertEqual(combo["主食"].name, "米饭")
 
 
+class TestChooseComboSize(unittest.TestCase):
+    """Day 17: 套餐份量偏好（两菜一汤 / 三菜一汤 / 四菜一汤）"""
+
+    @staticmethod
+    def _dishes():
+        return [
+            Dish("红烧肉", 60, role="主菜"),
+            Dish("宫保鸡丁", 25, role="主菜"),
+            Dish("清炒时蔬", 10, role="主菜"),
+            Dish("番茄牛腩", 45, role="主菜"),
+            Dish("紫菜蛋花汤", 10, role="汤"),
+            Dish("番茄蛋汤", 12, role="汤"),
+            Dish("米饭", 20, role="主食"),
+        ]
+
+    def test_default_size_returns_one_of_each(self):
+        combo = choose_combo(self._dishes(), [], prefs={"comboSize": "1-1-1"})
+        self.assertIn("主菜", combo)
+        self.assertIn("汤", combo)
+        self.assertIn("主食", combo)
+        self.assertEqual(len(combo), 3)
+
+    def test_two_dishes_one_soup_has_two_mains(self):
+        combo = choose_combo(self._dishes(), [], prefs={"comboSize": "2-1"})
+        # 应该有 主菜 / 主菜2 / 汤（无主食）
+        self.assertIn("主菜", combo)
+        self.assertIn("主菜2", combo)
+        self.assertIn("汤", combo)
+        self.assertNotIn("主食", combo)
+        self.assertEqual(len(combo), 3)
+        # 两道主菜必须不同
+        self.assertNotEqual(combo["主菜"].name, combo["主菜2"].name)
+        # 都是主菜 role
+        self.assertEqual(combo["主菜"].role, "主菜")
+        self.assertEqual(combo["主菜2"].role, "主菜")
+
+    def test_three_dishes_one_soup_has_three_mains(self):
+        combo = choose_combo(self._dishes(), [], prefs={"comboSize": "3-1"})
+        self.assertEqual(len(combo), 4)
+        mains = [combo["主菜"], combo["主菜2"], combo["主菜3"]]
+        self.assertEqual(len(set(d.name for d in mains)), 3, "三道主菜必须各不相同")
+        self.assertEqual(combo["汤"].role, "汤")
+
+    def test_four_dishes_one_soup_has_four_mains(self):
+        combo = choose_combo(self._dishes(), [], prefs={"comboSize": "4-1"})
+        mains = [combo["主菜"], combo["主菜2"], combo["主菜3"], combo["主菜4"]]
+        self.assertEqual(len(mains), 4)
+        # 4 道主菜、只有 4 道候选，能全部用上
+        self.assertEqual(len(set(d.name for d in mains)), 4)
+
+    def test_invalid_combo_size_falls_back_to_default(self):
+        combo = choose_combo(self._dishes(), [], prefs={"comboSize": "abc"})
+        self.assertIn("主菜", combo)
+        self.assertIn("主食", combo)
+        self.assertEqual(len(combo), 3)
+
+    def test_combo_size_without_staple(self):
+        """两菜一汤/三菜一汤/四菜一汤 都不带主食"""
+        for size in ("2-1", "3-1", "4-1"):
+            combo = choose_combo(self._dishes(), [], prefs={"comboSize": size})
+            self.assertNotIn("主食", combo, f"{size} 不应抽主食")
+
+    def test_combo_size_respects_no_repeat_within_session(self):
+        """多道主菜不能重复抽到同一道（即使不在 recent 窗口）"""
+        combo = choose_combo(self._dishes(), [], prefs={"comboSize": "4-1"})
+        names = [d.name for d in (combo["主菜"], combo["主菜2"], combo["主菜3"], combo["主菜4"])]
+        self.assertEqual(len(set(names)), 4)
+
+
 class TestFilterByIngredients(unittest.TestCase):
     """Day 6: 按食材筛选 —— 冰箱里有啥，能做啥"""
 

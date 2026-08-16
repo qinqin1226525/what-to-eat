@@ -206,6 +206,7 @@ def choose_combo(dishes, history=None, window=30, prefs=None, scores=None):
 
     Day 10: history 可以包含 status 字段（confirmed / manual / skipped）。
     skipped 状态不参与『30 天不重复』算法。
+    Day 17: 支持 comboSize（默认 '1-1-1' = 1主菜+1汤+1主食；'2-1'/'3-1'/'4-1' = N菜一汤，不抽主食）
     """
     history = history or []
     pool = apply_prefs(dishes, prefs)
@@ -217,24 +218,47 @@ def choose_combo(dishes, history=None, window=30, prefs=None, scores=None):
     recent = {h["dish"] for h in effective[-window:] if h["status"] != "skipped"}
     tag_aff = compute_tag_affinities(scores or {}, pool)
 
+    # Day 17: 解析套餐份量；非法值回退默认
+    combo_size = (prefs or {}).get("comboSize", "1-1-1")
+    if combo_size not in ALLOWED_COMBO_SIZES:
+        combo_size = "1-1-1"
+    parts = [int(x) for x in combo_size.split("-")]
+    num_mains = max(1, min(4, parts[0])) if len(parts) >= 1 else 1
+    num_soups = 1 if (len(parts) >= 2 and parts[1] == 1) else 1
+    num_staples = 1 if (len(parts) >= 3 and parts[2] == 1) else 0
+
+    # 本次抽签已选的菜名（多道主菜内部去重）
+    picked_names = set()
+
     def pick(role):
-        # 1. 在过滤池里找
-        candidates = [d for d in pool if d.role == role and d.name not in recent]
+        # 1. 在过滤池里找（避开 recent + 已选）
+        candidates = [d for d in pool if d.role == role and d.name not in recent and d.name not in picked_names]
         if not candidates:
-            # 2. 放松 recent 窗口
-            candidates = [d for d in pool if d.role == role]
+            # 2. 放松 recent 窗口（保留已选去重）
+            candidates = [d for d in pool if d.role == role and d.name not in picked_names]
         if not candidates and pool is not dishes:
             # 3. 池子里没有这个 role（菜系过滤掉了），回退到全部
-            candidates = [d for d in dishes if d.role == role and d.name not in recent]
+            candidates = [d for d in dishes if d.role == role and d.name not in recent and d.name not in picked_names]
+        if not candidates:
+            candidates = [d for d in dishes if d.role == role and d.name not in picked_names]
         if not candidates:
             candidates = [d for d in dishes if d.role == role]
-        return weighted_choice(candidates, scores or {}, tag_aff)
+        choice = weighted_choice(candidates, scores or {}, tag_aff)
+        if choice:
+            picked_names.add(choice.name)
+        return choice
 
-    return {
-        "主菜": pick("主菜"),
-        "汤": pick("汤"),
-        "主食": pick("主食"),
-    }
+    combo = {}
+    for i in range(num_mains):
+        key = "主菜" if i == 0 else f"主菜{i + 1}"
+        combo[key] = pick("主菜")
+    for i in range(num_soups):
+        key = "汤" if i == 0 else f"汤{i + 1}"
+        combo[key] = pick("汤")
+    for i in range(num_staples):
+        key = "主食" if i == 0 else f"主食{i + 1}"
+        combo[key] = pick("主食")
+    return combo
 
 
 # 儿童餐筛选：排除辣味，且至少有儿童友好标签
@@ -315,7 +339,9 @@ DEFAULT_PREFS = {
     "vegetarian": False,    # 只要素食
     "noCold": False,        # 不要凉菜
     "skipBreakfast": False, # 三餐模式跳过早餐
+    "comboSize": "1-1-1",   # Day 17 套餐份量：'1-1-1' | '2-1' | '3-1' | '4-1'
 }
+ALLOWED_COMBO_SIZES = ("1-1-1", "2-1", "3-1", "4-1")
 
 
 def apply_prefs(dishes, prefs=None):
