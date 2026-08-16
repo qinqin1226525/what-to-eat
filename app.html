@@ -3527,6 +3527,23 @@ function renderLogbook() {
     const historyIdx = sorted.length - 1 - i;
     editBtn.addEventListener('click', () => openEditLog(historyIdx));
     row.appendChild(editBtn);
+
+    // 删除按钮（🗑️）：弹确认 → 从 history 移除该条 → 重渲染
+    const delBtn = document.createElement('span');
+    delBtn.textContent = '🗑️';
+    delBtn.title = '删除这条';
+    delBtn.style.cssText = "cursor:pointer;padding:4px 8px;font-size:14px;color:#c9302c;border-radius:6px;-webkit-tap-highlight-color:transparent;";
+    delBtn.addEventListener('click', () => {
+      if (confirm(`删除「${entry.dish}」这条记录？`)) {
+        const h = loadHistory();
+        h.splice(historyIdx, 1);
+        saveHistory(h);
+        updateHistoryHint();
+        renderLogbook();  // 重渲染
+      }
+    });
+    row.appendChild(delBtn);
+
     wrap.appendChild(row);
   });
 
