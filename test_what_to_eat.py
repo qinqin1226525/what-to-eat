@@ -29,6 +29,9 @@ from what_to_eat import (
     weighted_choice,
     log_manual,
     search_dishes,
+    n_people_to_combo_size,
+    heavy_dish_quota,
+    ALLOWED_N_PEOPLE,
 )
 
 
@@ -1404,6 +1407,108 @@ class TestLogManual(unittest.TestCase):
         h = []
         new_h = log_manual(h, {"午餐": "米饭"})
         self.assertEqual(new_h[0]["date"], str(date.today()))
+
+
+class TestNPeopleComboSize(unittest.TestCase):
+    """Day 18: 用餐人数 → 套餐份量 + 硬菜配额"""
+
+    def _build_pool(self):
+        """小菜池：3 个简单主菜 + 2 个硬菜"""
+        return [
+            Dish("简单菜1", 15, role="主菜"),
+            Dish("简单菜2", 20, role="主菜"),
+            Dish("简单菜3", 25, role="主菜"),
+            Dish("硬菜A", 90, role="主菜"),
+            Dish("硬菜B", 75, role="主菜"),
+            Dish("紫菜蛋花汤", 10, role="汤"),
+            Dish("米饭", 20, role="主食"),
+        ]
+
+    def test_one_person_one_main(self):
+        """1 人 = 1 道主菜"""
+        mains, soups, staples = n_people_to_combo_size(1)
+        self.assertEqual(mains, 1)
+        self.assertEqual(soups, 1)
+        self.assertEqual(staples, 1)
+
+    def test_two_persons_two_mains(self):
+        """2 人 = 2 道主菜"""
+        mains, _, _ = n_people_to_combo_size(2)
+        self.assertEqual(mains, 2)
+
+    def test_four_persons_four_mains(self):
+        """4 人 = 4 道主菜"""
+        mains, _, _ = n_people_to_combo_size(4)
+        self.assertEqual(mains, 4)
+
+    def test_five_persons_capped_at_five(self):
+        """5 人 = 5 道主菜（不无限增加）"""
+        mains, _, _ = n_people_to_combo_size(5)
+        self.assertEqual(mains, 5)
+
+    def test_eight_persons_capped_at_five(self):
+        """8 人 = 5 道主菜（避免做太多）"""
+        mains, _, _ = n_people_to_combo_size(8)
+        self.assertEqual(mains, 5)
+
+    def test_nine_persons_six_mains(self):
+        """9+ 人 = 6 道主菜"""
+        mains, _, _ = n_people_to_combo_size(10)
+        self.assertEqual(mains, 6)
+
+    def test_heavy_quota_one_for_small_party(self):
+        """≤4 人硬菜配额 = 1"""
+        for n in [1, 2, 3, 4]:
+            self.assertEqual(heavy_dish_quota(n), 1, f"n={n}")
+
+    def test_heavy_quota_two_for_big_party(self):
+        """>4 人硬菜配额 = 2"""
+        for n in [5, 6, 7, 8, 10]:
+            self.assertEqual(heavy_dish_quota(n), 2, f"n={n}")
+
+    def test_choose_combo_respects_nPeople(self):
+        """choose_combo 用 nPeople 决定菜数"""
+        for _ in range(20):
+            combo = choose_combo(self._build_pool(), [], prefs={"nPeople": 3})
+            # 应该有 主菜 / 主菜2 / 主菜3 + 汤 + 主食
+            self.assertIn("主菜", combo)
+            self.assertIn("主菜2", combo)
+            self.assertIn("主菜3", combo)
+            self.assertIn("汤", combo)
+            self.assertIn("主食", combo)
+
+    def test_choose_combo_heavy_quota_4_people(self):
+        """4 人 = 4 道主菜，但硬菜 ≤1 份"""
+        for _ in range(30):
+            combo = choose_combo(self._build_pool(), [], prefs={"nPeople": 4})
+            mains = [combo[k] for k in combo if k.startswith("主菜")]
+            heavy = [d for d in mains if d.time_minutes >= 60]
+            self.assertLessEqual(len(heavy), 1, f"硬菜应 ≤1，但有 {len(heavy)} 道：{[d.name for d in heavy]}")
+
+    def test_choose_combo_heavy_quota_6_people(self):
+        """6 人 = 5 道主菜，硬菜 ≤2 份"""
+        for _ in range(30):
+            combo = choose_combo(self._build_pool(), [], prefs={"nPeople": 6})
+            mains = [combo[k] for k in combo if k.startswith("主菜")]
+            self.assertEqual(len(mains), 5)
+            heavy = [d for d in mains if d.time_minutes >= 60]
+            self.assertLessEqual(len(heavy), 2)
+
+    def test_choose_combo_backward_compatible(self):
+        """没传 nPeople 时用旧 comboSize 逻辑"""
+        combo = choose_combo(self._build_pool(), [], prefs={"comboSize": "2-1"})
+        # 应该有 主菜 + 主菜2 + 汤（无主食）
+        self.assertIn("主菜", combo)
+        self.assertIn("主菜2", combo)
+        self.assertIn("汤", combo)
+        self.assertNotIn("主食", combo)
+
+    def test_default_prefs_has_nPeople(self):
+        """DEFAULT_PREFS 默认 nPeople=1"""
+        self.assertIn("nPeople", DEFAULT_PREFS)
+        self.assertEqual(DEFAULT_PREFS["nPeople"], 1)
+        self.assertIn(1, ALLOWED_N_PEOPLE)
+        self.assertIn(10, ALLOWED_N_PEOPLE)
 
 
 class TestAddToHistoryWithMeal(unittest.TestCase):

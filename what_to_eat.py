@@ -226,21 +226,43 @@ def choose_combo(dishes, history=None, window=30, prefs=None, scores=None):
     recent = {h["dish"] for h in effective[-window:] if h["status"] != "skipped"}
     tag_aff = compute_tag_affinities(scores or {}, pool)
 
-    # Day 17: 解析套餐份量；非法值回退默认
-    combo_size = (prefs or {}).get("comboSize", "1-1-1")
-    if combo_size not in ALLOWED_COMBO_SIZES:
-        combo_size = "1-1-1"
-    parts = [int(x) for x in combo_size.split("-")]
-    num_mains = max(1, min(4, parts[0])) if len(parts) >= 1 else 1
-    num_soups = 1 if (len(parts) >= 2 and parts[1] == 1) else 1
-    num_staples = 1 if (len(parts) >= 3 and parts[2] == 1) else 0
+    # Day 18: 优先用 nPeople（用餐人数）推导菜数；向后兼容 comboSize
+    # 只有当 prefs 显式包含 nPeople 时才用新逻辑，否则回退到 comboSize（向后兼容旧测试）
+    if prefs and "nPeople" in prefs:
+        n_people = prefs["nPeople"]
+        if isinstance(n_people, int) and n_people in ALLOWED_N_PEOPLE:
+            num_mains, num_soups, num_staples = n_people_to_combo_size(n_people)
+            heavy_quota = heavy_dish_quota(n_people)
+        else:
+            # nPeople 非法值 → 回退 comboSize
+            combo_size = prefs.get("comboSize", "1-1-1")
+            if combo_size not in ALLOWED_COMBO_SIZES:
+                combo_size = "1-1-1"
+            parts = [int(x) for x in combo_size.split("-")]
+            num_mains = max(1, min(4, parts[0])) if len(parts) >= 1 else 1
+            num_soups = 1 if (len(parts) >= 2 and parts[1] == 1) else 1
+            num_staples = 1 if (len(parts) >= 3 and parts[2] == 1) else 0
+            heavy_quota = 1
+    else:
+        # 旧的 comboSize 逻辑（向后兼容）
+        combo_size = (prefs or {}).get("comboSize", "1-1-1")
+        if combo_size not in ALLOWED_COMBO_SIZES:
+            combo_size = "1-1-1"
+        parts = [int(x) for x in combo_size.split("-")]
+        num_mains = max(1, min(4, parts[0])) if len(parts) >= 1 else 1
+        num_soups = 1 if (len(parts) >= 2 and parts[1] == 1) else 1
+        num_staples = 1 if (len(parts) >= 3 and parts[2] == 1) else 0
+        heavy_quota = 1
 
     # 本次抽签已选的菜名（多道主菜内部去重）
     picked_names = set()
     # 已选主菜中的素食标记（用于引导后续主菜偏向）
     picked_mains_have_veg = False
+    # 已选硬菜数量（用于限制硬菜配额）
+    heavy_used = 0
 
     def pick(role, force_veg=False):
+        nonlocal heavy_used  # 声明 nonlocal 必须在使用前
         # 1. 在过滤池里找（避开 recent + 已选）
         candidates = [d for d in pool if d.role == role and d.name not in recent and d.name not in picked_names]
         if not candidates:
@@ -258,12 +280,19 @@ def choose_combo(dishes, history=None, window=30, prefs=None, scores=None):
             if veg_only:
                 candidates = veg_only
 
+        # Day 18：硬菜配额 —— 抽主菜时，如果配额已满，过滤掉硬菜
+        if role == "主菜" and heavy_used >= heavy_quota:
+            light_only = [d for d in candidates if d.time_minutes < 60]
+            if light_only:
+                candidates = light_only
+
         choice = weighted_choice(candidates, scores or {}, tag_aff)
         if choice:
             picked_names.add(choice.name)
-            nonlocal picked_mains_have_veg
             if role == "主菜" and is_vegetarian(choice):
                 picked_mains_have_veg = True
+            if role == "主菜" and (choice.time_minutes or 0) >= 60:
+                heavy_used += 1
         return choice
 
     combo = {}
@@ -359,9 +388,32 @@ DEFAULT_PREFS = {
     "vegetarian": False,    # 只要素食
     "noCold": False,        # 不要凉菜
     "skipBreakfast": False, # 三餐模式跳过早餐
-    "comboSize": "1-1-1",   # Day 17 套餐份量：'1-1-1' | '2-1' | '3-1' | '4-1'
+    "comboSize": "1-1-1",   # Day 17 套餐份量（保留兼容）
+    "nPeople": 1,           # Day 18: 用餐人数（1-10）；n≤4 时主菜数=人数，>4 时=5
 }
 ALLOWED_COMBO_SIZES = ("1-1-1", "2-1", "3-1", "4-1")
+ALLOWED_N_PEOPLE = tuple(range(1, 11))  # 1-10
+
+
+def n_people_to_combo_size(n_people):
+    """根据用餐人数推导套餐份量。
+    - n≤4：菜数=人数（1-4 道菜）
+    - 5≤n≤8：固定 5 道菜（避免做太多）
+    - n≥9：6 道菜
+    返回 (主菜数, 汤数, 主食数) 三元组。
+    """
+    if n_people <= 4:
+        num_mains = max(1, n_people)
+    elif n_people <= 8:
+        num_mains = 5
+    else:
+        num_mains = 6
+    return (num_mains, 1, 1)  # 固定 1 汤 1 主食
+
+
+def heavy_dish_quota(n_people):
+    """硬菜（≥60min）配额：≤4 人 1 份，>4 人 2 份"""
+    return 1 if n_people <= 4 else 2
 
 
 def apply_prefs(dishes, prefs=None):

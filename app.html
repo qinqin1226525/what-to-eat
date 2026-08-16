@@ -105,6 +105,49 @@
   .chip.active {
     background: #e85d04; color: white; border-color: #e85d04;
   }
+
+  /* ============ Stepper（用餐人数） ============ */
+  .stepper-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 0 8px 0;
+  }
+  .stepper-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1.5px solid #f3d9a8;
+    background: #fff5e6;
+    color: #e85d04;
+    font-size: 24px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+  }
+  .stepper-btn:active { transform: scale(0.94); }
+  .stepper-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .stepper-value {
+    min-width: 48px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: #e85d04;
+  }
+  .stepper-hint {
+    flex: 1;
+    font-size: 13px;
+    color: #888;
+    padding-left: 8px;
+  }
   .chip-group-label {
     font-size: 13px; color: #888; margin: 12px 0 6px 0;
     display: flex; align-items: center; gap: 6px;
@@ -744,7 +787,17 @@
       </section>
 
       <section>
-        <div class="chip-group-label">🍱 套餐份量</div>
+        <div class="chip-group-label">👥 用餐人数 <span class="hint">（决定菜数）</span></div>
+        <div class="stepper-row">
+          <button class="stepper-btn" onclick="stepNPeople(-1)">−</button>
+          <div class="stepper-value" id="n-people-value">1</div>
+          <button class="stepper-btn" onclick="stepNPeople(1)">+</button>
+          <div class="stepper-hint" id="n-people-hint">1人 · 1菜 + 1汤 + 1主食</div>
+        </div>
+      </section>
+
+      <section>
+        <div class="chip-group-label">🍱 套餐份量 <span class="hint">（手动选择，优先级低于人数）</span></div>
         <div class="chip-row" data-prefs-key="comboSize">
           <span class="chip" data-prefs-value="1-1-1">默认（1菜+1汤+1主食）</span>
           <span class="chip" data-prefs-value="2-1">两菜一汤</span>
@@ -2446,92 +2499,8 @@ const DISHES_DATA = [
       "倒回鸡蛋翻匀加盐"
     ],
     tip: "血皮菜易出水量大，大火快炒是关键；蛋要炒嫩"
-  },
-  {
-    name: "凉拌皮蛋", time_minutes: 8, role: "凉菜",
-    tags: ["凉菜", "快手", "下酒"],
-    ingredients: ["皮蛋 3 个", "小葱 1 把", "蒜 3 瓣", "姜 1 小块"],
-    seasonings: ["生抽 2 勺", "香醋 1 勺", "香油 半勺", "盐 少许", "糖 半勺"],
-    steps: [
-      "皮蛋剥壳切瓣摆盘",
-      "蒜姜切末加小葱切葱花撒上",
-      "淋生抽+醋+香油+盐+糖调成的汁",
-      "静置 5 分钟入味即可"
-    ],
-    tip: "皮蛋选无铅溏心的口感更好"
-  },
-  {
-    name: "皮蛋豆腐", time_minutes: 5, role: "凉菜",
-    tags: ["凉菜", "快手", "简单"],
-    ingredients: ["内酯豆腐 1 盒", "皮蛋 2 个", "葱 1 根"],
-    seasonings: ["生抽", "香醋", "香油", "糖"],
-    steps: [
-      "豆腐倒扣盘里切块",
-      "皮蛋剥壳切瓣摆在豆腐上",
-      "调汁（生抽+醋+香油+糖）淋上",
-      "撒葱花即可"
-    ],
-    tip: "豆腐用内酯的嫩滑，皮蛋要溏心的切起来不碎"
-  },
-  {
-    name: "尖椒皮蛋", time_minutes: 15, role: "主菜",
-    tags: ["微辣", "下饭", "家常"],
-    ingredients: ["尖椒 4 个", "皮蛋 3 个", "蒜 4 瓣", "豆豉 1 勺"],
-    seasonings: ["生抽", "盐", "油"],
-    steps: [
-      "尖椒洗净拍扁切段",
-      "皮蛋剥壳切瓣",
-      "热油爆香蒜和豆豉",
-      "下尖椒炒至表皮微焦",
-      "下皮蛋翻匀加盐生抽出锅"
-    ],
-    tip: "尖椒用油煎出虎皮更香，皮蛋别炒太久会散"
-  },
-  {
-    name: "皮蛋瘦肉粥", time_minutes: 25, role: "早餐",
-    tags: ["早餐", "养胃", "快手"],
-    ingredients: ["大米 半杯", "皮蛋 2 个", "瘦肉 100g", "姜 2 片", "葱 1 根"],
-    seasonings: ["盐", "生抽", "料酒", "淀粉"],
-    steps: [
-      "大米淘洗加水煮成稠粥",
-      "瘦肉切丝加盐+料酒+淀粉腌10分钟",
-      "皮蛋剥壳切瓣",
-      "粥快好时下瘦肉丝和皮蛋",
-      "加姜丝煮5分钟撒葱花"
-    ],
-    tip: "大米提前泡半小时煮得更软，皮蛋下晚一点保持形状"
-  },
-  {
-    name: "三色皮蛋", time_minutes: 10, role: "凉菜",
-    tags: ["凉菜", "简单", "好看"],
-    ingredients: ["皮蛋 2 个", "咸鸭蛋 1 个", "鸡蛋 2 个"],
-    seasonings: ["盐", "香油"],
-    steps: [
-      "鸡蛋打散加少许盐倒入抹油的盘中",
-      "水开后蒸8分钟至凝固",
-      "皮蛋咸鸭蛋剥壳切碎撒在蛋羹上",
-      "淋香油再蒸2分钟即可"
-    ],
-    tip: "蛋羹中火蒸避免蜂窝，皮蛋咸鸭蛋切小块好看又入味"
-  },
-,
-
-];
-
-// ============ Dish 类与算法（与 Python 版本对应） ============
-class Dish {
-  constructor(d) {
-    this.name = d.name;
-    this.time_minutes = d.time_minutes;
-    this.role = d.role;
-    this.tags = d.tags || [];
-    this.ingredients = d.ingredients || [];
-    this.seasonings = d.seasonings || [];
-    this.steps = d.steps || [];
-    this.tip = d.tip || "";
-    this.nutrition = d.nutrition || [];
   }
-}
+];
 
 function chooseOne(dishes) {
   return dishes[Math.floor(Math.random() * dishes.length)];
@@ -2706,24 +2675,34 @@ function isMeatVeg(dish) {
   return dish.tags.includes('素食') ? '素' : '荤';
 }
 
-function chooseCombo(dishes, history = [], window = 30, scores = null, comboSize = '1-1-1') {
+function chooseCombo(dishes, history = [], window = 30, scores = null, comboSize = '1-1-1', nPeople = null) {
   // Day 10: 过滤 skipped 状态
   // Day 17: 按 comboSize 抽多道主菜（不带主食时只抽 主菜+汤）
   //   comboSize 格式：'主菜份数-汤份数-主食份数'（主食可省略=0）
   //   例 '1-1-1' 默认；'2-1' / '3-1' / '4-1' 两菜一汤/三菜一汤/四菜一汤
-  // Day 18: 多道主菜时保证 ≥1素（避免全是荤）
+  // Day 18: 多道主菜时保证 ≥1素（避免全是荤）；nPeople 决定菜数 + 硬菜配额
   const recent = recentDishesFromHistory(history, window);
   const useScores = scores || loadScores();
   const tagAff = computeTagAffinities(useScores, dishes);
-  const parts = (comboSize || '1-1-1').split('-').map(n => parseInt(n, 10));
-  const numMains = (parts[0] >= 1 && parts[0] <= 4) ? parts[0] : 1;
-  const numSoups = (parts[1] === 1 || parts[1] === 2) ? parts[1] : 1;
-  const numStaples = (parts[2] === 1) ? 1 : 0;
+
+  // Day 18: nPeople 决定菜数 + 硬菜配额；comboSize 是 fallback
+  let numMains, numSoups, numStaples, heavyQuota;
+  if (typeof nPeople === 'number' && nPeople >= 1 && nPeople <= 10) {
+    [numMains, numSoups, numStaples] = nPeopleComboSize(nPeople);
+    heavyQuota = nPeople <= 4 ? 1 : 2;
+  } else {
+    const parts = (comboSize || '1-1-1').split('-').map(n => parseInt(n, 10));
+    numMains = (parts[0] >= 1 && parts[0] <= 4) ? parts[0] : 1;
+    numSoups = (parts[1] === 1 || parts[1] === 2) ? parts[1] : 1;
+    numStaples = (parts[2] === 1) ? 1 : 0;
+    heavyQuota = 1;
+  }
 
   // 本次抽签已选的菜名（多道主菜内部去重，避免抽到同一道）
   const pickedNames = new Set();
   // 已选主菜中的荤/素计数（用于引导后续主菜偏向）
   const pickedMains = [];
+  let heavyUsed = 0;  // Day 18: 已选的硬菜数量（≥60min）
 
   function pick(role, forceVeg = false) {
     // 基础候选
@@ -2738,10 +2717,19 @@ function chooseCombo(dishes, history = [], window = 30, scores = null, comboSize
       candidates = vegOnly.length > 0 ? vegOnly : candidates;
     }
 
+    // Day 18：硬菜配额 — 主菜时如果配额已满，过滤掉硬菜
+    if (role === '主菜' && heavyUsed >= heavyQuota) {
+      const lightOnly = candidates.filter(d => (d.time_minutes || 0) < 60);
+      if (lightOnly.length > 0) candidates = lightOnly;
+    }
+
     const choice = weightedChoice(candidates, useScores, tagAff);
     if (choice) {
       pickedNames.add(choice.name);
-      if (role === '主菜') pickedMains.push(choice);
+      if (role === '主菜') {
+        pickedMains.push(choice);
+        if ((choice.time_minutes || 0) >= 60) heavyUsed++;
+      }
     }
     return choice;
   }
@@ -2793,6 +2781,7 @@ function loadPrefs() {
   try {
     const raw = JSON.parse(storeGet(PREFS_KEY) || '{}');
     const comboSize = ALLOWED_COMBO_SIZES.includes(raw.comboSize) ? raw.comboSize : '1-1-1';
+    const nPeople = (typeof raw.nPeople === 'number' && raw.nPeople >= 1 && raw.nPeople <= 10) ? raw.nPeople : 1;
     return {
       spicy: raw.spicy || 'any',
       noNumb: !!raw.noNumb,
@@ -2802,11 +2791,41 @@ function loadPrefs() {
       },
       vegetarian: !!raw.vegetarian,
       comboSize: comboSize,
+      nPeople: nPeople,
     };
   } catch (e) { return Object.assign({}, PREFS_DEFAULTS, { avoid: Object.assign({}, PREFS_DEFAULTS.avoid) }); }
 }
 
 function savePrefs(p) { storeSet(PREFS_KEY, JSON.stringify(p)); }
+
+// 用餐人数 ± 按钮
+function stepNPeople(delta) {
+  const prefs = loadPrefs();
+  const next = Math.max(1, Math.min(10, (prefs.nPeople || 1) + delta));
+  if (next === prefs.nPeople) return;
+  prefs.nPeople = next;
+  savePrefs(prefs);
+  updateNPeopleUI();
+}
+
+function nPeopleComboSize(n) {
+  // 与 Python n_people_to_combo_size 对齐
+  if (n <= 4) return [n, 1, 1];
+  if (n <= 8) return [5, 1, 1];
+  return [6, 1, 1];
+}
+
+function updateNPeopleUI() {
+  const prefs = loadPrefs();
+  const n = prefs.nPeople || 1;
+  const valueEl = document.getElementById('n-people-value');
+  const hintEl = document.getElementById('n-people-hint');
+  if (valueEl) valueEl.textContent = String(n);
+  if (hintEl) {
+    const [mains] = nPeopleComboSize(n);
+    hintEl.textContent = `${n}人 · ${mains}菜 + 1汤 + 1主食`;
+  }
+}
 
 // 按偏好过滤菜；返回新列表。空 prefs 不过滤。
 function applyPrefs(dishes, prefs) {
@@ -2855,6 +2874,8 @@ function openPrefs() {
   m.querySelectorAll('.chip-row[data-prefs-key="comboSize"] .chip').forEach(c => {
     c.classList.toggle('active', c.dataset.prefsValue === prefs.comboSize);
   });
+  // 用餐人数 stepper
+  updateNPeopleUI();
   m.hidden = false;
 }
 
@@ -4021,7 +4042,7 @@ function drawCombo() {
     let pool = applyPrefs(dishes, prefs);
     if (pool.length === 0) pool = dishes; // 三级 fallback：池空 → 全表
     const history = loadHistory();
-    const combo = chooseCombo(pool, history, 30, null, prefs.comboSize);
+    const combo = chooseCombo(pool, history, 30, null, prefs.comboSize, prefs.nPeople);
     renderComboWithConfirm(combo);
     btn.disabled = false;
     btn.textContent = '再抽一套 🔄';
