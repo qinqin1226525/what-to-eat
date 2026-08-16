@@ -1114,6 +1114,16 @@ function logManualJS(history, meals, dateStr, scores) {
   return written;
 }
 
+// ============ 编辑单条记录（Day 16.2） ============
+// 纯函数版本（测试用）：history.indexOf 找位置 → 原地替换
+// 与 app.html 的 saveEditLog 同语义
+function editLogEntry(history, targetEntry, updates) {
+  const idx = history.indexOf(targetEntry);
+  if (idx === -1) return null;
+  history[idx] = Object.assign({}, targetEntry, updates);
+  return history[idx];
+}
+
 group("parseMealInput");
 test("空串返回 []", () => assertEqual(parseMealInput(""), []));
 test("null 返回 []", () => assertEqual(parseMealInput(null), []));
@@ -1698,6 +1708,67 @@ test("旧格式 (没有 avoid 子项) 不报错", () => {
   assertEqual(p.spicy, 'mild');
   assertEqual(p.avoid.offal, false, "缺字段时默认为 false");
   storeDel(PREFS_KEY);
+});
+
+group("editLogEntry（编辑单条记录，Day 16.2）");
+test("替换 dish / date / meal 三个字段", () => {
+  const h = [
+    { dish: "西红柿炒蛋", date: "2026-08-15", status: "manual", meal: "午餐" },
+    { dish: "米饭", date: "2026-08-15", status: "manual", meal: "午餐" },
+  ];
+  const updated = editLogEntry(h, h[0], { dish: "番茄炒蛋", date: "2026-08-16", meal: "晚餐" });
+  assertEqual(updated.dish, "番茄炒蛋");
+  assertEqual(updated.date, "2026-08-16");
+  assertEqual(updated.meal, "晚餐");
+  assertEqual(updated.status, "manual", "status 保留不变");
+});
+
+test("找不到目标时返回 null，原数组不变", () => {
+  const h = [{ dish: "A", date: "2026-08-15", status: "manual" }];
+  const ghost = { dish: "Z", date: "2026-08-15", status: "manual" }; // 引用不在 h 里
+  const r = editLogEntry(h, ghost, { dish: "Y" });
+  assertEqual(r, null);
+  assertEqual(h[0].dish, "A", "原数组未变");
+});
+
+test("多个条目时不误改别人", () => {
+  const h = [
+    { dish: "A", date: "2026-08-15", status: "manual", meal: "午餐" },
+    { dish: "B", date: "2026-08-15", status: "manual", meal: "午餐" },
+    { dish: "C", date: "2026-08-15", status: "manual", meal: "午餐" },
+  ];
+  editLogEntry(h, h[1], { dish: "B2" });
+  assertEqual(h[0].dish, "A");
+  assertEqual(h[1].dish, "B2");
+  assertEqual(h[2].dish, "C");
+});
+
+test("改 dish 名时不碰 status / suggested 等其他字段", () => {
+  const h = [
+    { dish: "红烧肉", date: "2026-08-15", status: "manual", meal: "午餐", suggested: "原菜名", extra: "保留" },
+  ];
+  const r = editLogEntry(h, h[0], { dish: "糖醋排骨" });
+  assertEqual(r.dish, "糖醋排骨");
+  assertEqual(r.status, "manual");
+  assertEqual(r.suggested, "原菜名");
+  assertEqual(r.extra, "保留");
+});
+
+test("空 updates 是合法的（不报错，保留原值）", () => {
+  const h = [{ dish: "A", date: "2026-08-15", status: "manual" }];
+  const r = editLogEntry(h, h[0], {});
+  assertEqual(r.dish, "A");
+  assertEqual(r.date, "2026-08-15");
+});
+
+test("编辑后原数组长度不变（原地更新）", () => {
+  const h = [
+    { dish: "A", date: "2026-08-15", status: "manual" },
+    { dish: "B", date: "2026-08-15", status: "manual" },
+  ];
+  const lenBefore = h.length;
+  editLogEntry(h, h[0], { dish: "A2" });
+  assertEqual(h.length, lenBefore);
 });
 
 // ============ 渲染结果 ============
