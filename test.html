@@ -110,15 +110,27 @@ function filterByIngredients(dishes, available) {
     return [...keywords].some(kw => haystack.includes(kw));
   });
 }
-function chooseCombo(dishes, history = [], window = 30) {
+function chooseCombo(dishes, history = [], window = 30, scores = null, comboSize = '1-1-1') {
   const recent = new Set(history.slice(-window).map(h => h.dish));
+  const parts = (comboSize || '1-1-1').split('-').map(n => parseInt(n, 10));
+  const numMains = (parts[0] >= 1 && parts[0] <= 4) ? parts[0] : 1;
+  const numSoups = (parts[1] === 1 || parts[1] === 2) ? parts[1] : 1;
+  const numStaples = (parts[2] === 1) ? 1 : 0;
+  const pickedNames = new Set();
   function pick(role) {
-    let candidates = dishes.filter(d => d.role === role && !recent.has(d.name));
+    let candidates = dishes.filter(d => d.role === role && !recent.has(d.name) && !pickedNames.has(d.name));
+    if (candidates.length === 0) candidates = dishes.filter(d => d.role === role && !pickedNames.has(d.name));
     if (candidates.length === 0) candidates = dishes.filter(d => d.role === role);
     if (candidates.length === 0) return null;
-    return candidates[Math.floor(Math.random() * candidates.length)];
+    const c = candidates[Math.floor(Math.random() * candidates.length)];
+    if (c) pickedNames.add(c.name);
+    return c;
   }
-  return {"主菜": pick("主菜"), "汤": pick("汤"), "主食": pick("主食")};
+  const combo = {};
+  for (let i = 0; i < numMains; i++) combo[`主菜${i > 0 ? i + 1 : ''}`] = pick("主菜");
+  for (let i = 0; i < numSoups; i++) combo[`汤${i > 0 ? i + 1 : ''}`] = pick("汤");
+  for (let i = 0; i < numStaples; i++) combo[`主食${i > 0 ? i + 1 : ''}`] = pick("主食");
+  return combo;
 }
 
 const SPICY_TAGS = ["辣", "微辣", "麻辣"];
@@ -140,12 +152,15 @@ const PREFS_DEFAULTS = {
   noNumb: false,
   avoid: { offal: false, lamb: false },
   vegetarian: false,
+  comboSize: '1-1-1',
 };
+const ALLOWED_COMBO_SIZES = ['1-1-1', '2-1', '3-1', '4-1'];
 const OFFAL_INGREDIENT_KEYS = ["肥肠", "猪肚", "肝", "腰", "心", "肚"];
 
 function loadPrefs() {
   try {
     const raw = JSON.parse(storeGet(PREFS_KEY) || '{}');
+    const comboSize = ALLOWED_COMBO_SIZES.includes(raw.comboSize) ? raw.comboSize : '1-1-1';
     return {
       spicy: raw.spicy || 'any',
       noNumb: !!raw.noNumb,
@@ -154,6 +169,7 @@ function loadPrefs() {
         lamb: !!(raw.avoid && raw.avoid.lamb),
       },
       vegetarian: !!raw.vegetarian,
+      comboSize: comboSize,
     };
   } catch (e) {
     return {
@@ -161,6 +177,7 @@ function loadPrefs() {
       noNumb: PREFS_DEFAULTS.noNumb,
       avoid: Object.assign({}, PREFS_DEFAULTS.avoid),
       vegetarian: PREFS_DEFAULTS.vegetarian,
+      comboSize: PREFS_DEFAULTS.comboSize,
     };
   }
 }
