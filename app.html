@@ -743,6 +743,16 @@
         </div>
       </section>
 
+      <section>
+        <div class="chip-group-label">🍱 套餐份量</div>
+        <div class="chip-row" data-prefs-key="comboSize">
+          <span class="chip" data-prefs-value="1-1-1">默认（1菜+1汤+1主食）</span>
+          <span class="chip" data-prefs-value="2-1">两菜一汤</span>
+          <span class="chip" data-prefs-value="3-1">三菜一汤</span>
+          <span class="chip" data-prefs-value="4-1">四菜一汤</span>
+        </div>
+      </section>
+
       <div style="display:flex;gap:10px;margin-top:20px;">
         <button class="banner-btn" style="flex:1;border-color:#e0d5c0;color:#888;" onclick="resetPrefs()">🔄 重置</button>
         <button class="primary" style="flex:2;margin:0;font-size:16px;padding:14px;" onclick="closePrefs()">完成</button>
@@ -2437,6 +2447,73 @@ const DISHES_DATA = [
     ],
     tip: "血皮菜易出水量大，大火快炒是关键；蛋要炒嫩"
   },
+  {
+    name: "凉拌皮蛋", time_minutes: 8, role: "凉菜",
+    tags: ["凉菜"],
+    ingredients: ["8", "凉菜 快手 下酒", "皮蛋 3 个", "小葱 1 把", "蒜 3 瓣", "姜 1 小块"],
+    seasonings: ["生抽 2 勺", "香醋 1 勺", "香油 半勺", "盐 少许", "糖 半勺"],
+    steps: [
+      "皮蛋剥壳切瓣摆盘",
+      "蒜姜切末加小葱切葱花撒上",
+      "淋生抽+醋+香油+盐+糖调成的汁",
+      "静置 5 分钟入味即可"
+    ],
+    tip: "皮蛋选无铅溏心的口感更好"
+  },
+  {
+    name: "皮蛋豆腐", time_minutes: 5, role: "凉菜",
+    tags: ["凉菜"],
+    ingredients: ["5", "凉菜 快手 简单", "内酯豆腐 1 盒", "皮蛋 2 个", "葱 1 根"],
+    seasonings: ["生抽", "香醋", "香油", "糖"],
+    steps: [
+      "豆腐倒扣盘里切块",
+      "皮蛋剥壳切瓣摆在豆腐上",
+      "调汁（生抽+醋+香油+糖）淋上",
+      "撒葱花即可"
+    ],
+    tip: "豆腐用内酯的嫩滑，皮蛋要溏心的切起来不碎"
+  },
+  {
+    name: "尖椒皮蛋", time_minutes: 15, role: "主菜",
+    tags: ["主菜"],
+    ingredients: ["15", "微辣 下饭 家常", "尖椒 4 个", "皮蛋 3 个", "蒜 4 瓣", "豆豉 1 勺"],
+    seasonings: ["生抽", "盐", "油"],
+    steps: [
+      "尖椒洗净拍扁切段",
+      "皮蛋剥壳切瓣",
+      "热油爆香蒜和豆豉",
+      "下尖椒炒至表皮微焦",
+      "下皮蛋翻匀加盐生抽出锅"
+    ],
+    tip: "尖椒用油煎出虎皮更香，皮蛋别炒太久会散"
+  },
+  {
+    name: "皮蛋瘦肉粥", time_minutes: 25, role: "早餐",
+    tags: ["早餐"],
+    ingredients: ["25", "早餐 养胃 快手", "大米 半杯", "皮蛋 2 个", "瘦肉 100g", "姜 2 片", "葱 1 根"],
+    seasonings: ["盐", "生抽", "料酒", "淀粉"],
+    steps: [
+      "大米淘洗加水煮成稠粥",
+      "瘦肉切丝加盐+料酒+淀粉腌10分钟",
+      "皮蛋剥壳切瓣",
+      "粥快好时下瘦肉丝和皮蛋",
+      "加姜丝煮5分钟撒葱花"
+    ],
+    tip: "大米提前泡半小时煮得更软，皮蛋下晚一点保持形状"
+  },
+  {
+    name: "三色皮蛋", time_minutes: 10, role: "凉菜",
+    tags: ["凉菜"],
+    ingredients: ["10", "凉菜 简单 好看", "皮蛋 2 个", "咸鸭蛋 1 个", "鸡蛋 2 个"],
+    seasonings: ["盐", "香油"],
+    steps: [
+      "鸡蛋打散加少许盐倒入抹油的盘中",
+      "水开后蒸8分钟至凝固",
+      "皮蛋咸鸭蛋剥壳切碎撒在蛋羹上",
+      "淋香油再蒸2分钟即可"
+    ],
+    tip: "蛋羹中火蒸避免蜂窝，皮蛋咸鸭蛋切小块好看又入味"
+  },
 
 ];
 
@@ -2621,18 +2698,42 @@ function filterByIngredients(dishes, available) {
   });
 }
 
-function chooseCombo(dishes, history = [], window = 30, scores = null) {
+function chooseCombo(dishes, history = [], window = 30, scores = null, comboSize = '1-1-1') {
   // Day 10: 过滤 skipped 状态
+  // Day 17: 按 comboSize 抽多道主菜（不带主食时只抽 主菜+汤）
+  //   comboSize 格式：'主菜份数-汤份数-主食份数'（主食可省略=0）
+  //   例 '1-1-1' 默认；'2-1' / '3-1' / '4-1' 两菜一汤/三菜一汤/四菜一汤
   const recent = recentDishesFromHistory(history, window);
   const useScores = scores || loadScores();
   const tagAff = computeTagAffinities(useScores, dishes);
+  const parts = (comboSize || '1-1-1').split('-').map(n => parseInt(n, 10));
+  const numMains = (parts[0] >= 1 && parts[0] <= 4) ? parts[0] : 1;
+  const numSoups = (parts[1] === 1 || parts[1] === 2) ? parts[1] : 1;
+  const numStaples = (parts[2] === 1) ? 1 : 0;
+
+  // 本次抽签已选的菜名（多道主菜内部去重，避免抽到同一道）
+  const pickedNames = new Set();
   function pick(role) {
-    let candidates = dishes.filter(d => d.role === role && !recent.has(d.name));
+    let candidates = dishes.filter(d => d.role === role && !recent.has(d.name) && !pickedNames.has(d.name));
+    if (candidates.length === 0) candidates = dishes.filter(d => d.role === role && !pickedNames.has(d.name));
     if (candidates.length === 0) candidates = dishes.filter(d => d.role === role);
     if (candidates.length === 0) return null;
-    return weightedChoice(candidates, useScores, tagAff);
+    const choice = weightedChoice(candidates, useScores, tagAff);
+    if (choice) pickedNames.add(choice.name);
+    return choice;
   }
-  return {"主菜": pick("主菜"), "汤": pick("汤"), "主食": pick("主食")};
+
+  const combo = {};
+  for (let i = 0; i < numMains; i++) {
+    combo[`主菜${i > 0 ? i + 1 : ''}`] = pick("主菜");
+  }
+  for (let i = 0; i < numSoups; i++) {
+    combo[`汤${i > 0 ? i + 1 : ''}`] = pick("汤");
+  }
+  for (let i = 0; i < numStaples; i++) {
+    combo[`主食${i > 0 ? i + 1 : ''}`] = pick("主食");
+  }
+  return combo;
 }
 
 // ============ 儿童餐筛选 ============
@@ -2650,18 +2751,22 @@ function filterKidFriendly(dishes) {
 
 // ============ 偏好设置（Day 16：用户删了 UI 又加回来） ============
 // 4 项核心：不吃辣 / 不吃内脏 / 不吃羊肉 / 不吃荤
+// Day 17: 套餐份量（默认 1菜1汤1主食 / 两菜一汤 / 三菜一汤 / 四菜一汤）
 const PREFS_KEY = 'what-to-eat-prefs';
 const PREFS_DEFAULTS = {
   spicy: 'any',       // 'any' | 'none' | 'mild'
   noNumb: false,
   avoid: { offal: false, lamb: false },
   vegetarian: false,
+  comboSize: '1-1-1', // '1-1-1' | '2-1' | '3-1' | '4-1'（主菜-汤-主食份数）
 };
+const ALLOWED_COMBO_SIZES = ['1-1-1', '2-1', '3-1', '4-1'];
 const OFFAL_INGREDIENT_KEYS = ["肥肠", "猪肚", "肝", "腰", "心", "肚"];
 
 function loadPrefs() {
   try {
     const raw = JSON.parse(storeGet(PREFS_KEY) || '{}');
+    const comboSize = ALLOWED_COMBO_SIZES.includes(raw.comboSize) ? raw.comboSize : '1-1-1';
     return {
       spicy: raw.spicy || 'any',
       noNumb: !!raw.noNumb,
@@ -2670,6 +2775,7 @@ function loadPrefs() {
         lamb: !!(raw.avoid && raw.avoid.lamb),
       },
       vegetarian: !!raw.vegetarian,
+      comboSize: comboSize,
     };
   } catch (e) { return Object.assign({}, PREFS_DEFAULTS, { avoid: Object.assign({}, PREFS_DEFAULTS.avoid) }); }
 }
@@ -2719,6 +2825,10 @@ function openPrefs() {
   m.querySelectorAll('.chip-row[data-prefs-key="vegetarian"] .chip').forEach(c => {
     c.classList.toggle('active', !!prefs.vegetarian);
   });
+  // 单选组：comboSize
+  m.querySelectorAll('.chip-row[data-prefs-key="comboSize"] .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.prefsValue === prefs.comboSize);
+  });
   m.hidden = false;
 }
 
@@ -2751,6 +2861,13 @@ function handlePrefChipClick(e) {
   } else if (key === 'vegetarian') {
     prefs.vegetarian = !prefs.vegetarian;
     chip.classList.toggle('active');
+  } else if (key === 'comboSize') {
+    const v = chip.dataset.prefsValue;
+    if (ALLOWED_COMBO_SIZES.includes(v)) {
+      prefs.comboSize = v;
+      row.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    }
   }
   savePrefs(prefs);
 }
@@ -3362,7 +3479,7 @@ function renderLogbook() {
   const MEAL_ORDER = ['早餐', '午餐', '晚餐'];
   const MEAL_EMOJI = { '早餐': '☀️', '午餐': '🌞', '晚餐': '🌙' };
 
-  for (const entry of sorted) {
+  sorted.forEach((entry, i) => {
     if (entry.date !== currentDate) {
       currentDate = entry.date;
       const h = document.createElement('div');
@@ -3386,18 +3503,26 @@ function renderLogbook() {
     editBtn.textContent = '✏️';
     editBtn.title = '编辑这条';
     editBtn.style.cssText = "cursor:pointer;padding:4px 8px;font-size:14px;color:#888;border-radius:6px;-webkit-tap-highlight-color:transparent;";
-    editBtn.addEventListener('click', () => openEditLog(entry));
+    // 用 sorted 索引找原 history 索引（sorted 是 reverse 的）
+    const historyIdx = sorted.length - 1 - i;
+    editBtn.addEventListener('click', () => openEditLog(historyIdx));
     row.appendChild(editBtn);
     wrap.appendChild(row);
-  }
+  });
 }
 
 // ============ 编辑单条记录（Day 16.2） ============
-// 用 entry 对象引用定位（而非 index）：history 重排后仍能找到原 entry
-let _editingEntry = null;
+// 用 history 索引定位（修复 JSON.parse 返回新对象引用导致 indexOf 永远 -1）
+let _editingIdx = -1;
 
-function openEditLog(entry) {
-  _editingEntry = entry;
+function openEditLog(historyIdx) {
+  _editingIdx = historyIdx;
+  const history = loadHistory();
+  const entry = history[historyIdx];
+  if (!entry) {
+    alert('记录已被删除');
+    return;
+  }
   const m = document.getElementById('edit-log-modal');
   if (!m) return;
   document.getElementById('edit-log-date').value = entry.date || '';
@@ -3409,13 +3534,13 @@ function openEditLog(entry) {
 }
 
 function closeEditLog() {
-  _editingEntry = null;
+  _editingIdx = -1;
   const m = document.getElementById('edit-log-modal');
   if (m) m.hidden = true;
 }
 
 function saveEditLog() {
-  if (!_editingEntry) { closeEditLog(); return; }
+  if (_editingIdx < 0) { closeEditLog(); return; }
   const date = document.getElementById('edit-log-date').value;
   const dish = document.getElementById('edit-log-dish').value.trim();
   const mealChip = document.querySelector('#edit-log-modal [data-edit-meal] .chip.active');
@@ -3427,15 +3552,15 @@ function saveEditLog() {
   }
 
   const history = loadHistory();
-  const idx = history.indexOf(_editingEntry);
-  if (idx === -1) {
+  if (_editingIdx >= history.length) {
     alert('原记录已被删除（可能刷新前手动清空）');
     closeEditLog();
     return;
   }
 
   // 原地更新：保留 status / suggested 等其他字段
-  history[idx] = Object.assign({}, _editingEntry, { date, dish, meal });
+  const old = history[_editingIdx];
+  history[_editingIdx] = Object.assign({}, old, { date, dish, meal });
   saveHistory(history);
   renderLogbook();
   closeEditLog();
@@ -3796,15 +3921,67 @@ function promptManualDish(row, originalDish) {
 // 处理单个菜按钮点击
 function handleDishAction(action, dish, row) {
   if (action === 'redraw') {
-    // 换一道：重新抽这一道菜（不写历史）
-    // 实际实现：把整个面板重新抽一遍
-    if (row.dataset.source === 'combo') drawCombo();
-    else if (row.dataset.source === 'kids') drawKidCombo();
-    else drawThreeMeals();
+    // 换一道：只换当前这一道，其他菜保持不变
+    redrawSlot(row);
   } else if (action === 'manual') {
     promptManualDish(row, dish);
   } else {
     applyDecisionToSlot(row, dish, action, null);
+  }
+}
+
+// 单槽位换一道：仅替换当前 row 代表的菜，保留本面板其他菜
+// 排除：本面板已显示 + 30/7 天历史（窗口随 source 变）
+function redrawSlot(row) {
+  const source = row.dataset.source;
+  const role = row.dataset.role;
+  const panelId = source === 'combo' ? 'combo-result'
+                : source === 'kids' ? 'kids-result'
+                : 'three-result';
+
+  // 1. 池：偏好 + 儿童餐过滤
+  let pool = getDishes();
+  const prefs = loadPrefs();
+  pool = applyPrefs(pool, prefs);
+  if (pool.length === 0) pool = getDishes();
+  if (source === 'kids') pool = filterKidFriendly(pool);
+
+  // 2. 排除：本面板已显示的菜
+  const shownNames = new Set();
+  document.querySelectorAll(`#${panelId} .dish-row[data-dish-name]`).forEach(r => {
+    if (r.dataset.dishName) shownNames.add(r.dataset.dishName);
+  });
+
+  // 3. 排除：30/7 天内非 skipped 的历史
+  const windowDays = source === 'three' ? 7 : 30;
+  const history = loadHistory();
+  const recentNames = new Set(
+    history.filter(h => isWithinWindow(h.date, windowDays) && h.status !== 'skipped').map(h => h.dish)
+  );
+  const excludeNames = new Set([...shownNames, ...recentNames]);
+
+  // 4. 候选 = 池中此 role 且未被排除
+  let candidates = pool.filter(d => d.role === role && !excludeNames.has(d.name));
+  // fallback 1：去掉历史限制（只剩同面板已显示）
+  if (candidates.length === 0) candidates = pool.filter(d => d.role === role && !shownNames.has(d.name));
+  // fallback 2：什么都不排除
+  if (candidates.length === 0) candidates = pool.filter(d => d.role === role);
+
+  if (candidates.length === 0) {
+    showToast('😅 池子里没别的了');
+    return;
+  }
+
+  // 5. 加权抽
+  const scores = loadScores();
+  const tagAff = computeTagAffinities(scores, pool);
+  const newDish = weightedChoice(candidates, scores, tagAff);
+
+  // 6. 原地替换 row
+  const newRow = buildDishRowWithConfirm(newDish, role, row.id, handleDishAction);
+  if (newRow) {
+    newRow.dataset.source = source;
+    row.replaceWith(newRow);
   }
 }
 
@@ -3818,7 +3995,7 @@ function drawCombo() {
     let pool = applyPrefs(dishes, prefs);
     if (pool.length === 0) pool = dishes; // 三级 fallback：池空 → 全表
     const history = loadHistory();
-    const combo = chooseCombo(pool, history);
+    const combo = chooseCombo(pool, history, 30, null, prefs.comboSize);
     renderComboWithConfirm(combo);
     btn.disabled = false;
     btn.textContent = '再抽一套 🔄';

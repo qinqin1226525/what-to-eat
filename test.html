@@ -488,6 +488,46 @@ test("套餐遵守不重复", () => {
   assert(combo["主菜"].name !== "西红柿炒蛋");
 });
 
+// ============ Day 17: 套餐份量（两菜一汤/三菜一汤/四菜一汤） ============
+group("chooseCombo（按份量）");
+test("两菜一汤：2 道主菜 + 1 道汤，无主食", () => {
+  const dishes = DISHES_DATA.map(d => new Dish(d));
+  const combo = chooseCombo(dishes, [], 30, null, '2-1');
+  assert(combo["主菜"] !== null && combo["主菜2"] !== null, "应有 主菜 + 主菜2");
+  assert(combo["汤"] !== null, "应有 汤");
+  assert(combo["主食"] === undefined, "两菜一汤 不应有主食");
+  assert(combo["主菜"].name !== combo["主菜2"].name, "两道主菜必须不同");
+  assert(combo["主菜"].role === "主菜" && combo["主菜2"].role === "主菜");
+});
+test("三菜一汤：3 道主菜 + 1 道汤，无主食", () => {
+  const dishes = DISHES_DATA.map(d => new Dish(d));
+  const combo = chooseCombo(dishes, [], 30, null, '3-1');
+  const mains = [combo["主菜"], combo["主菜2"], combo["主菜3"]];
+  assert(mains.every(d => d !== null), "应有 主菜 + 主菜2 + 主菜3");
+  assert(combo["主食"] === undefined, "三菜一汤 不应有主食");
+  const names = mains.map(d => d.name);
+  assert(new Set(names).size === names.length, "三道主菜必须各不相同");
+});
+test("四菜一汤：4 道主菜 + 1 道汤，无主食", () => {
+  const dishes = DISHES_DATA.map(d => new Dish(d));
+  const combo = chooseCombo(dishes, [], 30, null, '4-1');
+  const mains = [combo["主菜"], combo["主菜2"], combo["主菜3"], combo["主菜4"]];
+  assert(mains.every(d => d !== null), "应有 4 道主菜");
+  const names = mains.map(d => d.name);
+  assert(new Set(names).size === names.length, "四道主菜必须各不相同");
+});
+test("非法 comboSize 回退默认（1-1-1）", () => {
+  const dishes = DISHES_DATA.map(d => new Dish(d));
+  const combo = chooseCombo(dishes, [], 30, null, 'abc');
+  assert(combo["主菜"] && combo["汤"] && combo["主食"], "非法值回退默认应有 主菜+汤+主食");
+});
+test("默认（1-1-1）行为保持不变", () => {
+  const dishes = DISHES_DATA.map(d => new Dish(d));
+  const combo = chooseCombo(dishes, []);
+  assert(combo["主菜"] && combo["汤"] && combo["主食"]);
+  assert(Object.keys(combo).length === 3);
+});
+
 group("Dish 数据完整性");
 test("每个菜都包含必要字段", () => {
   for (const d of DISHES_DATA) {
@@ -1124,6 +1164,18 @@ function editLogEntry(history, targetEntry, updates) {
   return history[idx];
 }
 
+// ============ 单槽位换一道（Day 16.3） ============
+// 纯函数版本：返回新菜名（null = 无候选）
+// 与 app.html 的 redrawSlot 候选筛选同语义（不含 DOM 操作）
+function pickRedrawDish(pool, role, shownNames, recentNames, scores, tagAff) {
+  const exclude = new Set([...(shownNames || []), ...(recentNames || [])]);
+  let cands = pool.filter(d => d.role === role && !exclude.has(d.name));
+  if (cands.length === 0) cands = pool.filter(d => d.role === role && !(shownNames || []).includes(d.name));
+  if (cands.length === 0) cands = pool.filter(d => d.role === role);
+  if (cands.length === 0) return null;
+  return weightedChoice(cands, scores, tagAff).name;
+}
+
 group("parseMealInput");
 test("空串返回 []", () => assertEqual(parseMealInput(""), []));
 test("null 返回 []", () => assertEqual(parseMealInput(null), []));
@@ -1688,6 +1740,7 @@ test("空 store 时返回默认值", () => {
   assertEqual(p.vegetarian, false);
   assertEqual(p.avoid.offal, false);
   assertEqual(p.avoid.lamb, false);
+  assertEqual(p.comboSize, '1-1-1', "默认套餐份量应为 '1-1-1'");
 });
 
 test("savePrefs + loadPrefs round-trip", () => {
@@ -1698,6 +1751,20 @@ test("savePrefs + loadPrefs round-trip", () => {
   assertEqual(p.avoid.offal, true);
   assertEqual(p.avoid.lamb, true);
   assertEqual(p.vegetarian, true);
+  // 清理
+  storeDel(PREFS_KEY);
+});
+
+test("Day 17 comboSize 持久化（两菜一汤/三菜一汤/四菜一汤）", () => {
+  for (const size of ['2-1', '3-1', '4-1']) {
+    savePrefs({ spicy: 'any', noNumb: false, avoid: { offal: false, lamb: false }, vegetarian: false, comboSize: size });
+    const p = loadPrefs();
+    assertEqual(p.comboSize, size, `${size} 应被持久化`);
+  }
+  // 非法值回退默认
+  savePrefs({ comboSize: 'abc' });
+  const p = loadPrefs();
+  assertEqual(p.comboSize, '1-1-1', "非法 comboSize 应回退默认");
   // 清理
   storeDel(PREFS_KEY);
 });
@@ -1769,6 +1836,64 @@ test("编辑后原数组长度不变（原地更新）", () => {
   const lenBefore = h.length;
   editLogEntry(h, h[0], { dish: "A2" });
   assertEqual(h.length, lenBefore);
+});
+
+group("pickRedrawDish（单槽位换一道候选筛选，Day 16.3）");
+// 多份主菜用于测试
+const REDRAW_POOL = [
+  new Dish({name: "红烧肉", role: "主菜", tags: ["下饭"]}),
+  new Dish({name: "糖醋排骨", role: "主菜", tags: ["酸甜"]}),
+  new Dish({name: "宫保鸡丁", role: "主菜", tags: ["辣"]}),
+  new Dish({name: "西红柿炒蛋", role: "主菜", tags: ["小孩爱"]}),
+  new Dish({name: "紫菜蛋花汤", role: "汤"}),
+  new Dish({name: "米饭", role: "主食"}),
+  new Dish({name: "面条", role: "主食"}),
+];
+
+test("返回 role 匹配且未被排除的菜", () => {
+  const r = pickRedrawDish(REDRAW_POOL, "主菜", ["红烧肉"], [], {}, {});
+  assert(r !== null, "应能抽到");
+  assert(r !== "红烧肉", "不能是已显示的");
+  assert(REDRAW_POOL.some(d => d.name === r && d.role === "主菜"), "应仍是主菜");
+});
+
+test("不重复本面板已显示的菜", () => {
+  for (let i = 0; i < 30; i++) {
+    const r = pickRedrawDish(REDRAW_POOL, "主菜", ["红烧肉", "糖醋排骨"], [], {}, {});
+    assert(r !== "红烧肉");
+    assert(r !== "糖醋排骨");
+  }
+});
+
+test("不重复近期历史中的菜（30 天）", () => {
+  for (let i = 0; i < 30; i++) {
+    const r = pickRedrawDish(REDRAW_POOL, "主菜", [], ["宫保鸡丁"], {}, {});
+    assert(r !== "宫保鸡丁");
+  }
+});
+
+test("主菜 + 排除过多 → fallback 1（去掉历史限制）", () => {
+  // 池子有 4 道主菜，排除掉 3 道，只剩 1 道
+  const r = pickRedrawDish(REDRAW_POOL, "主菜", [], ["红烧肉", "糖醋排骨", "宫保鸡丁"], {}, {});
+  assertEqual(r, "西红柿炒蛋"); // 唯一剩下的
+});
+
+test("主菜 + 全排除 → fallback 2（什么都不排除）", () => {
+  const r = pickRedrawDish(REDRAW_POOL, "主菜",
+    ["红烧肉", "糖醋排骨", "宫保鸡丁", "西红柿炒蛋"],  // 4 道全在面板
+    [], {}, {});
+  // 4 道主菜全在 shownNames 里 → fallback 2 应还能抽到
+  assert(REDRAW_POOL.some(d => d.name === r && d.role === "主菜"), "应能抽到任一主菜");
+});
+
+test("role 不存在 → 返回 null", () => {
+  const r = pickRedrawDish(REDRAW_POOL, "不存在role", [], [], {}, {});
+  assertEqual(r, null);
+});
+
+test("shownNames / recentNames 为空/undefined 不报错", () => {
+  const r = pickRedrawDish(REDRAW_POOL, "汤", null, undefined, {}, {});
+  assertEqual(r, "紫菜蛋花汤");
 });
 
 // ============ 渲染结果 ============
