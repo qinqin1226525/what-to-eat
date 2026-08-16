@@ -273,6 +273,14 @@ function migrateHistory(history) {
   });
 }
 
+// ============ Day 15：toggle 撤回工具 ============
+// 精准按 index 删一条历史（避免误删）
+function removeHistoryAt(history, index) {
+  if (index < 0 || index >= history.length) return history;
+  history.splice(index, 1);
+  return history;
+}
+
 // chooseCombo 改编：过滤跳过
 function chooseComboV2(dishes, history = [], window = 30) {
   const effective = migrateHistory(history);
@@ -719,7 +727,25 @@ test("manual 写入的『实际吃的』参与 30 天不重复", () => {
 
 // ============ Day 10.2：内联按钮 → status 映射契约 ============
 // 模拟 applyDecisionToSlot 的核心逻辑（不带 DOM）
-function slotAction(history, action, originalDish, manualName) {
+// Day 15: 支持 toggle 撤回 + 切换 + 强制替换（manual 二次输入）
+// 返回 {hist, prevIndex, prevState, mode} 以便测试断言
+function slotAction(history, action, originalDish, manualName, ctx, opts) {
+  opts = opts || {};
+  ctx = ctx || {};
+  const prevIndex = ctx.historyIndex;
+  const prevState = ctx.state;
+  // 1) 撤回路径：同 action 再点
+  if (!opts.forceReplace && prevIndex !== undefined && prevState === action) {
+    removeHistoryAt(history, prevIndex);
+    delete ctx.historyIndex;
+    delete ctx.state;
+    return { mode: '撤回' };
+  }
+  // 2) 切换 action / 强制替换：先撤旧的
+  if (prevIndex !== undefined && prevState && (prevState !== action || opts.forceReplace)) {
+    removeHistoryAt(history, prevIndex);
+  }
+  // 3) 写新历史
   if (action === 'confirmed') {
     addToHistoryWithStatus(history, originalDish.name, 'confirmed', null);
   } else if (action === 'skipped') {
@@ -728,6 +754,12 @@ function slotAction(history, action, originalDish, manualName) {
     addToHistoryWithStatus(history, manualName, 'manual', originalDish.name);
   }
   // 'redraw' 不写历史
+  if (action !== 'redraw') {
+    ctx.historyIndex = history.length - 1;
+    ctx.state = action;
+    return { mode: '写' };
+  }
+  return { mode: 'noop' };
 }
 
 group("slotAction（内联按钮）");
@@ -787,6 +819,77 @@ test("部分跳过不影响其他菜的 30 天不重复", () => {
   );
   assert(!recent.has("主菜"), "跳过的主菜不应进入 recent");
   assert(recent.has("汤"), "做的汤应进入 recent");
+});
+
+// ============ Day 15：toggle 撤回 ============
+test("✅ 就做 再点 → 撤回（删掉刚写的那条）", () => {
+  const h = [];
+  const ctx = {};
+  const dish = {name: "番茄炒蛋"};
+  slotAction(h, 'confirmed', dish, null, ctx);
+  assertEqual(h.length, 1);
+  slotAction(h, 'confirmed', dish, null, ctx);
+  assertEqual(h.length, 0, "再点应删掉刚才那条");
+});
+
+test("❌ 跳过 再点 → 撤回", () => {
+  const h = [];
+  const ctx = {};
+  const dish = {name: "番茄炒蛋"};
+  slotAction(h, 'skipped', dish, null, ctx);
+  assertEqual(h.length, 1);
+  slotAction(h, 'skipped', dish, null, ctx);
+  assertEqual(h.length, 0);
+});
+
+test("✅ → ❌ 切换（不同 action 互不冲突）", () => {
+  const h = [];
+  const ctx = {};
+  const dish = {name: "番茄炒蛋"};
+  slotAction(h, 'confirmed', dish, null, ctx);
+  slotAction(h, 'skipped', dish, null, ctx);
+  assertEqual(h.length, 1);
+  assertEqual(h[0].status, 'skipped', "切换后只剩 skipped 那条");
+});
+
+test("🍜 别的 二次输入 = 替换（forceReplace），不是撤回", () => {
+  const h = [];
+  const ctx = {};
+  const dish = {name: "番茄炒蛋"};
+  slotAction(h, 'manual', dish, "火锅", ctx);
+  slotAction(h, 'manual', dish, "面条", ctx, {forceReplace: true});
+  assertEqual(h.length, 1);
+  assertEqual(h[0].dish, "面条", "forceReplace 后菜名应被替换");
+});
+
+test("🍜 别的 不带 forceReplace = 撤回（同 action 默认 toggle）", () => {
+  const h = [];
+  const ctx = {};
+  const dish = {name: "番茄炒蛋"};
+  slotAction(h, 'manual', dish, "火锅", ctx);
+  slotAction(h, 'manual', dish, "面条", ctx);
+  assertEqual(h.length, 0, "不带 forceReplace 应走撤回");
+});
+
+test("toggle 不影响之前的其他历史", () => {
+  // 第一道菜确认 → 第二天手动记录 → 再抽菜点 ✅ 再撤回 → 之前的历史应保留
+  const h = [];
+  slotAction(h, 'confirmed', {name: "昨天的菜"}, null);  // 无 ctx，独立
+  const ctx = {};
+  slotAction(h, 'confirmed', {name: "今天的菜"}, null, ctx);
+  slotAction(h, 'confirmed', {name: "今天的菜"}, null, ctx);  // 撤回今天
+  assertEqual(h.length, 1);
+  assertEqual(h[0].dish, "昨天的菜", "旧历史应保留");
+});
+
+test("撤回到 history 末尾的中间条（不是末尾）", () => {
+  // 模拟：先写了无关的历史，再 toggle 撤回自己写的那条
+  const h = [];
+  h.push({date: "2026-08-15", dish: "昨天", status: "confirmed"});  // 假装来自别处
+  const ctx = {historyIndex: 1, state: 'confirmed'};  // 假装 index=1 是自己写的
+  slotAction(h, 'confirmed', {name: "今天"}, null, ctx);
+  assertEqual(h.length, 1, "应删中间那条，剩昨天的");
+  assertEqual(h[0].dish, "昨天");
 });
 
 // ============ Day 10: applyPrefs 测试 ============
