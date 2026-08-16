@@ -675,6 +675,11 @@
         <h3>🏷️ 标签</h3>
         <div id="modal-tags" class="tag-list"></div>
       </section>
+
+      <!-- 双向链接：菜谱 → 手动记录 -->
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button class="primary" style="flex:1;margin:0;font-size:15px;padding:12px;background:#fff;color:#e85d04;border:1.5px solid #e85d04;" onclick="quickRecordDish()">📝 记录这道菜</button>
+      </div>
     </div>
   </div>
 </div>
@@ -826,6 +831,10 @@
     </div>
     <div class="modal-body">
       <div id="logbook-content"></div>
+      <!-- 底部固定入口：随时可加新记录（不退出 logbook）-->
+      <div style="border-top:1px dashed #f0ebe0;margin-top:16px;padding-top:14px;display:flex;gap:10px;">
+        <button class="primary" style="flex:1;margin:0;font-size:15px;padding:12px;" onclick="addAnotherDish()">➕ 再加一道</button>
+      </div>
     </div>
   </div>
 </div>
@@ -3151,6 +3160,24 @@ function closeRecipe() {
   document.body.style.overflow = '';
 }
 
+// 双向链接：从菜谱 modal 直接把菜加到历史（默认"刚刚"+手动状态）
+function quickRecordDish() {
+  const dishName = document.getElementById('modal-title').textContent;
+  if (!dishName) return;
+  const history = loadHistory();
+  const today = new Date().toISOString().slice(0, 10);
+  history.push({
+    dish: dishName,
+    date: today,
+    status: 'manual',
+    meal: null,
+  });
+  saveHistory(history);
+  bumpScoreJS(loadScoresJS(), dishName, 'cooked');
+  closeRecipe();
+  showToast(`✅ 已记录「${dishName}」（${today}）`);
+}
+
 // ============ 分享 + 反馈 ============
 function shareApp() {
   const url = window.location.href;
@@ -3366,6 +3393,14 @@ function closeLogbook() {
   document.getElementById('logbook-modal').hidden = true;
 }
 
+// 从 logbook 底部入口调用：关闭 logbook + 打开手动记录 modal
+// （让用户连加几道菜时不用反复进出 modal）
+function addAnotherDish() {
+  window.__fromLogbookAddAnother = true;  // saveManualLog 后自动回 logbook
+  closeLogbook();
+  openManualLog();
+}
+
 function viewLog() {
   closeManualLog();
   openLogbook();
@@ -3424,6 +3459,12 @@ function saveManualLog() {
   closeManualLog();
 
   alert(`✅ 已保存 ${written} 条手动记录（${dateStr}）\n\n${detail.join('\n')}\n\n已写入历史 + 自催化评分（cooks +1）`);
+
+  // 如果用户从 logbook「➕ 再加一道」进来，自动重开 logbook（无缝连加）
+  if (window.__fromLogbookAddAnother) {
+    window.__fromLogbookAddAnother = false;
+    openLogbook();
+  }
 }
 
 // ============ Day 12：scores 的 JS 端读写（与 history 同款 localStorage） ============
@@ -3473,7 +3514,11 @@ function renderLogbook() {
       badge = `<span style="background:#a8a8a8;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">抽签</span>`;
     }
     const mealLabel = entry.meal ? `${MEAL_EMOJI[entry.meal] || ''} ${entry.meal}` : '🍽️';
-    row.innerHTML = `${badge}<span style="color:#888;font-size:13px;min-width:80px;">${mealLabel}</span><span style="flex:1;">${escapeHtml(entry.dish)}</span>`;
+    // 菜名 = 可点击链接：如果在 DISHES_DATA 里 → 打开菜谱；否则弹"暂无菜谱"
+    // （手动记录里的自定义名会显示 toast 提示）
+    const dishNameSafe = escapeHtml(entry.dish);
+    const dishNameAttr = escapeHtml(entry.dish).replace(/"/g, '&quot;');
+    row.innerHTML = `${badge}<span style="color:#888;font-size:13px;min-width:80px;">${mealLabel}</span><span class="logbook-dish-link" data-dish="${dishNameAttr}" style="flex:1;cursor:pointer;color:#e85d04;text-decoration:underline;">${dishNameSafe}</span>`;
     const editBtn = document.createElement('span');
     editBtn.textContent = '✏️';
     editBtn.title = '编辑这条';
@@ -3483,6 +3528,19 @@ function renderLogbook() {
     editBtn.addEventListener('click', () => openEditLog(historyIdx));
     row.appendChild(editBtn);
     wrap.appendChild(row);
+  });
+
+  // 菜名点击 → 打开菜谱（或提示暂无菜谱）
+  wrap.querySelectorAll('.logbook-dish-link').forEach(el => {
+    el.addEventListener('click', () => {
+      const dishName = el.dataset.dish;
+      const dish = findDishByName(dishName);
+      if (dish) {
+        showRecipe(dish);
+      } else {
+        showToast(`「${dishName}」暂无菜谱（自定义名称）`);
+      }
+    });
   });
 }
 
