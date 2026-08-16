@@ -3,13 +3,14 @@
 
 跑这些检查：
 1. JS 语法检查（避免 SyntaxError 中断按钮）
-2. dishes.json ↔ app.html 同步校验
-3. Python 测试套件
-4. 常见 JS 陷阱：
+2. DISHES_DATA 语法（},, 双逗号会丢 d.name）
+3. dishes.json ↔ app.html 同步校验
+4. Python 测试套件
+5. 常见 JS 陷阱：
    - const/let 重复声明
    - getElementById().addEventListener 链式（id 缺失会 TypeError）
    - onclick 引用的函数是否都已定义
-5. 改动统计（让用户知道哪些文件被改了）
+6. 改动统计（让用户知道哪些文件被改了）
 
 用法：
     python3 tools/safety_check.py           # 跑所有检查
@@ -173,6 +174,33 @@ def check_unsafe_event_listeners():
     return True
 
 
+def check_no_double_comma():
+    """检查 DISHES_DATA 里有没有 '},,' 双逗号（会导致 d.name undefined）。
+    JS 里 '},,' 在某些菜对象上会变成 trailing comma + 单独一个 ','，让下一个对象的
+    name 字段丢失 → 所有依赖 d.name 的渲染都会炸。
+    """
+    print(colored("▶ DISHES_DATA 语法检查（},, 双逗号）", "blue"))
+    html = APP_HTML.read_text(encoding="utf-8")
+    pattern = re.compile(r"\},,")
+    matches = list(pattern.finditer(html))
+    if matches:
+        for m in matches[:5]:
+            line_no = html[:m.start()].count("\n") + 1
+            # 显示上下 2 行
+            lines = html.split("\n")
+            start = max(0, line_no - 2)
+            end = min(len(lines), line_no + 2)
+            context = "\n".join(f"    {i+1}: {lines[i]}" for i in range(start, end))
+            print(colored(f"  ⚠️  line {line_no}: '}},' 双逗号", "yellow"))
+            print(colored(context, "yellow"))
+        if len(matches) > 5:
+            print(f"  ...还有 {len(matches) - 5} 个")
+        print(colored("  💡 把 '}},' 改成 '}}' 或 ','（看上下文）", "yellow"))
+        return False
+    print(colored("  ✅ DISHES_DATA 无双逗号", "green"))
+    return True
+
+
 def check_onclick_functions_exist():
     """检查 onclick="func()" 引用的函数是否都已定义。"""
     print(colored("▶ onclick 函数定义检查", "blue"))
@@ -289,6 +317,7 @@ def main():
     results = []
     results.append(("JS 语法", check_js_syntax()))
     results.append(("重复声明", check_repeated_declarations()))
+    results.append(("DISHES_DATA", check_no_double_comma()))
     results.append(("事件绑定", check_unsafe_event_listeners()))
     results.append(("onclick 函数", check_onclick_functions_exist()))
     results.append(("同步校验", check_sync()))
@@ -308,6 +337,8 @@ def main():
         if "事件绑定" in failed:
             print("  - 把 document.getElementById('x').addEventListener(...) 改成 bindClick(id, fn)")
             print("  - 或者先 var el = getElementById(id); if (el) el.addEventListener(...)")
+        if "DISHES_DATA" in failed:
+            print("  - 找 '},,' 双逗号 → 改成 '},' 或 '}'")
         if "onclick 函数" in failed:
             print("  - 在 JS 里找到对应的函数定义，确认拼写和作用域")
         if "同步校验" in failed:

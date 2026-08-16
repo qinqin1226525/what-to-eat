@@ -767,6 +767,40 @@
   </div>
 </div>
 
+<!-- ============ 编辑单条记录 Modal（Day 16.2） ============ -->
+<div id="edit-log-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closeEditLog()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeEditLog()">×</button>
+    <div class="modal-header">
+      <span style="font-size:48px;display:block;margin-bottom:8px;">✏️</span>
+      <h2 class="modal-title">编辑这条记录</h2>
+      <div class="modal-meta">改日期 / 餐次 / 菜名 · status 保持不变</div>
+    </div>
+    <div class="modal-body">
+      <section>
+        <div class="chip-group-label">📅 日期</div>
+        <input type="date" id="edit-log-date" style="width:100%;padding:12px;border:2px solid #e0d5c0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
+      </section>
+      <section>
+        <div class="chip-group-label">🍽️ 餐次</div>
+        <div class="chip-row" data-edit-meal>
+          <span class="chip" data-meal="早餐">☀️ 早餐</span>
+          <span class="chip" data-meal="午餐">🌞 午餐</span>
+          <span class="chip" data-meal="晚餐">🌙 晚餐</span>
+        </div>
+      </section>
+      <section>
+        <div class="chip-group-label">🥘 菜名</div>
+        <input type="text" id="edit-log-dish" placeholder="菜名" style="width:100%;padding:12px;border:2px solid #e0d5c0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
+      </section>
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button class="primary" style="flex:1;margin:0;font-size:16px;padding:14px;" onclick="saveEditLog()">保存修改</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- ============ Day 14：月度报告 Modal ============ -->
 <div id="monthly-report-modal" class="modal" hidden>
@@ -2374,7 +2408,7 @@ const DISHES_DATA = [
       "倒回鸡蛋翻匀"
     ],
     tip: "洋葱大火快炒更香"
-  },,
+  },
   {
     name: "清炒血皮菜", time_minutes: 10, role: "主菜",
     tags: ["家常", "简单", "快手", "清淡", "素食"],
@@ -2388,7 +2422,7 @@ const DISHES_DATA = [
       "炒软加盐翻匀出锅"
     ],
     tip: "血皮菜大火快炒保持翠绿不出水；选嫩叶口感好"
-  },,
+  },
   {
     name: "血皮菜炒蛋", time_minutes: 12, role: "主菜",
     tags: ["家常", "简单", "快手", "小孩爱", "营养"],
@@ -3147,7 +3181,8 @@ function saveScores(scores) {
 
 function computeTagAffinities(scores, dishes) {
   const tagPos = {}, tagNeg = {};
-  for (const d of dishes) {
+  for (const d of (dishes || [])) {
+    if (!d) continue;  // 防御：dishes 数组可能含 undefined
     const s = scores[d.name] || {};
     const pos = (s.likes || 0) + (s.cooks || 0);
     const neg = (s.dislikes || 0);
@@ -3170,6 +3205,7 @@ function computeTagAffinities(scores, dishes) {
 function weightedChoice(candidates, scores, tagAff) {
   if (!candidates || candidates.length === 0) return null;
   const weights = candidates.map(d => {
+    if (!d) return 0.1;  // 防御
     const s = scores[d.name] || {};
     let w = 1.0;
     w += (s.likes || 0) * 3;
@@ -3345,9 +3381,73 @@ function renderLogbook() {
       badge = `<span style="background:#a8a8a8;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">抽签</span>`;
     }
     const mealLabel = entry.meal ? `${MEAL_EMOJI[entry.meal] || ''} ${entry.meal}` : '🍽️';
-    row.innerHTML = `${badge}<span style="color:#888;font-size:13px;min-width:80px;">${mealLabel}</span><span>${escapeHtml(entry.dish)}</span>`;
+    row.innerHTML = `${badge}<span style="color:#888;font-size:13px;min-width:80px;">${mealLabel}</span><span style="flex:1;">${escapeHtml(entry.dish)}</span>`;
+    const editBtn = document.createElement('span');
+    editBtn.textContent = '✏️';
+    editBtn.title = '编辑这条';
+    editBtn.style.cssText = "cursor:pointer;padding:4px 8px;font-size:14px;color:#888;border-radius:6px;-webkit-tap-highlight-color:transparent;";
+    editBtn.addEventListener('click', () => openEditLog(entry));
+    row.appendChild(editBtn);
     wrap.appendChild(row);
   }
+}
+
+// ============ 编辑单条记录（Day 16.2） ============
+// 用 entry 对象引用定位（而非 index）：history 重排后仍能找到原 entry
+let _editingEntry = null;
+
+function openEditLog(entry) {
+  _editingEntry = entry;
+  const m = document.getElementById('edit-log-modal');
+  if (!m) return;
+  document.getElementById('edit-log-date').value = entry.date || '';
+  document.getElementById('edit-log-dish').value = entry.dish || '';
+  m.querySelectorAll('[data-edit-meal] .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.meal === entry.meal);
+  });
+  m.hidden = false;
+}
+
+function closeEditLog() {
+  _editingEntry = null;
+  const m = document.getElementById('edit-log-modal');
+  if (m) m.hidden = true;
+}
+
+function saveEditLog() {
+  if (!_editingEntry) { closeEditLog(); return; }
+  const date = document.getElementById('edit-log-date').value;
+  const dish = document.getElementById('edit-log-dish').value.trim();
+  const mealChip = document.querySelector('#edit-log-modal [data-edit-meal] .chip.active');
+  const meal = mealChip ? mealChip.dataset.meal : '';
+
+  if (!date || !dish) {
+    alert('日期和菜名不能为空');
+    return;
+  }
+
+  const history = loadHistory();
+  const idx = history.indexOf(_editingEntry);
+  if (idx === -1) {
+    alert('原记录已被删除（可能刷新前手动清空）');
+    closeEditLog();
+    return;
+  }
+
+  // 原地更新：保留 status / suggested 等其他字段
+  history[idx] = Object.assign({}, _editingEntry, { date, dish, meal });
+  saveHistory(history);
+  renderLogbook();
+  closeEditLog();
+  showToast('✅ 已更新');
+}
+
+// 编辑 modal 的餐次 chip 单选
+function handleEditMealClick(e) {
+  const chip = e.target.closest('#edit-log-modal [data-edit-meal] .chip');
+  if (!chip) return;
+  chip.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
 }
 
 
@@ -3383,7 +3483,10 @@ function uniqueDishCount(history) {
 }
 function tagDistribution(history, dishesData) {
   const nameToTags = {};
-  for (const d of (dishesData || [])) nameToTags[d.name] = d.tags || [];
+  for (const d of (dishesData || [])) {
+    if (!d) continue;  // 防御
+    nameToTags[d.name] = d.tags || [];
+  }
   const counts = {};
   for (const e of history) {
     const tags = nameToTags[e.dish] || [];
@@ -4164,6 +4267,7 @@ document.addEventListener('keydown', e => {
   else if (!document.getElementById('feedback-modal').hidden) closeFeedback();
   else if (!document.getElementById('manual-log-modal').hidden) closeManualLog();
   else if (!document.getElementById('prefs-modal').hidden) closePrefs();
+  else if (!document.getElementById('edit-log-modal').hidden) closeEditLog();
   else if (!document.getElementById('logbook-modal').hidden) closeLogbook();
   else if (!document.getElementById('monthly-report-modal').hidden) closeMonthlyReport();
   else if (!document.getElementById('recipe-modal').hidden) closeRecipe();
@@ -4172,6 +4276,10 @@ document.addEventListener('keydown', e => {
 // 偏好 modal 的 chip 点击统一委托（脚本在 body 末尾，DOM 已就绪）
 const _prefsModalEl = document.getElementById('prefs-modal');
 if (_prefsModalEl) _prefsModalEl.addEventListener('click', handlePrefChipClick);
+
+// 编辑记录 modal 的餐次 chip 单选
+const _editLogModalEl = document.getElementById('edit-log-modal');
+if (_editLogModalEl) _editLogModalEl.addEventListener('click', handleEditMealClick);
 
 document.getElementById('today').textContent =
   new Date().toLocaleDateString('zh-CN', {year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'});
