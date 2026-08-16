@@ -1589,6 +1589,31 @@ class TestAddDishScript(unittest.TestCase):
     """Day 18+: tools/add_dish.py 输入对齐回归测试
     防止 --role/--time 已传时 stdin 行被错位消费（历史 bug：tags/ingredients 全乱）"""
 
+
+class TestCriticalClasses(unittest.TestCase):
+    """Day 18：app.html 里 new Xxx() 引用的类必须在文件中有 class Xxx 定义。
+    之前 Dish 类被意外删掉导致 drawCombo() 报 ReferenceError。
+    """
+
+    def setUp(self):
+        from pathlib import Path
+        self.html = (Path(__file__).parent / "app.html").read_text(encoding="utf-8")
+
+    def test_no_missing_classes(self):
+        """任何 new Xxx() 的类都必须在文件里有 class Xxx { ... }"""
+        import re
+        BUILTINS = {"Date", "Set", "Map", "WeakSet", "WeakMap", "RegExp",
+                    "Array", "Object", "String", "Number", "Boolean",
+                    "Promise", "Error", "URL", "URLSearchParams",
+                    "FormData", "Headers", "Request", "Response",
+                    "FileReader", "Blob", "File"}
+        new_classes = set(re.findall(r"\bnew\s+([A-Z][A-Za-z0-9_]*)\s*\(", self.html))
+        new_classes -= BUILTINS
+        defined_classes = set(re.findall(r"\bclass\s+([A-Z][A-Za-z0-9_]*)\s*[\{\(]", self.html))
+        missing = new_classes - defined_classes
+        self.assertEqual(missing, set(),
+                         f"new X() 用了但 class X 未定义：{sorted(missing)}")
+
     @classmethod
     def setUpClass(cls):
         import subprocess

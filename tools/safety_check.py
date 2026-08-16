@@ -241,6 +241,36 @@ def check_onclick_functions_exist():
     return ok
 
 
+def check_critical_classes():
+    """关键类（被 new xxx() 用的）必须在 app.html 里定义。
+    Day 18 教训：Dish 类被删了，drawCombo() 报 ReferenceError 让所有按钮失灵。
+    """
+    print(colored("▶ 关键类定义检查（new Xxx() 必须有定义）", "blue"))
+    html = APP_HTML.read_text(encoding="utf-8")
+
+    # 收集所有 new Xxx() 调用
+    new_classes = set(re.findall(r"\bnew\s+([A-Z][A-Za-z0-9_]*)\s*\(", html))
+    # 浏览器 / JS 内置类，跳过（不是用户定义的）
+    BUILTINS = {"Date", "Set", "Map", "WeakSet", "WeakMap", "RegExp",
+                "Array", "Object", "String", "Number", "Boolean",
+                "Promise", "Error", "URL", "URLSearchParams",
+                "FormData", "Headers", "Request", "Response",
+                "FileReader", "Blob", "File", "URLSearchParams"}
+    new_classes -= BUILTINS
+
+    # 收集所有类定义
+    defined_classes = set(re.findall(r"\bclass\s+([A-Z][A-Za-z0-9_]*)\s*[\{\(]", html))
+
+    missing = new_classes - defined_classes
+    if missing:
+        for cls in sorted(missing):
+            print(colored(f"  ❌ new {cls}() 被调用但 class {cls} 未定义", "red"))
+        print(colored("  💡 检查类定义是否被意外删掉，或在错误的位置", "yellow"))
+        return False
+    print(colored(f"  ✅ 所有 new 关键字对应的类都已定义", "green"))
+    return True
+
+
 def check_sync():
     """检查 dishes.json 和 app.html 同步。"""
     print(colored("▶ 同步校验（dishes.json ↔ app.html）", "blue"))
@@ -320,6 +350,7 @@ def main():
     results.append(("DISHES_DATA", check_no_double_comma()))
     results.append(("事件绑定", check_unsafe_event_listeners()))
     results.append(("onclick 函数", check_onclick_functions_exist()))
+    results.append(("关键类", check_critical_classes()))
     results.append(("同步校验", check_sync()))
     if not quick:
         results.append(("测试", check_tests()))
