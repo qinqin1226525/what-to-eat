@@ -2,7 +2,7 @@
 // 目的：iPhone PWA / Safari 强缓存导致新版本下不来
 // 策略：network-first（永远先拿新版）+ 缓存兜底（离线可用）
 // 升级方式：改 VERSION 常量即可，下次打开自动激活新版
-const VERSION = 'v14.2.1';
+const VERSION = 'v14.2.2';  // bump: 让旧 SW 失效，强制下次访问走 network
 const CACHE_NAME = `what-to-eat-${VERSION}`;
 
 const ASSETS = [
