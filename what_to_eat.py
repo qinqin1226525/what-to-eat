@@ -197,6 +197,13 @@ def choose_one_no_repeat(dishes, history, window=30):
     return random.choice(available)
 
 
+def is_vegetarian(dish):
+    """Day 18: 荤/素分类。有 '素食' tag → 素；否则 → 荤（含蛋/鱼等广义荤）。"""
+    if not dish or not getattr(dish, "tags", None):
+        return False
+    return "素食" in dish.tags
+
+
 def choose_combo(dishes, history=None, window=30, prefs=None, scores=None):
     """选一套：主菜 + 汤 + 主食（30 天不重复）。
 
@@ -207,6 +214,7 @@ def choose_combo(dishes, history=None, window=30, prefs=None, scores=None):
     Day 10: history 可以包含 status 字段（confirmed / manual / skipped）。
     skipped 状态不参与『30 天不重复』算法。
     Day 17: 支持 comboSize（默认 '1-1-1' = 1主菜+1汤+1主食；'2-1'/'3-1'/'4-1' = N菜一汤，不抽主食）
+    Day 18: 多道主菜时保证 ≥1素（最后一道强求素食，fallback 到全荤避免卡死）
     """
     history = history or []
     pool = apply_prefs(dishes, prefs)
@@ -229,29 +237,41 @@ def choose_combo(dishes, history=None, window=30, prefs=None, scores=None):
 
     # 本次抽签已选的菜名（多道主菜内部去重）
     picked_names = set()
+    # 已选主菜中的素食标记（用于引导后续主菜偏向）
+    picked_mains_have_veg = False
 
-    def pick(role):
+    def pick(role, force_veg=False):
         # 1. 在过滤池里找（避开 recent + 已选）
         candidates = [d for d in pool if d.role == role and d.name not in recent and d.name not in picked_names]
         if not candidates:
-            # 2. 放松 recent 窗口（保留已选去重）
             candidates = [d for d in pool if d.role == role and d.name not in picked_names]
         if not candidates and pool is not dishes:
-            # 3. 池子里没有这个 role（菜系过滤掉了），回退到全部
             candidates = [d for d in dishes if d.role == role and d.name not in recent and d.name not in picked_names]
         if not candidates:
             candidates = [d for d in dishes if d.role == role and d.name not in picked_names]
         if not candidates:
             candidates = [d for d in dishes if d.role == role]
+
+        # Day 18：荤素平衡 — force_veg 时只从素菜里抽（fallback 到全部）
+        if force_veg:
+            veg_only = [d for d in candidates if is_vegetarian(d)]
+            if veg_only:
+                candidates = veg_only
+
         choice = weighted_choice(candidates, scores or {}, tag_aff)
         if choice:
             picked_names.add(choice.name)
+            nonlocal picked_mains_have_veg
+            if role == "主菜" and is_vegetarian(choice):
+                picked_mains_have_veg = True
         return choice
 
     combo = {}
     for i in range(num_mains):
+        # Day 18：多主菜时，最后一道在前面都没素时强求素食
+        need_veg = num_mains >= 2 and i == num_mains - 1 and not picked_mains_have_veg
         key = "主菜" if i == 0 else f"主菜{i + 1}"
-        combo[key] = pick("主菜")
+        combo[key] = pick("主菜", need_veg)
     for i in range(num_soups):
         key = "汤" if i == 0 else f"汤{i + 1}"
         combo[key] = pick("汤")
@@ -438,7 +458,8 @@ def choose_three_meals(dishes, history=None, window=7, prefs=None, scores=None):
     - 午餐和晚餐：交给 choose_one_meal 处理（面条/饺子一碗一餐，米饭配菜+汤）
     window 按自然日计（默认 7 天），三餐不共享同一道菜。
     prefs=None 或 {} 不过滤；过滤后空则回退到原列表。
-    scores=None 时不参与评分；scores={} 与 None 等价。"""
+    scores=None 时不参与评分；scores={} 与 None 等价。
+    Day 17.1：prefs.comboSize 透传到 choose_one_meal（午晚饭按份量抽 N 菜一汤）"""
     history = history or []
     pool = apply_prefs(dishes, prefs)
     if not pool:
@@ -486,7 +507,8 @@ def choose_three_meals(dishes, history=None, window=7, prefs=None, scores=None):
     exclude = {breakfast.name} if breakfast else set()
 
     # 午晚饭走用户习惯版（一碗一餐 / 配菜模式）
-    lunch = choose_one_meal(dishes, history, window=window, prefs=prefs, scores=scores)
+    combo_size = (prefs or {}).get("comboSize", "1-1-1")
+    lunch = choose_one_meal(dishes, history, window=window, prefs=prefs, scores=scores, combo_size=combo_size)
     # 避免午晚重复同一道菜：把午餐选的菜加进 exclude
     lunch_names = {d.name for d in lunch.values() if hasattr(d, "name")}
     # 给晚餐一份过滤过 exclude 的临时 history
@@ -495,7 +517,7 @@ def choose_three_meals(dishes, history=None, window=7, prefs=None, scores=None):
     must_be_rice_dinner = (lunch.get("模式") == "一碗一餐")
     dinner = choose_one_meal(
         dishes, dinner_history, window=window, prefs=prefs, scores=scores,
-        must_be_rice=must_be_rice_dinner,
+        must_be_rice=must_be_rice_dinner, combo_size=combo_size,
     )
 
     return {"早餐": breakfast, "午餐": lunch, "晚餐": dinner}
@@ -528,7 +550,7 @@ def is_one_bowl_meal(dish):
     return "面" in name or "饺子" in name
 
 
-def choose_one_meal(dishes, history=None, window=30, prefs=None, scores=None, must_be_rice=False):
+def choose_one_meal(dishes, history=None, window=30, prefs=None, scores=None, must_be_rice=False, combo_size="1-1-1"):
     """用户定制版的『一顿午饭或晚饭』。
 
     规则：
@@ -537,9 +559,11 @@ def choose_one_meal(dishes, history=None, window=30, prefs=None, scores=None, mu
     - 抽到米饭 → 主菜 + 汤 + 主食
     - 7 天内吃过的不抽；池子空时逐级回退
     - Day 11：scores 非空时按权重推荐（自催化）
+    - Day 17.1：combo_size 支持 N 菜一汤（默认 '1-1-1' = 1主菜+1汤+1主食；
+      '2-1'/'3-1'/'4-1' = N 主菜+1 汤+1 主食，多道主菜内部去重）
 
     返回 dict：
-        {"主菜": Dish|None, "汤": Dish|None, "主食": Dish|None, "模式": "一碗一餐"|"配菜模式"}
+        {"主菜": Dish|None, "主菜2": ..., "汤": Dish|None, "主食": Dish|None, "模式": "一碗一餐"|"配菜模式"}
     """
     history = history or []
     pool = apply_prefs(dishes, prefs)
@@ -583,31 +607,43 @@ def choose_one_meal(dishes, history=None, window=30, prefs=None, scores=None, mu
 
     # 3. 配菜模式：主菜 + 汤 + 主食
     exclude = {main.name}
+    picked = set(exclude)
 
     def pick_role(role):
         cands = [
             d for d in pool
-            if d.role == role and d.name not in exclude and d.name not in recent
+            if d.role == role and d.name not in exclude and d.name not in recent and d.name not in picked
         ]
         if not cands:
-            cands = [d for d in pool if d.role == role and d.name not in exclude]
+            cands = [d for d in pool if d.role == role and d.name not in exclude and d.name not in picked]
         if not cands:
-            cands = [d for d in pool if d.role == role]
+            cands = [d for d in pool if d.role == role and d.name not in picked]
         if not cands and pool is not dishes:
             cands = [
                 d for d in dishes
-                if d.role == role and d.name not in exclude and d.name not in recent
+                if d.role == role and d.name not in exclude and d.name not in recent and d.name not in picked
             ]
         if not cands and pool is not dishes:
+            cands = [d for d in dishes if d.role == role and d.name not in picked]
+        if not cands:
             cands = [d for d in dishes if d.role == role]
-        return weighted_choice(cands, scores or {}, tag_aff)
+        choice = weighted_choice(cands, scores or {}, tag_aff)
+        if choice:
+            picked.add(choice.name)
+        return choice
 
-    return {
-        "主菜": pick_role("主菜"),
-        "汤":   pick_role("汤"),
-        "主食": main,
-        "模式": "配菜模式",
-    }
+    # Day 17.1：按 combo_size 抽 N 道不同主菜（默认 1）+ 1 道汤
+    if combo_size not in ALLOWED_COMBO_SIZES:
+        combo_size = "1-1-1"
+    parts = [int(x) for x in combo_size.split("-")]
+    num_mains = max(1, min(4, parts[0])) if parts else 1
+
+    result = {"主食": main, "模式": "配菜模式"}
+    for i in range(num_mains):
+        key = "主菜" if i == 0 else f"主菜{i + 1}"
+        result[key] = pick_role("主菜")
+    result["汤"] = pick_role("汤")
+    return result
 
 
 # ---------- 格式化输出 ----------

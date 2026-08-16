@@ -10,9 +10,11 @@ from what_to_eat import (
     filter_by_ingredients,
     choose_one_no_repeat,
     choose_combo,
+    is_vegetarian,
     filter_kid_friendly,
     choose_kid_combo,
     choose_three_meals,
+    choose_one_meal,
     classify_nutrition,
     format_three_meals,
     _parse_date,
@@ -185,6 +187,202 @@ class TestChooseComboSize(unittest.TestCase):
         combo = choose_combo(self._dishes(), [], prefs={"comboSize": "4-1"})
         names = [d.name for d in (combo["主菜"], combo["主菜2"], combo["主菜3"], combo["主菜4"])]
         self.assertEqual(len(set(names)), 4)
+
+
+class TestIsVegetarian(unittest.TestCase):
+    """Day 18: 荤/素分类"""
+
+    def test_has_素食_tag_is_vegetarian(self):
+        d = Dish("清炒时蔬", 10, role="主菜", tags=["家常", "素食"])
+        self.assertTrue(is_vegetarian(d))
+
+    def test_no_素食_tag_is_not_vegetarian(self):
+        d = Dish("红烧肉", 60, role="主菜", tags=["家常", "下饭"])
+        self.assertFalse(is_vegetarian(d))
+
+    def test_蛋类_不含素食_tag_算荤(self):
+        """蛋/鱼/虾等在中国饮食里属于'广义荤'（没有素食 tag）"""
+        d = Dish("西红柿炒蛋", 15, role="主菜", tags=["家常", "小孩爱"])
+        self.assertFalse(is_vegetarian(d))
+
+    def test_no_tags_is_not_vegetarian(self):
+        d = Dish("某菜", 10, role="主菜", tags=[])
+        self.assertFalse(is_vegetarian(d))
+
+    def test_none_tags_is_not_vegetarian(self):
+        d = Dish("某菜", 10, role="主菜", tags=None)
+        self.assertFalse(is_vegetarian(d))
+
+
+class TestChooseOneMealComboSize(unittest.TestCase):
+    """Day 17.1：choose_one_meal 配菜模式按 combo_size 抽 N 道主菜"""
+
+    @staticmethod
+    def _pool():
+        return [
+            Dish("早A", 5, role="早餐"),
+            Dish("主A", 30, role="主菜"),
+            Dish("主B", 30, role="主菜"),
+            Dish("主C", 30, role="主菜"),
+            Dish("主D", 30, role="主菜"),
+            Dish("主E", 30, role="主菜"),
+            Dish("米饭", 20, role="主食"),    # 含米 → 配菜模式（唯一主食 → 必走配菜）
+            Dish("汤A", 15, role="汤"),
+            Dish("汤B", 15, role="汤"),
+        ]
+
+    def test_default_one_main(self):
+        """默认 '1-1-1'：1 主菜 + 1 汤 + 1 主食（向后兼容）"""
+        meal = choose_one_meal(self._pool(), [], combo_size="1-1-1")
+        self.assertIsNotNone(meal["主食"])
+        self.assertIsNotNone(meal["主菜"])
+        self.assertIsNotNone(meal["汤"])
+        self.assertNotIn("主菜2", meal)
+        self.assertEqual(meal["模式"], "配菜模式")
+
+    def test_three_dishes_one_soup(self):
+        """combo_size='3-1'：3 道主菜（主菜/主菜2/主菜3）+ 1 汤 + 1 主食"""
+        meal = choose_one_meal(self._pool(), [], combo_size="3-1")
+        self.assertEqual(meal["模式"], "配菜模式")
+        for k in ("主菜", "主菜2", "主菜3", "汤", "主食"):
+            self.assertIsNotNone(meal[k], f"{k} 不应为 None")
+        names = {meal["主菜"].name, meal["主菜2"].name, meal["主菜3"].name}
+        self.assertEqual(len(names), 3, "三道主菜必须各不相同")
+
+    def test_four_dishes_one_soup(self):
+        """combo_size='4-1'：4 道主菜 + 1 汤 + 1 主食"""
+        meal = choose_one_meal(self._pool(), [], combo_size="4-1")
+        for k in ("主菜", "主菜2", "主菜3", "主菜4", "汤", "主食"):
+            self.assertIsNotNone(meal[k])
+        names = [meal["主菜"].name, meal["主菜2"].name,
+                 meal["主菜3"].name, meal["主菜4"].name]
+        self.assertEqual(len(set(names)), 4, "四道主菜必须各不相同")
+
+    def test_two_dishes_one_soup(self):
+        """combo_size='2-1'：2 道主菜 + 1 汤 + 1 主食"""
+        meal = choose_one_meal(self._pool(), [], combo_size="2-1")
+        self.assertIsNotNone(meal["主菜"])
+        self.assertIsNotNone(meal["主菜2"])
+        self.assertIsNotNone(meal["汤"])
+        self.assertNotIn("主菜3", meal)
+        self.assertNotEqual(meal["主菜"].name, meal["主菜2"].name)
+
+    def test_invalid_combo_size_falls_back_to_default(self):
+        meal = choose_one_meal(self._pool(), [], combo_size="abc")
+        self.assertIsNotNone(meal["主菜"])
+        self.assertNotIn("主菜2", meal)
+
+    def test_one_bowl_meal_unaffected_by_combo_size(self):
+        """一碗一餐（面/饺子）不应抽主菜和汤，与 combo_size 无关"""
+        pool = [
+            Dish("面条X", 15, role="主食"),  # 含面 → 一碗一餐
+            Dish("主A", 30, role="主菜"),
+        ]
+        meal = choose_one_meal(pool, [], combo_size="3-1")
+        self.assertEqual(meal["模式"], "一碗一餐")
+        self.assertIsNone(meal["主菜"])
+        self.assertIsNone(meal["汤"])
+        self.assertIsNotNone(meal["主食"])
+
+    def test_choose_three_meals_passes_combo_size_to_lunch_and_dinner(self):
+        """choose_three_meals 把 prefs.comboSize 传给午晚饭"""
+        pool = [
+            Dish("早A", 5, role="早餐"),
+            Dish("主A", 30, role="主菜"),
+            Dish("主B", 30, role="主菜"),
+            Dish("主C", 30, role="主菜"),
+            Dish("主D", 30, role="主菜"),
+            Dish("主E", 30, role="主菜"),
+            Dish("米饭", 20, role="主食"),
+            Dish("汤A", 15, role="汤"),
+            Dish("汤B", 15, role="汤"),
+        ]
+        meals = choose_three_meals(pool, [], prefs={"comboSize": "3-1"})
+        for label in ("午餐", "晚餐"):
+            lunch = meals[label]
+            # 配菜模式下应有 3 道主菜
+            if lunch["模式"] == "配菜模式":
+                self.assertIsNotNone(lunch.get("主菜"))
+                self.assertIsNotNone(lunch.get("主菜2"))
+                self.assertIsNotNone(lunch.get("主菜3"))
+                names = {lunch["主菜"].name, lunch["主菜2"].name, lunch["主菜3"].name}
+                self.assertEqual(len(names), 3, f"{label} 三道主菜必须各不相同")
+
+
+class TestChooseComboVegBalance(unittest.TestCase):
+    """Day 18: chooseCombo 多主菜时保证 ≥1素"""
+
+    @staticmethod
+    def _dishes():
+        # 5 道荤主菜 + 3 道素主菜
+        return [
+            Dish("红烧肉", 60, role="主菜", tags=["下饭"]),
+            Dish("糖醋排骨", 40, role="主菜", tags=["酸甜"]),
+            Dish("宫保鸡丁", 25, role="主菜", tags=["辣"]),
+            Dish("番茄牛�", 45, role="主菜", tags=["家常"]),
+            Dish("青椒肉丝", 15, role="主菜", tags=["快手"]),
+            Dish("清炒时蔬", 10, role="主菜", tags=["素食"]),
+            Dish("蒜蓉西兰花", 15, role="主菜", tags=["素食"]),
+            Dish("地三鲜", 20, role="主菜", tags=["素食"]),
+            Dish("紫菜蛋花汤", 10, role="汤"),
+            Dish("米饭", 20, role="主食"),
+        ]
+
+    def test_two_mains_has_at_least_one_vegetarian(self):
+        """2-1：保证至少 1 道素主菜"""
+        for _ in range(30):
+            combo = choose_combo(self._dishes(), [], prefs={"comboSize": "2-1"})
+            mains = [combo["主菜"], combo["主菜2"]]
+            veg_count = sum(1 for d in mains if is_vegetarian(d))
+            self.assertGreaterEqual(veg_count, 1, "2-1 应至少有 1 道素主菜")
+
+    def test_three_mains_has_at_least_one_vegetarian(self):
+        """3-1：保证至少 1 道素主菜"""
+        for _ in range(30):
+            combo = choose_combo(self._dishes(), [], prefs={"comboSize": "3-1"})
+            mains = [combo["主菜"], combo["主菜2"], combo["主菜3"]]
+            veg_count = sum(1 for d in mains if is_vegetarian(d))
+            self.assertGreaterEqual(veg_count, 1, "3-1 应至少有 1 道素主菜")
+
+    def test_four_mains_has_at_least_one_vegetarian(self):
+        """4-1：保证至少 1 道素主菜（4 道中有 3 道素，够用）"""
+        for _ in range(30):
+            combo = choose_combo(self._dishes(), [], prefs={"comboSize": "4-1"})
+            mains = [combo["主菜"], combo["主菜2"], combo["主菜3"], combo["主菜4"]]
+            veg_count = sum(1 for d in mains if is_vegetarian(d))
+            self.assertGreaterEqual(veg_count, 1, "4-1 应至少有 1 道素主菜")
+
+    def test_no_vegetarian_dishes_falls_back_to_all_meat(self):
+        """池子全荤时不会卡死（fallback 到全荤）"""
+        dishes = [
+            Dish("红烧肉", 60, role="主菜"),
+            Dish("糖醋排骨", 40, role="主菜"),
+            Dish("宫保鸡丁", 25, role="主菜"),
+            Dish("番茄牛腩", 45, role="主菜"),
+            Dish("紫菜蛋花汤", 10, role="汤"),
+        ]
+        combo = choose_combo(dishes, [], prefs={"comboSize": "2-1"})
+        self.assertIsNotNone(combo["主菜"])
+        self.assertIsNotNone(combo["主菜2"])
+        self.assertIsNotNone(combo["汤"])
+
+    def test_default_1_1_1_does_not_force_vegetarian(self):
+        """1-1-1 默认不加荤素约束（避免用户感觉'被强求吃素'）"""
+        # 池子只有 1 道素菜时，1-1-1 可能抽到荤菜
+        dishes = [
+            Dish("红烧肉", 60, role="主菜"),
+            Dish("清炒时蔬", 10, role="主菜", tags=["素食"]),
+            Dish("紫菜蛋花汤", 10, role="汤"),
+            Dish("米饭", 20, role="主食"),
+        ]
+        # 不强制素——可以抽到红烧肉
+        got_meat = False
+        for _ in range(30):
+            combo = choose_combo(dishes, [], prefs={"comboSize": "1-1-1"})
+            if not is_vegetarian(combo["主菜"]):
+                got_meat = True
+                break
+        self.assertTrue(got_meat, "1-1-1 不应强制素主菜")
 
 
 class TestFilterByIngredients(unittest.TestCase):

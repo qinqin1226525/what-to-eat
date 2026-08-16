@@ -110,24 +110,43 @@ function filterByIngredients(dishes, available) {
     return [...keywords].some(kw => haystack.includes(kw));
   });
 }
+// Day 18: 荤/素分类（与 app.html 同语义）
+function isMeatVeg(dish) {
+  if (!dish || !dish.tags) return '荤';
+  return dish.tags.includes('素食') ? '素' : '荤';
+}
+
 function chooseCombo(dishes, history = [], window = 30, scores = null, comboSize = '1-1-1') {
+  // Day 18: 多主菜时最后一道强求 ≥1素（fallback 到全荤避免卡死）
   const recent = new Set(history.slice(-window).map(h => h.dish));
   const parts = (comboSize || '1-1-1').split('-').map(n => parseInt(n, 10));
   const numMains = (parts[0] >= 1 && parts[0] <= 4) ? parts[0] : 1;
   const numSoups = (parts[1] === 1 || parts[1] === 2) ? parts[1] : 1;
   const numStaples = (parts[2] === 1) ? 1 : 0;
   const pickedNames = new Set();
-  function pick(role) {
+  const pickedMains = [];
+  function pick(role, forceVeg = false) {
     let candidates = dishes.filter(d => d.role === role && !recent.has(d.name) && !pickedNames.has(d.name));
     if (candidates.length === 0) candidates = dishes.filter(d => d.role === role && !pickedNames.has(d.name));
     if (candidates.length === 0) candidates = dishes.filter(d => d.role === role);
     if (candidates.length === 0) return null;
+    if (forceVeg) {
+      const vegOnly = candidates.filter(d => isMeatVeg(d) === '素');
+      if (vegOnly.length > 0) candidates = vegOnly;
+    }
     const c = candidates[Math.floor(Math.random() * candidates.length)];
-    if (c) pickedNames.add(c.name);
+    if (c) {
+      pickedNames.add(c.name);
+      if (role === '主菜') pickedMains.push(c);
+    }
     return c;
   }
   const combo = {};
-  for (let i = 0; i < numMains; i++) combo[`主菜${i > 0 ? i + 1 : ''}`] = pick("主菜");
+  for (let i = 0; i < numMains; i++) {
+    const needVeg = numMains >= 2 && i === numMains - 1
+      && !pickedMains.some(d => isMeatVeg(d) === '素');
+    combo[`主菜${i > 0 ? i + 1 : ''}`] = pick("主菜", needVeg);
+  }
   for (let i = 0; i < numSoups; i++) combo[`汤${i > 0 ? i + 1 : ''}`] = pick("汤");
   for (let i = 0; i < numStaples; i++) combo[`主食${i > 0 ? i + 1 : ''}`] = pick("主食");
   return combo;
@@ -1874,6 +1893,79 @@ const REDRAW_POOL = [
   new Dish({name: "面条", role: "主食"}),
 ];
 
+// ============ Day 17.1：chooseOneMeal comboSize（午晚饭 N 菜一汤） ============
+// test.html 的 chooseOneMeal 镜像（与 app.html 同语义：comboSize 控主菜份数）
+function _isLunchMainAllowed(dish) { return ["米", "面", "饺子"].some(k => dish.name.includes(k)); }
+function _isOneBowlMeal(dish) { return dish.name.includes("面") || dish.name.includes("饺子"); }
+function _isRice(dish) { return dish.name.includes("米") && !dish.name.includes("面"); }
+function chooseOneMeal(dishes, history = [], window = 30, scores = null, mustBeRice = false, comboSize = '1-1-1') {
+  const recent = new Set(history.filter(h => h.date && (Date.now() - new Date(h.date).getTime() <= window * 86400000) && h.status !== 'skipped').map(h => h.dish));
+  const mainFilter = mustBeRice ? _isRice : _isLunchMainAllowed;
+  const mains = dishes.filter(d => d.role === "主食" && mainFilter(d));
+  if (mains.length === 0) return { "主菜": null, "汤": null, "主食": null, "模式": "无" };
+  const main = mains[Math.floor(Math.random() * mains.length)];
+  if (_isOneBowlMeal(main)) return { "主菜": null, "汤": null, "主食": main, "模式": "一碗一餐" };
+  const picked = new Set([main.name]);
+  function pickRole(role) {
+    let cands = dishes.filter(d => d.role === role && !picked.has(d.name) && !recent.has(d.name));
+    if (cands.length === 0) cands = dishes.filter(d => d.role === role && !picked.has(d.name));
+    if (cands.length === 0) cands = dishes.filter(d => d.role === role);
+    if (cands.length === 0) return null;
+    const c = cands[Math.floor(Math.random() * cands.length)];
+    if (c) picked.add(c.name);
+    return c;
+  }
+  const parts = (comboSize || '1-1-1').split('-').map(n => parseInt(n, 10));
+  const numMains = (parts[0] >= 1 && parts[0] <= 4) ? parts[0] : 1;
+  const result = { "主食": main, "模式": "配菜模式" };
+  for (let i = 0; i < numMains; i++) {
+    result[`主菜${i > 0 ? i + 1 : ''}`] = pickRole("主菜");
+  }
+  result["汤"] = pickRole("汤");
+  return result;
+}
+group("chooseOneMeal（按 comboSize，Day 17.1）");
+test("默认 '1-1-1'：1 主菜 + 1 汤 + 1 主食", () => {
+  const pool = [
+    new Dish({name: "主A", time_minutes: 30, role: "主菜"}),
+    new Dish({name: "主B", time_minutes: 30, role: "主菜"}),
+    new Dish({name: "米饭", time_minutes: 20, role: "主食"}),
+    new Dish({name: "汤A", time_minutes: 15, role: "汤"}),
+  ];
+  const meal = chooseOneMeal(pool, [], 30, null, false, '1-1-1');
+  assert(meal["主菜"] !== null, "应有 主菜");
+  assert(meal["汤"] !== null, "应有 汤");
+  assert(meal["主食"] !== null, "应有 主食");
+  assertEqual(meal["主菜2"], undefined, "默认不应有 主菜2");
+  assertEqual(meal["模式"], "配菜模式");
+});
+test("三菜一汤（comboSize='3-1'）：3 主菜 + 1 汤 + 1 主食，多道主菜各不相同", () => {
+  const pool = [
+    new Dish({name: "主A", time_minutes: 30, role: "主菜"}),
+    new Dish({name: "主B", time_minutes: 30, role: "主菜"}),
+    new Dish({name: "主C", time_minutes: 30, role: "主菜"}),
+    new Dish({name: "主D", time_minutes: 30, role: "主菜"}),
+    new Dish({name: "米饭", time_minutes: 20, role: "主食"}),
+    new Dish({name: "汤A", time_minutes: 15, role: "汤"}),
+  ];
+  const meal = chooseOneMeal(pool, [], 30, null, false, '3-1');
+  assert(meal["主菜"] && meal["主菜2"] && meal["主菜3"], "应有 3 道主菜");
+  assert(meal["汤"] !== null, "应有 汤");
+  const names = [meal["主菜"].name, meal["主菜2"].name, meal["主菜3"].name];
+  assertEqual(new Set(names).size, 3, "三道主菜必须各不相同");
+});
+test("一碗一餐（面条）不受 comboSize 影响", () => {
+  const pool = [
+    new Dish({name: "面条X", time_minutes: 15, role: "主食"}),
+    new Dish({name: "主A", time_minutes: 30, role: "主菜"}),
+  ];
+  const meal = chooseOneMeal(pool, [], 30, null, false, '3-1');
+  assertEqual(meal["模式"], "一碗一餐");
+  assertEqual(meal["主菜"], null);
+  assertEqual(meal["汤"], null);
+  assert(meal["主食"] !== null);
+});
+
 test("返回 role 匹配且未被排除的菜", () => {
   const r = pickRedrawDish(REDRAW_POOL, "主菜", ["红烧肉"], [], {}, {});
   assert(r !== null, "应能抽到");
@@ -1918,6 +2010,96 @@ test("role 不存在 → 返回 null", () => {
 test("shownNames / recentNames 为空/undefined 不报错", () => {
   const r = pickRedrawDish(REDRAW_POOL, "汤", null, undefined, {}, {});
   assertEqual(r, "紫菜蛋花汤");
+});
+
+group("isMeatVeg（Day 18：荤/素分类）");
+test("有 '素食' tag → 素", () => {
+  const d = new Dish({name: "清炒时蔬", tags: ["家常", "素食"]});
+  assertEqual(isMeatVeg(d), '素');
+});
+test("没有 '素食' tag → 荤", () => {
+  const d = new Dish({name: "红烧肉", tags: ["下饭"]});
+  assertEqual(isMeatVeg(d), '荤');
+});
+test("蛋菜（西红柿炒蛋）算荤（无素食 tag）", () => {
+  const d = new Dish({name: "西红柿炒蛋", tags: ["家常", "小孩爱"]});
+  assertEqual(isMeatVeg(d), '荤');
+});
+test("null → 荤", () => {
+  assertEqual(isMeatVeg(null), '荤');
+});
+test("无 tags → 荤", () => {
+  const d = new Dish({name: "某菜", tags: []});
+  assertEqual(isMeatVeg(d), '荤');
+});
+
+group("chooseCombo 荤素平衡（Day 18）");
+const BALANCE_POOL = [
+  new Dish({name: "红烧肉", role: "主菜", tags: ["下饭"]}),
+  new Dish({name: "糖醋排骨", role: "主菜", tags: ["酸甜"]}),
+  new Dish({name: "宫保鸡丁", role: "主菜", tags: ["辣"]}),
+  new Dish({name: "番茄牛腩", role: "主菜", tags: ["家常"]}),
+  new Dish({name: "青椒肉丝", role: "主菜", tags: ["快手"]}),
+  new Dish({name: "清炒时蔬", role: "主菜", tags: ["素食"]}),
+  new Dish({name: "蒜蓉西兰花", role: "主菜", tags: ["素食"]}),
+  new Dish({name: "地三鲜", role: "主菜", tags: ["素食"]}),
+  new Dish({name: "紫菜蛋花汤", role: "汤", tags: []}),
+  new Dish({name: "米饭", role: "主食", tags: []}),
+];
+
+test("2-1：保证至少 1 道素主菜（30 次循环）", () => {
+  for (let i = 0; i < 30; i++) {
+    const combo = chooseCombo(BALANCE_POOL, [], 30, null, '2-1');
+    const mains = [combo["主菜"], combo["主菜2"]];
+    const vegCount = mains.filter(d => isMeatVeg(d) === '素').length;
+    assert(vegCount >= 1, `2-1 至少 1 素，实际：${mains.map(d => d.name)}`);
+  }
+});
+test("3-1：保证至少 1 道素主菜", () => {
+  for (let i = 0; i < 30; i++) {
+    const combo = chooseCombo(BALANCE_POOL, [], 30, null, '3-1');
+    const mains = [combo["主菜"], combo["主菜2"], combo["主菜3"]];
+    const vegCount = mains.filter(d => isMeatVeg(d) === '素').length;
+    assert(vegCount >= 1, `3-1 至少 1 素`);
+  }
+});
+test("4-1：保证至少 1 道素主菜", () => {
+  for (let i = 0; i < 30; i++) {
+    const combo = chooseCombo(BALANCE_POOL, [], 30, null, '4-1');
+    const mains = [combo["主菜"], combo["主菜2"], combo["主菜3"], combo["主菜4"]];
+    const vegCount = mains.filter(d => isMeatVeg(d) === '素').length;
+    assert(vegCount >= 1, `4-1 至少 1 素`);
+  }
+});
+test("全荤池子 fallback 不卡死", () => {
+  const allMeat = [
+    new Dish({name: "A", role: "主菜", tags: []}),
+    new Dish({name: "B", role: "主菜", tags: []}),
+    new Dish({name: "C", role: "汤", tags: []}),
+  ];
+  const combo = chooseCombo(allMeat, [], 30, null, '2-1');
+  assert(combo["主菜"] !== null);
+  assert(combo["主菜2"] !== null);
+  assert(combo["汤"] !== null);
+});
+test("1-1-1 不强制素（保持随机）", () => {
+  // 池子：5 荤 + 1 素
+  const dishes = [
+    new Dish({name: "A", role: "主菜", tags: []}),
+    new Dish({name: "B", role: "主菜", tags: []}),
+    new Dish({name: "C", role: "主菜", tags: []}),
+    new Dish({name: "D", role: "主菜", tags: []}),
+    new Dish({name: "E", role: "主菜", tags: []}),
+    new Dish({name: "素A", role: "主菜", tags: ["素食"]}),
+    new Dish({name: "汤", role: "汤", tags: []}),
+    new Dish({name: "饭", role: "主食", tags: []}),
+  ];
+  let gotMeat = false;
+  for (let i = 0; i < 30; i++) {
+    const combo = chooseCombo(dishes, [], 30, null, '1-1-1');
+    if (isMeatVeg(combo["主菜"]) === '荤') { gotMeat = true; break; }
+  }
+  assert(gotMeat, "1-1-1 不应强制素主菜");
 });
 
 // ============ 渲染结果 ============
