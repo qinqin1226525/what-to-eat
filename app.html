@@ -20,21 +20,27 @@
     font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
     background: #fdf6ec;
     color: #2c2c2c;
-    line-height: 1.5;
-    padding: 20px 16px;
+    line-height: 1.4;
+    padding: 10px 12px 12px;
     max-width: 600px;
     margin: 0 auto;
     min-height: 100vh;
   }
 
-  h1 { font-size: 28px; margin-bottom: 4px; color: #e85d04; display: flex; align-items: center; gap: 8px; }
-  .date { color: #888; font-size: 14px; margin-bottom: 20px; }
+  h1 { font-size: 22px; color: #e85d04; display: flex; align-items: center; gap: 6px; }
+  .date { color: #888; font-size: 12px; }
 
-  .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid #e0d5c0; }
+  .header-top {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 8px; margin-bottom: 8px;
+  }
+  .header-top-left { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid #e0d5c0; }
   .tab {
-    flex: 1; padding: 14px 8px; background: transparent; border: none;
+    flex: 1; padding: 8px 4px; background: transparent; border: none;
     border-bottom: 3px solid transparent; margin-bottom: -1px;
-    font-size: 15px; color: #888; cursor: pointer; transition: all 0.2s;
+    font-size: 14px; color: #888; cursor: pointer; transition: all 0.2s;
     font-family: inherit;
   }
   .tab.active { color: #e85d04; border-bottom-color: #e85d04; font-weight: 600; }
@@ -42,45 +48,45 @@
   .panel.active { display: block; }
 
   button.primary {
-    width: 100%; padding: 18px; background: #e85d04; color: white;
-    border: none; border-radius: 14px; font-size: 18px; font-weight: 600;
-    cursor: pointer; margin-bottom: 16px; font-family: inherit;
-    box-shadow: 0 4px 12px rgba(232, 93, 4, 0.25);
+    width: 100%; padding: 12px; background: #e85d04; color: white;
+    border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+    cursor: pointer; margin-bottom: 10px; font-family: inherit;
+    box-shadow: 0 3px 10px rgba(232, 93, 4, 0.25);
   }
   button.primary:active { transform: scale(0.98); }
   button.primary:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
 
   input[type="text"] {
-    width: 100%; padding: 14px 16px; border: 2px solid #e0d5c0;
-    border-radius: 12px; font-size: 16px; margin-bottom: 12px;
+    width: 100%; padding: 12px 14px; border: 2px solid #e0d5c0;
+    border-radius: 10px; font-size: 16px; margin-bottom: 10px;
     background: white; font-family: inherit; outline: none;
   }
   input[type="text"]:focus { border-color: #e85d04; }
 
   .result {
-    background: white; border-radius: 16px; padding: 8px 20px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06); min-height: 120px;
+    background: white; border-radius: 14px; padding: 4px 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06); min-height: 80px;
   }
 
   .dish-row {
-    display: flex; align-items: center; padding: 14px 0;
+    display: flex; align-items: center; padding: 10px 0;
     border-bottom: 1px solid #f5efe0; cursor: pointer;
     transition: background 0.15s;
   }
   .dish-row:last-child { border-bottom: none; }
-  .dish-row:hover, .dish-row:active { background: #fdf6ec; margin: 0 -20px; padding: 14px 20px; }
+  .dish-row:hover, .dish-row:active { background: #fdf6ec; margin: 0 -14px; padding: 10px 14px; }
 
-  .dish-emoji { font-size: 28px; margin-right: 14px; width: 36px; text-align: center; }
+  .dish-emoji { font-size: 24px; margin-right: 12px; width: 32px; text-align: center; }
   .dish-info { flex: 1; min-width: 0; }
-  .dish-name { font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px; }
-  .dish-name::after { content: "›"; color: #ccc; font-weight: 300; font-size: 20px; }
-  .dish-meta { font-size: 13px; color: #888; margin-top: 2px; }
+  .dish-name { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .dish-name::after { content: "›"; color: #ccc; font-weight: 300; font-size: 18px; }
+  .dish-meta { font-size: 12px; color: #888; margin-top: 2px; }
   .dish-missing {
-    font-size: 12px; color: #c9302c; margin-top: 4px;
-    background: #fff3f3; padding: 2px 8px; border-radius: 6px; display: inline-block;
+    font-size: 11px; color: #c9302c; margin-top: 4px;
+    background: #fff3f3; padding: 2px 6px; border-radius: 6px; display: inline-block;
   }
 
-  .empty { color: #aaa; text-align: center; padding: 36px 20px; font-size: 15px; }
+  .empty { color: #aaa; text-align: center; padding: 24px 14px; font-size: 14px; }
 
   /* ============ 偏好设置 chips ============ */
   .chip-row {
@@ -149,27 +155,68 @@
 
   .header-banner {
     background: linear-gradient(135deg, #e85d04, #f48c06);
-    color: white; padding: 20px; border-radius: 16px; margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(232, 93, 4, 0.2);
+    color: white; padding: 10px 14px; border-radius: 14px; margin-bottom: 10px;
+    box-shadow: 0 3px 10px rgba(232, 93, 4, 0.2);
   }
   .banner-actions {
-    display: flex; gap: 8px; margin-top: 12px;
+    display: flex; gap: 6px; margin-top: 6px;
   }
   .banner-btn {
     flex: 1;
     background: rgba(255,255,255,0.2);
     color: white;
     border: 1px solid rgba(255,255,255,0.3);
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 14px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 13px;
     cursor: pointer;
     font-family: inherit;
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
+    min-width: 0;
+    white-space: nowrap;
   }
   .banner-btn:active { background: rgba(255,255,255,0.3); }
-  .header-banner h1 { color: white; margin-bottom: 4px; }
+  .header-banner h1 { color: white; margin: 0; font-size: 20px; }
+  .header-banner .date { color: rgba(255,255,255,0.85); font-size: 12px; }
+
+  /* ============ Banner 右上角 ⋯ 菜单 ============ */
+  .header-top {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px;
+  }
+  .header-top-left { display: flex; align-items: baseline; gap: 8px; min-width: 0; flex: 1; }
+  .more-menu-wrap { position: relative; }
+  .more-btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0;
+  }
+  .more-menu {
+    position: absolute; top: 34px; right: 0;
+    background: white; border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    min-width: 160px; z-index: 200;
+    overflow: hidden;
+  }
+  .more-menu[hidden] { display: none; }
+  .more-menu-item {
+    display: block; width: 100%; text-align: left;
+    background: white; border: none; padding: 10px 14px;
+    font-size: 14px; color: #2c2c2c; cursor: pointer;
+    font-family: inherit;
+    border-bottom: 1px solid #f5efe0;
+  }
+  .more-menu-item:last-child { border-bottom: none; }
+  .more-menu-item:active { background: #fdf6ec; }
+  .more-menu-item.danger { color: #c9302c; }
   .header-banner .date { color: rgba(255,255,255,0.9); margin-bottom: 0; }
 
   .reset-btn {
@@ -423,13 +470,26 @@
 <body>
 
 <div class="header-banner">
-  <h1>🥢 今天吃什么</h1>
-  <div class="date" id="today"></div>
+  <div class="header-top">
+    <div class="header-top-left">
+      <h1>🥢 今天吃什么</h1>
+      <span class="date" id="today"></span>
+    </div>
+    <div class="more-menu-wrap">
+      <button class="more-btn" onclick="toggleMoreMenu(event)" aria-label="更多">⋯</button>
+      <div class="more-menu" id="more-menu" hidden>
+        <button class="more-menu-item" onclick="openManualLog(); closeMoreMenu();">📝 手动记录</button>
+        <button class="more-menu-item" onclick="openMonthlyReport(); closeMoreMenu();">📊 月度报告</button>
+        <button class="more-menu-item" onclick="shareApp(); closeMoreMenu();">📤 分享给朋友</button>
+        <button class="more-menu-item" onclick="openFeedback(); closeMoreMenu();">💬 反馈</button>
+        <button class="more-menu-item danger" onclick="if(confirm('清空所有历史？30 天不重复会重置。')){storeDel(HISTORY_KEY); updateHistoryHint(); document.getElementById('combo-result').innerHTML='<div class=\'empty\'>历史已清空 ✨</div>';} closeMoreMenu();">🗑️ 清空历史</button>
+      </div>
+    </div>
+  </div>
   <div class="banner-actions">
-    <button class="banner-btn" onclick="openManualLog()">📝 手动记录</button>
-    <button class="banner-btn" onclick="openMonthlyReport()">📊 月度报告</button>
+    <button class="banner-btn" onclick="openManualLog()">📝 记录</button>
+    <button class="banner-btn" onclick="drawCombo()">🎲 抽一套</button>
     <button class="banner-btn" onclick="shareApp()">📤 分享</button>
-    <button class="banner-btn" onclick="openFeedback()">💬 反馈</button>
   </div>
 </div>
 
@@ -441,9 +501,8 @@
 </div>
 
 <div class="panel active" id="combo">
-  <button class="primary" id="draw-btn">抽一套！</button>
   <div class="result" id="combo-result">
-    <div class="empty">点击上面的按钮开始 ✨</div>
+    <div class="empty">点 banner 的 🎲 抽一套 开始 ✨</div>
   </div>
   <div class="history-hint" id="history-hint"></div>
   <button class="reset-btn" id="reset-btn" style="display:none;">🗑️ 清空历史（让 30 天不重复重置）</button>
@@ -2765,6 +2824,23 @@ function openManualLog() {
   modal.hidden = false;
 }
 
+// ============ Banner 右上角 ⋯ 菜单 ============
+function toggleMoreMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('more-menu');
+  if (!menu) return;
+  menu.hidden = !menu.hidden;
+}
+function closeMoreMenu() {
+  const menu = document.getElementById('more-menu');
+  if (menu) menu.hidden = true;
+}
+// 点击页面其他地方关闭菜单
+document.addEventListener('click', (e) => {
+  const wrap = e.target.closest('.more-menu-wrap');
+  if (!wrap) closeMoreMenu();
+});
+
 function closeManualLog() {
   document.getElementById('manual-log-modal').hidden = true;
 }
@@ -3196,17 +3272,21 @@ function handleDishAction(action, dish, row) {
 }
 
 function drawCombo() {
-  const btn = document.getElementById('draw-btn');
-  btn.disabled = true;
-  btn.textContent = '抽签中...';
+  const btn = document.getElementById('draw-btn');  // 旧按钮（已隐藏），banner 的🎲按钮直接调用
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '抽签中...';
+  }
   setTimeout(() => {
     let dishes = getDishes();
     const pool = dishes;
     const history = loadHistory();
     const combo = chooseCombo(pool, history);
     renderComboWithConfirm(combo);
-    btn.disabled = false;
-    btn.textContent = '再抽一套 🔄';
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '再抽一套 🔄';
+    }
   }, 250);
 }
 
@@ -3539,10 +3619,12 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   }
 });
 
-// ESC 关闭菜谱 / 反馈 / 偏好 / 手动记录 / 记录本
+// ESC 关闭菜谱 / 反馈 / 偏好 / 手动记录 / 记录本 / ⋯菜单
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (!document.getElementById('feedback-modal').hidden) closeFeedback();
+  const moreMenu = document.getElementById('more-menu');
+  if (moreMenu && !moreMenu.hidden) closeMoreMenu();
+  else if (!document.getElementById('feedback-modal').hidden) closeFeedback();
   else if (!document.getElementById('manual-log-modal').hidden) closeManualLog();
   else if (!document.getElementById('logbook-modal').hidden) closeLogbook();
   else if (!document.getElementById('monthly-report-modal').hidden) closeMonthlyReport();
