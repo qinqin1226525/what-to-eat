@@ -3976,8 +3976,13 @@ function redrawSlot(row) {
 
 function drawCombo() {
   const btn = document.getElementById('draw-btn');
-  btn.disabled = true;
-  btn.textContent = '抽签中...';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '抽签中...';
+  }
+  // 自动切到「随机套餐」tab（用户可能在三餐/冰箱/儿童餐 tab，
+  // 否则结果渲染到不可见的 panel 里，看起来像"按钮没反应"）
+  switchTab('combo');
   setTimeout(() => {
     let dishes = getDishes();
     const prefs = loadPrefs();
@@ -3986,8 +3991,10 @@ function drawCombo() {
     const history = loadHistory();
     const combo = chooseCombo(pool, history, 30, null, prefs.comboSize, prefs.nPeople);
     renderComboWithConfirm(combo);
-    btn.disabled = false;
-    btn.textContent = '再抽一套 🔄';
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '再抽一套 🔄';
+    }
   }, 250);
 }
 
@@ -4428,6 +4435,16 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.getElementById(tab.dataset.tab).classList.add('active');
   });
 });
+
+// 编程式切 tab（被 drawCombo 等函数调用，避免结果渲染到看不见的 panel）
+function switchTab(tabName) {
+  const tab = document.querySelector(`[data-tab="${tabName}"]`);
+  if (!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById(tabName).classList.add('active');
+}
 
 bindClick('draw-btn', drawCombo);
 bindClick('three-btn', drawThreeMeals);
