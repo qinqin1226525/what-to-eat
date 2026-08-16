@@ -41,8 +41,16 @@ python3 tools/safety_check.py
 ### 改代码的固定流程
 1. **写代码前**思考是否会引起按钮失灵
 2. **改完代码** → `python3 tools/safety_check.py`
-3. 全部 7 项通过 → `git add + commit + push`
+3. 全部 8 项通过 → `git add + commit + push`
 4. 有 1 项失败 → 修复 → 重新跑 safety_check → 通过再 commit
+
+### ⚠️ 改 app.html 任何 JS 时：必须 bump sw.js 的 VERSION
+iOS Safari Service Worker 缓存非常顽固。改 JS（尤其是函数/类定义）后：
+```diff
+- const VERSION = 'v14.2.1';
++ const VERSION = 'v14.2.2';  // bump 强制让旧 SW 失效
+```
+不 bump 的话，用户 iPhone 可能继续跑旧版本 → 看到已经修好的 bug。
 
 ### 已知按钮失灵高发区
 - **JS 语法错**（含 `},,` 双逗号、数组结尾缺失 `]`、多余 `}`）→ Chrome headless 检测
