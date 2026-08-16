@@ -132,6 +132,66 @@ function filterKidFriendly(dishes) {
   });
 }
 
+// ============ 偏好设置（Day 16：用户删了 UI 又加回来） ============
+// 与 app.html 保持同语义
+const PREFS_KEY = 'what-to-eat-prefs';
+const PREFS_DEFAULTS = {
+  spicy: 'any',
+  noNumb: false,
+  avoid: { offal: false, lamb: false },
+  vegetarian: false,
+};
+const OFFAL_INGREDIENT_KEYS = ["肥肠", "猪肚", "肝", "腰", "心", "肚"];
+
+function loadPrefs() {
+  try {
+    const raw = JSON.parse(storeGet(PREFS_KEY) || '{}');
+    return {
+      spicy: raw.spicy || 'any',
+      noNumb: !!raw.noNumb,
+      avoid: {
+        offal: !!(raw.avoid && raw.avoid.offal),
+        lamb: !!(raw.avoid && raw.avoid.lamb),
+      },
+      vegetarian: !!raw.vegetarian,
+    };
+  } catch (e) {
+    return {
+      spicy: PREFS_DEFAULTS.spicy,
+      noNumb: PREFS_DEFAULTS.noNumb,
+      avoid: Object.assign({}, PREFS_DEFAULTS.avoid),
+      vegetarian: PREFS_DEFAULTS.vegetarian,
+    };
+  }
+}
+
+function savePrefs(p) { storeSet(PREFS_KEY, JSON.stringify(p)); }
+
+function applyPrefs(dishes, prefs) {
+  if (!prefs) return dishes.slice();
+  let result = dishes;
+  if (prefs.spicy === 'none') {
+    result = result.filter(d => !d.tags.some(t => SPICY_TAGS.some(s => t.includes(s))));
+  } else if (prefs.spicy === 'mild') {
+    result = result.filter(d => !d.tags.some(t => t === '辣' || t === '麻辣'));
+  }
+  if (prefs.noNumb) {
+    result = result.filter(d => !d.tags.some(t => t.includes('麻辣')));
+  }
+  const avoid = prefs.avoid || {};
+  const ingHas = (d, keys) => (d.ingredients || []).some(ing => keys.some(k => ing.includes(k)));
+  if (avoid.offal) {
+    result = result.filter(d => !ingHas(d, OFFAL_INGREDIENT_KEYS));
+  }
+  if (avoid.lamb) {
+    result = result.filter(d => !(d.ingredients || []).some(ing => ing.includes('羊')));
+  }
+  if (prefs.vegetarian) {
+    result = result.filter(d => (d.tags || []).includes('素食'));
+  }
+  return result;
+}
+
 // ============ Day 8：一日三餐 + 营养均衡 ============
 const PROTEIN_KEYS = ["鸡", "鸭", "鹅", "猪", "牛", "羊", "鱼", "虾", "蟹", "蛋", "豆腐", "豆浆", "牛奶", "奶酪"];
 const CARB_KEYS    = ["米", "面", "馒头", "饺子", "包子", "土豆", "红薯", "玉米", "燕麦", "饼", "年糕", "糯米", "面包"];
@@ -1427,6 +1487,114 @@ test("Day14.3 '海椒'能找到含'辣椒'的菜", () => {
   const names = r.map(d => d.name);
   assert(names.includes("宫保鸡丁"), "海椒应匹配干辣椒");
   assert(names.includes("辣子鸡"), "海椒应匹配干辣椒");
+});
+
+group("applyPrefs（偏好过滤，Day 16）");
+const PREFS_TEST_DISHES = () => [
+  new Dish({name: "西红柿炒蛋", tags: ["家常", "小孩爱"], ingredients: ["鸡蛋", "西红柿"]}),
+  new Dish({name: "宫保鸡丁", tags: ["川菜", "辣", "下饭"], ingredients: ["鸡腿肉", "花生米"]}),
+  new Dish({name: "鱼香肉丝", tags: ["川菜", "微辣"], ingredients: ["猪里脊", "木耳"]}),
+  new Dish({name: "麻辣香锅", tags: ["川菜", "麻辣"], ingredients: ["五花肉", "藕", "花椒"]}),
+  new Dish({name: "炒青菜", tags: ["家常", "素食"], ingredients: ["青菜"]}),
+  new Dish({name: "凉拌豆腐", tags: ["素食"], ingredients: ["豆腐"]}),
+  new Dish({name: "卤肥肠", tags: ["下酒"], ingredients: ["肥肠 500g"]}),
+  new Dish({name: "猪肝汤", tags: [], ingredients: ["猪肝", "枸杞"]}),
+  new Dish({name: "葱爆羊肉", tags: ["下饭"], ingredients: ["羊肉片"]}),
+  new Dish({name: "羊肉饺子", tags: ["面食"], ingredients: ["羊肉", "饺子皮"]}),
+];
+
+test("spicy='none' 过滤掉所有辣味（辣/微辣/麻辣）", () => {
+  const r = applyPrefs(PREFS_TEST_DISHES(), { spicy: 'none', avoid: {}, vegetarian: false });
+  const names = r.map(d => d.name);
+  assert(!names.includes("宫保鸡丁"), "辣应该被过滤");
+  assert(!names.includes("鱼香肉丝"), "微辣应该被过滤");
+  assert(!names.includes("麻辣香锅"), "麻辣应该被过滤");
+  assert(names.includes("西红柿炒蛋"), "非辣菜保留");
+  assert(names.includes("炒青菜"), "素菜保留");
+});
+
+test("spicy='mild' 只过滤 辣/麻辣，保留微辣", () => {
+  const r = applyPrefs(PREFS_TEST_DISHES(), { spicy: 'mild', avoid: {}, vegetarian: false });
+  const names = r.map(d => d.name);
+  assert(!names.includes("宫保鸡丁"), "辣应被过滤");
+  assert(!names.includes("麻辣香锅"), "麻辣应被过滤");
+  assert(names.includes("鱼香肉丝"), "微辣应保留");
+});
+
+test("spicy='any' 不过滤", () => {
+  const r = applyPrefs(PREFS_TEST_DISHES(), { spicy: 'any', avoid: {}, vegetarian: false });
+  assertEqual(r.length, PREFS_TEST_DISHES().length);
+});
+
+test("vegetarian=true 只保留 素食 tag 的菜", () => {
+  const r = applyPrefs(PREFS_TEST_DISHES(), { spicy: 'any', avoid: {}, vegetarian: true });
+  const names = r.map(d => d.name);
+  assert(names.includes("炒青菜"));
+  assert(names.includes("凉拌豆腐"));
+  assert(!names.includes("西红柿炒蛋"), "没素食 tag 应被过滤");
+  assert(!names.includes("宫保鸡丁"), "荤菜应被过滤");
+});
+
+test("avoid.offal 过滤含 内脏 食材的菜", () => {
+  const r = applyPrefs(PREFS_TEST_DISHES(), { spicy: 'any', avoid: { offal: true, lamb: false }, vegetarian: false });
+  const names = r.map(d => d.name);
+  assert(!names.includes("卤肥肠"), "肥肠应被过滤");
+  assert(!names.includes("猪肝汤"), "猪肝应被过滤");
+  assert(names.includes("葱爆羊肉"), "羊肉应保留");
+  assert(names.includes("西红柿炒蛋"), "鸡蛋菜应保留");
+});
+
+test("avoid.lamb 过滤含 羊 食材的菜", () => {
+  const r = applyPrefs(PREFS_TEST_DISHES(), { spicy: 'any', avoid: { offal: false, lamb: true }, vegetarian: false });
+  const names = r.map(d => d.name);
+  assert(!names.includes("葱爆羊肉"));
+  assert(!names.includes("羊肉饺子"));
+  assert(names.includes("卤肥肠"), "内脏菜应保留（没勾）");
+});
+
+test("组合：vegetarian + spicy='none'", () => {
+  const r = applyPrefs(PREFS_TEST_DISHES(), { spicy: 'none', avoid: {}, vegetarian: true });
+  const names = r.map(d => d.name);
+  // 只能留下 不辣 + 素食
+  assert(names.every(n => n === "炒青菜" || n === "凉拌豆腐"), `应只剩 2 个素菜，实际：${names}`);
+});
+
+test("空 prefs 不过滤，返回副本", () => {
+  const dishes = PREFS_TEST_DISHES();
+  const r = applyPrefs(dishes, null);
+  assertEqual(r.length, dishes.length);
+  assert(r !== dishes, "应返回新数组");
+});
+
+group("loadPrefs / savePrefs（持久化）");
+test("空 store 时返回默认值", () => {
+  storeDel(PREFS_KEY);
+  const p = loadPrefs();
+  assertEqual(p.spicy, 'any');
+  assertEqual(p.noNumb, false);
+  assertEqual(p.vegetarian, false);
+  assertEqual(p.avoid.offal, false);
+  assertEqual(p.avoid.lamb, false);
+});
+
+test("savePrefs + loadPrefs round-trip", () => {
+  savePrefs({ spicy: 'none', noNumb: true, avoid: { offal: true, lamb: true }, vegetarian: true });
+  const p = loadPrefs();
+  assertEqual(p.spicy, 'none');
+  assertEqual(p.noNumb, true);
+  assertEqual(p.avoid.offal, true);
+  assertEqual(p.avoid.lamb, true);
+  assertEqual(p.vegetarian, true);
+  // 清理
+  storeDel(PREFS_KEY);
+});
+
+test("旧格式 (没有 avoid 子项) 不报错", () => {
+  storeSet(PREFS_KEY, JSON.stringify({ spicy: 'mild' }));
+  const p = loadPrefs();
+  assertEqual(p.spicy, 'mild');
+  assertEqual(p.avoid.offal, false, "缺字段时默认为 false");
+  storeDel(PREFS_KEY);
 });
 
 // ============ 渲染结果 ============

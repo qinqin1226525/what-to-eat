@@ -489,6 +489,7 @@
   <div class="banner-actions">
     <button class="banner-btn" onclick="openManualLog()">📝 记录</button>
     <button class="banner-btn" onclick="drawCombo()">🎲 抽一套</button>
+    <button class="banner-btn" onclick="openPrefs()">⚙️ 偏好</button>
     <button class="banner-btn" onclick="shareApp()">📤 分享</button>
   </div>
 </div>
@@ -633,6 +634,49 @@
       <div style="display:flex;gap:10px;margin-top:20px;">
         <button class="banner-btn" style="flex:1;border-color:#e0d5c0;color:#888;" onclick="viewLog()">📋 查看记录本</button>
         <button class="primary" style="flex:2;margin:0;font-size:16px;padding:14px;" onclick="saveManualLog()">保存记录</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 偏好设置 Modal（Day 16） ============ -->
+<div id="prefs-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closePrefs()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="closePrefs()">×</button>
+    <div class="modal-header">
+      <span style="font-size:48px;display:block;margin-bottom:8px;">⚙️</span>
+      <h2 class="modal-title">我的偏好</h2>
+      <div class="modal-meta">点击切换 · 实时保存 · 抽签时立即生效</div>
+    </div>
+    <div class="modal-body">
+      <section>
+        <div class="chip-group-label">🌶️ 辣度</div>
+        <div class="chip-row" data-prefs-key="spicy">
+          <span class="chip" data-prefs-value="any">不限制</span>
+          <span class="chip" data-prefs-value="mild">只吃微辣</span>
+          <span class="chip" data-prefs-value="none">一点辣都不吃</span>
+        </div>
+      </section>
+
+      <section>
+        <div class="chip-group-label">🚫 忌口 <span class="hint">（可多选）</span></div>
+        <div class="chip-row" data-prefs-key="avoid">
+          <span class="chip" data-prefs-key-sub="offal">不吃内脏</span>
+          <span class="chip" data-prefs-key-sub="lamb">不吃羊肉</span>
+        </div>
+      </section>
+
+      <section>
+        <div class="chip-group-label">🥬 饮食类型</div>
+        <div class="chip-row" data-prefs-key="vegetarian">
+          <span class="chip" data-prefs-yes>不吃荤（只吃素）</span>
+        </div>
+      </section>
+
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button class="banner-btn" style="flex:1;border-color:#e0d5c0;color:#888;" onclick="resetPrefs()">🔄 重置</button>
+        <button class="primary" style="flex:2;margin:0;font-size:16px;padding:14px;" onclick="closePrefs()">完成</button>
       </div>
     </div>
   </div>
@@ -2437,6 +2481,113 @@ function filterKidFriendly(dishes) {
   });
 }
 
+// ============ 偏好设置（Day 16：用户删了 UI 又加回来） ============
+// 4 项核心：不吃辣 / 不吃内脏 / 不吃羊肉 / 不吃荤
+const PREFS_KEY = 'what-to-eat-prefs';
+const PREFS_DEFAULTS = {
+  spicy: 'any',       // 'any' | 'none' | 'mild'
+  noNumb: false,
+  avoid: { offal: false, lamb: false },
+  vegetarian: false,
+};
+const OFFAL_INGREDIENT_KEYS = ["肥肠", "猪肚", "肝", "腰", "心", "肚"];
+
+function loadPrefs() {
+  try {
+    const raw = JSON.parse(storeGet(PREFS_KEY) || '{}');
+    return {
+      spicy: raw.spicy || 'any',
+      noNumb: !!raw.noNumb,
+      avoid: {
+        offal: !!(raw.avoid && raw.avoid.offal),
+        lamb: !!(raw.avoid && raw.avoid.lamb),
+      },
+      vegetarian: !!raw.vegetarian,
+    };
+  } catch (e) { return Object.assign({}, PREFS_DEFAULTS, { avoid: Object.assign({}, PREFS_DEFAULTS.avoid) }); }
+}
+
+function savePrefs(p) { storeSet(PREFS_KEY, JSON.stringify(p)); }
+
+// 按偏好过滤菜；返回新列表。空 prefs 不过滤。
+function applyPrefs(dishes, prefs) {
+  if (!prefs) return dishes.slice();
+  let result = dishes;
+  if (prefs.spicy === 'none') {
+    result = result.filter(d => !d.tags.some(t => SPICY_TAGS.some(s => t.includes(s))));
+  } else if (prefs.spicy === 'mild') {
+    result = result.filter(d => !d.tags.some(t => t === '辣' || t === '麻辣'));
+  }
+  if (prefs.noNumb) {
+    result = result.filter(d => !d.tags.some(t => t.includes('麻辣')));
+  }
+  const avoid = prefs.avoid || {};
+  const ingHas = (d, keys) => (d.ingredients || []).some(ing => keys.some(k => ing.includes(k)));
+  if (avoid.offal) {
+    result = result.filter(d => !ingHas(d, OFFAL_INGREDIENT_KEYS));
+  }
+  if (avoid.lamb) {
+    result = result.filter(d => !(d.ingredients || []).some(ing => ing.includes('羊')));
+  }
+  if (prefs.vegetarian) {
+    result = result.filter(d => (d.tags || []).includes('素食'));
+  }
+  return result;
+}
+
+// 打开偏好 modal：从 store 读当前 prefs → 把 chip .active 状态同步出来
+function openPrefs() {
+  const prefs = loadPrefs();
+  const m = document.getElementById('prefs-modal');
+  if (!m) return;
+  // 单选组：spicy
+  m.querySelectorAll('.chip-row[data-prefs-key="spicy"] .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.prefsValue === prefs.spicy);
+  });
+  // 多选组：avoid
+  m.querySelectorAll('.chip-row[data-prefs-key="avoid"] .chip').forEach(c => {
+    c.classList.toggle('active', !!(prefs.avoid && prefs.avoid[c.dataset.prefsKeySub]));
+  });
+  // 单 toggle：vegetarian
+  m.querySelectorAll('.chip-row[data-prefs-key="vegetarian"] .chip').forEach(c => {
+    c.classList.toggle('active', !!prefs.vegetarian);
+  });
+  m.hidden = false;
+}
+
+function closePrefs() {
+  const m = document.getElementById('prefs-modal');
+  if (m) m.hidden = true;
+}
+
+function resetPrefs() {
+  if (!confirm('重置所有偏好？')) return;
+  savePrefs(JSON.parse(JSON.stringify(PREFS_DEFAULTS)));
+  openPrefs();
+}
+
+// chip 点击：单选 = 互斥；多选/toggle = 翻转；每次写 store
+function handlePrefChipClick(e) {
+  const chip = e.target.closest('#prefs-modal .chip');
+  if (!chip) return;
+  const row = chip.parentElement;
+  const key = row.dataset.prefsKey;
+  const prefs = loadPrefs();
+  if (key === 'spicy') {
+    prefs.spicy = chip.dataset.prefsValue;
+    row.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  } else if (key === 'avoid') {
+    const sub = chip.dataset.prefsKeySub;
+    prefs.avoid[sub] = !prefs.avoid[sub];
+    chip.classList.toggle('active');
+  } else if (key === 'vegetarian') {
+    prefs.vegetarian = !prefs.vegetarian;
+    chip.classList.toggle('active');
+  }
+  savePrefs(prefs);
+}
+
 // ============ 历史（localStorage） ============
 const HISTORY_KEY = 'what-to-eat-history';
 
@@ -2511,6 +2662,14 @@ function saveHistory(h) { storeSet(HISTORY_KEY, JSON.stringify(h)); }
 // Day 10: 向后兼容旧 addToHistory 名字
 function addToHistory(h, name) {
   return addToHistoryWithStatus(h, name, 'confirmed', null);
+}
+
+// Day 15: 精准撤回 - 按 index 删一条历史
+// 用于"再点同一按钮 = 撤回"功能，避免误删其他行
+function removeHistoryAt(history, index) {
+  if (index < 0 || index >= history.length) return history;
+  history.splice(index, 1);
+  return history;
 }
 
 // Day 10: 新版加历史函数（带 status）
@@ -2840,9 +2999,6 @@ function viewFeedback() {
   out += '\n（要复制：在终端用浏览器开发者工具的 Application > Local Storage 查看）';
   alert(out);
 }
-
-// ============ 偏好设置（Day 10） ============
-const PREFS_KEY = 'what-to-eat-prefs';
 
 // ============ Day 11：自催化学习 ============
 const SCORES_KEY = 'what-to-eat-scores';
@@ -3271,39 +3427,88 @@ function buildDishRowWithConfirm(dish, role, slotId, onAction) {
 }
 
 // 给某道菜标状态（写历史 + UI 高亮）
-function applyDecisionToSlot(row, dish, action, suggestedName) {
+// Day 15: toggle 撤回 - 再点同一按钮 = 撤回刚写的历史
+// opts.forceReplace = true: 即使 action 相同也强制替换（用于 🍜 别的 弹框二次输入）
+function applyDecisionToSlot(row, dish, action, suggestedName, opts = {}) {
   const history = loadHistory();
-  const status = action === 'redraw' ? null : action; // redraw 不写历史
+  const prevIndex = row.dataset.historyIndex;
+  const prevState = row.dataset.state;
+  // 1) 撤回路径：row 上已有同 action → 删它 + 清状态（除非强制替换）
+  if (!opts.forceReplace && prevIndex !== undefined && prevState === action) {
+    removeHistoryAt(history, parseInt(prevIndex, 10));
+    saveHistory(history);
+    clearSlotState(row);
+    updateHistoryHint();
+    showToast('↩️ 已撤回');
+    return;
+  }
+  // 2) 切换 action / 强制替换：先撤回旧的（如果有）
+  if (prevIndex !== undefined && prevState && (prevState !== action || opts.forceReplace)) {
+    removeHistoryAt(history, parseInt(prevIndex, 10));
+  }
+  // 3) 写新历史
+  let msg = '';
   if (action === 'confirmed') {
     addToHistoryWithStatus(history, dish.name, 'confirmed', null);
-    markSlotDone(row, '✅ 已记录：就做这个');
+    msg = '✅ 已记录：就做这个';
   } else if (action === 'skipped') {
     addToHistoryWithStatus(history, '没做饭', 'skipped', dish.name);
-    markSlotDone(row, '❌ 已记录：跳过');
+    msg = '❌ 已记录：跳过';
   } else if (action === 'manual') {
-    // 由调用方弹输入层；这里只负责收输入
     addToHistoryWithStatus(history, suggestedName, 'manual', dish.name);
-    markSlotDone(row, `🍜 已记录：实际吃了 ${suggestedName}`);
+    msg = `🍜 已记录：实际吃了 ${suggestedName}`;
   }
-  if (status) {
-    saveHistory(history);
-    updateHistoryHint();
-  }
+  saveHistory(history);
+  // 记录刚才写到哪一行（撤回时用）
+  row.dataset.historyIndex = String(history.length - 1);
+  row.dataset.state = action;
+  markSlotState(row, action, msg);
+  updateHistoryHint();
 }
 
-function markSlotDone(row, msg) {
+function markSlotState(row, action, msg) {
   const status = document.getElementById(row.id + '-status');
   if (status) {
     status.textContent = msg;
     status.style.color = '#2e7d32';
     status.style.fontWeight = '600';
   }
-  // 灰显按钮
+  // 被点按钮变 "↩️ 撤回"，其他按钮半透明提示
   row.querySelectorAll('.confirm-btn').forEach(b => {
-    b.disabled = true;
-    b.style.opacity = '0.4';
+    b.disabled = false;
+    b.style.opacity = '0.5';
+    if (b.dataset.action === action) {
+      b.style.opacity = '1';
+      b.textContent = b.dataset.action === 'confirmed' ? '↩️ 撤回就做'
+                     : b.dataset.action === 'skipped'  ? '↩️ 撤回跳过'
+                     : /* manual */                        '↩️ 撤回别的';
+    } else if (b.dataset.action === 'redraw') {
+      // 换一道按钮：抽出来后状态会重置，这里保持原样
+      b.style.opacity = '0.5';
+    }
   });
   row.style.background = '#f0f9f0';
+}
+
+function clearSlotState(row) {
+  const status = document.getElementById(row.id + '-status');
+  if (status) {
+    status.textContent = '';
+    status.style.color = '#888';
+    status.style.fontWeight = '';
+  }
+  // 恢复所有按钮原状
+  row.querySelectorAll('.confirm-btn').forEach(b => {
+    b.disabled = false;
+    b.style.opacity = '1';
+    if (b.dataset.action === 'confirmed') b.textContent = '✅ 就做';
+    else if (b.dataset.action === 'skipped') b.textContent = '❌ 跳过';
+    else if (b.dataset.action === 'manual') b.textContent = '🍜 别的';
+    else if (b.dataset.action === 'redraw') b.textContent = '🔄 换一道';
+  });
+  delete row.dataset.historyIndex;
+  delete row.dataset.state;
+  row.style.background = '';
 }
 
 // 弹「吃别的」输入层（在菜下方插入）
@@ -3341,7 +3546,8 @@ function promptManualDish(row, originalDish) {
   confirm.onclick = () => {
     const val = input.value.trim();
     if (!val) { alert('请输入或选择菜名'); return; }
-    applyDecisionToSlot(row, originalDish, 'manual', val);
+    // Day 15: 用 forceReplace 区分 toggle(撤回) vs 替换菜名
+    applyDecisionToSlot(row, originalDish, 'manual', val, {forceReplace: true});
     wrap.remove();
   };
   cancel.onclick = () => wrap.remove();
@@ -3372,7 +3578,9 @@ function drawCombo() {
   btn.textContent = '抽签中...';
   setTimeout(() => {
     let dishes = getDishes();
-    const pool = dishes;
+    const prefs = loadPrefs();
+    let pool = applyPrefs(dishes, prefs);
+    if (pool.length === 0) pool = dishes; // 三级 fallback：池空 → 全表
     const history = loadHistory();
     const combo = chooseCombo(pool, history);
     renderComboWithConfirm(combo);
@@ -3403,7 +3611,9 @@ function checkIngredients() {
   }
   const available = raw.split(/\s+/).filter(s => s);
   const dishes = getDishes();
-  const pool = dishes;
+  const prefs = loadPrefs();
+  let pool = applyPrefs(dishes, prefs);
+  if (pool.length === 0) pool = dishes;
   const feasible = filterByIngredients(pool, available);
   renderFeasible(available, feasible);
 }
@@ -3619,7 +3829,9 @@ function drawThreeMeals() {
   btn.textContent = '抽签中...';
   setTimeout(() => {
     let dishes = getDishes();
-    const pool = dishes;
+    const prefs = loadPrefs();
+    let pool = applyPrefs(dishes, prefs);
+    if (pool.length === 0) pool = dishes;
     const history = loadHistory();
     const meals = chooseThreeMeals(pool, history, 7);
     renderThreeMeals(meals);
@@ -3633,7 +3845,9 @@ function drawOneMeal() {
   const result = document.getElementById('three-result');
   result.innerHTML = '';
   const dishes = getDishes();
-  const pool = dishes;
+  const prefs = loadPrefs();
+  let pool = applyPrefs(dishes, prefs);
+  if (pool.length === 0) pool = dishes;
   const history = loadHistory();
   const meal = chooseOneMeal(pool, history, 30);
 
@@ -3662,7 +3876,9 @@ function drawKidCombo() {
   btn.textContent = '抽签中...';
   setTimeout(() => {
     const kidDishes = filterKidFriendly(getDishes());
-    const pool = kidDishes;
+    const prefs = loadPrefs();
+    let pool = applyPrefs(kidDishes, prefs);
+    if (pool.length === 0) pool = kidDishes;
     const history = loadHistory();
     const combo = chooseCombo(pool, history);
     renderKidsComboWithConfirm(combo);
@@ -3728,10 +3944,15 @@ document.addEventListener('keydown', e => {
   if (moreMenu && !moreMenu.hidden) closeMoreMenu();
   else if (!document.getElementById('feedback-modal').hidden) closeFeedback();
   else if (!document.getElementById('manual-log-modal').hidden) closeManualLog();
+  else if (!document.getElementById('prefs-modal').hidden) closePrefs();
   else if (!document.getElementById('logbook-modal').hidden) closeLogbook();
   else if (!document.getElementById('monthly-report-modal').hidden) closeMonthlyReport();
   else if (!document.getElementById('recipe-modal').hidden) closeRecipe();
 });
+
+// 偏好 modal 的 chip 点击统一委托（脚本在 body 末尾，DOM 已就绪）
+const _prefsModalEl = document.getElementById('prefs-modal');
+if (_prefsModalEl) _prefsModalEl.addEventListener('click', handlePrefChipClick);
 
 document.getElementById('today').textContent =
   new Date().toLocaleDateString('zh-CN', {year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'});
