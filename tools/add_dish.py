@@ -41,6 +41,16 @@ def ask(question, default=""):
     return answer if answer else default
 
 
+def consume_stdin_line():
+    """消耗 stdin 的一行（用于 --role/--time 已传时保持 stdin 对齐）。
+    不要返回任何值，只是把那一行从 stdin 里读掉。
+    """
+    try:
+        input()
+    except EOFError:
+        pass
+
+
 def ask_list(question, examples=None, allow_multi_line=True):
     """交互式问列表。
     allow_multi_line=True 时可以一次输入多项（每行一项，空行结束），
@@ -208,14 +218,18 @@ def main():
         sys.exit(1)
 
     # 2. 询问 role
+    # 关键：如果 --role 已传，消耗 stdin 一行保持后续输入对齐（避免错位）
     role = args.role or ask("角色 role", "主菜")
     if role not in VALID_ROLES:
         print(f"❌ 角色必须是 {VALID_ROLES} 之一")
         sys.exit(1)
+    if args.role:
+        consume_stdin_line()
 
     # 3. 询问 time_minutes
     if args.time:
         time_minutes = args.time
+        consume_stdin_line()  # 保持 stdin 对齐
     else:
         time_str = ask("耗时（分钟）", "30")
         try:

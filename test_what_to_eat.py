@@ -1,6 +1,7 @@
 """测试 what_to_eat.py —— TDD Day 1 ~ Day 10"""
 
 from datetime import date, timedelta
+from pathlib import Path
 
 import unittest
 from what_to_eat import (
@@ -1582,6 +1583,91 @@ class TestAppHtmlRegression(unittest.TestCase):
             f"bindClick 引用了 {len(missing)} 个 HTML 里不存在的 id：{missing}\n"
             "要么补 HTML 标签，要么删 JS 引用"
         )
+
+
+class TestAddDishScript(unittest.TestCase):
+    """Day 18+: tools/add_dish.py 输入对齐回归测试
+    防止 --role/--time 已传时 stdin 行被错位消费（历史 bug：tags/ingredients 全乱）"""
+
+    @classmethod
+    def setUpClass(cls):
+        import subprocess
+        cls.proj_dir = Path(__file__).parent
+        cls.subprocess = subprocess
+        cls.json_mod = __import__("json")
+        cls.re_mod = __import__("re")
+        # backup 源文件，test 结束后恢复（防止 cleanup 出错污染文件）
+        cls._backup_files = {
+            f: (f.read_text(encoding="utf-8"), f.read_bytes())
+            for f in [cls.proj_dir / "dishes.json", cls.proj_dir / "app.html"]
+        }
+
+    @classmethod
+    def tearDownClass(cls):
+        # test 跑完（或中间崩溃）后恢复 backup
+        for f, (text, _) in cls._backup_files.items():
+            f.write_text(text, encoding="utf-8")
+
+    def _run_add_dish(self, stdin_text):
+        """调 add_dish.py 加菜，捕获输出。"""
+        result = self.subprocess.run(
+            ["python3", "tools/add_dish.py", self._dish_name, "--role", "凉菜", "--time", "5"],
+            input=stdin_text,
+            capture_output=True,
+            text=True,
+            cwd=self.proj_dir,
+        )
+        return result
+
+    def _cleanup_dish(self):
+        """从两份数据源里删掉测试菜，恢复现场。"""
+        for f in [self.proj_dir / "dishes.json", self.proj_dir / "app.html"]:
+            if f.name == "dishes.json":
+                dishes = self.json_mod.loads(f.read_text(encoding="utf-8"))
+                dishes = [d for d in dishes if d["name"] != self._dish_name]
+                f.write_text(self.json_mod.dumps(dishes, ensure_ascii=False, indent=2), encoding="utf-8")
+            else:
+                content = f.read_text(encoding="utf-8")
+                content = self.re_mod.sub(
+                    r"  \{\n    name: \"" + self.re_mod.escape(self._dish_name) + r"\".*?\n  \},?\n",
+                    "",
+                    content,
+                    count=1,
+                    flags=self.re_mod.DOTALL,
+                )
+                f.write_text(content, encoding="utf-8")
+
+    def test_stdin_alignment_with_role_time_flags(self):
+        """--role + --time 已传时，stdin 仍按 role/time/.../顺序写。
+        关键：tags 必须是 ['测试', '标签']，ingredients 必须是 ['测试食材']。
+        历史上 bug：tags 被错位读成 '凉菜'，ingredients 第一项被读成 '5'。"""
+        self._dish_name = "测试菜__stdin对齐检查"
+        try:
+            stdin = (
+                "凉菜\n"            # 第 1 行：role（被 consume_stdin_line 消耗）
+                "5\n"               # 第 2 行：time（被消耗）
+                "测试 标签\n"       # 第 3 行：tags
+                "测试食材\n"       # 第 4 行：ingredients
+                "\n"               # ingredients 结束
+                "\n"               # seasonings 结束
+                "\n"               # steps 结束
+                "\n"               # tip（空 = 跳过）
+                "y\n"              # 确认
+            )
+            result = self._run_add_dish(stdin)
+            self.assertEqual(
+                result.returncode, 0,
+                f"add_dish.py 失败:\nstdout: {result.stdout}\nstderr: {result.stderr}",
+            )
+
+            dishes = self.json_mod.loads((self.proj_dir / "dishes.json").read_text(encoding="utf-8"))
+            dish = next(d for d in dishes if d["name"] == self._dish_name)
+            self.assertEqual(dish["tags"], ["测试", "标签"],
+                             f"tags 错位！期望 ['测试', '标签']，实际 {dish['tags']}")
+            self.assertEqual(dish["ingredients"], ["测试食材"],
+                             f"ingredients 错位！期望 ['测试食材']，实际 {dish['ingredients']}")
+        finally:
+            self._cleanup_dish()
 
 
 if __name__ == "__main__":
