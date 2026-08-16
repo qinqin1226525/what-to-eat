@@ -66,11 +66,17 @@ def check_js_syntax():
          app_url],
         timeout=20,
     )
-    # 找 Uncaught SyntaxError / ReferenceError
+
+    # Chrome 把所有 console 输出标 INFO，但真正的错误含关键字
+    # Uncaught SyntaxError / Uncaught ReferenceError / Uncaught TypeError
+    error_keywords = ["Uncaught SyntaxError", "Uncaught ReferenceError",
+                      "Uncaught TypeError", "SyntaxError"]
     errors = []
-    for line in stderr.split("\n"):
-        if "Uncaught" in line or "SyntaxError" in line:
-            errors.append(line.strip())
+    for line in (stderr + "\n" + stdout).split("\n"):
+        for kw in error_keywords:
+            if kw in line and "INFO:CONSOLE" in line:
+                errors.append(line.strip())
+                break
     if errors:
         for e in errors[:5]:
             print(colored(f"  ❌ {e}", "red"))
