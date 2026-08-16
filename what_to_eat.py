@@ -26,13 +26,17 @@ HISTORY_FILE = DATA_DIR / "history.json"
 class Dish:
     """一道菜：菜名 + 耗时 + 角色 + 标签 + 食材"""
 
-    def __init__(self, name, time_minutes, role="主菜", tags=None, ingredients=None, nutrition=None):
+    def __init__(self, name, time_minutes, role="主菜", tags=None, ingredients=None,
+                 nutrition=None, seasonings=None, steps=None, tip=None):
         self.name = name
         self.time_minutes = time_minutes
         self.role = role
         self.tags = tags or []
         self.ingredients = ingredients or []
         self.nutrition = nutrition or []
+        self.seasonings = seasonings or []
+        self.steps = steps or []
+        self.tip = tip or ""
 
     def __repr__(self):
         return f"Dish({self.name!r}, {self.time_minutes}min, {self.role})"
@@ -141,6 +145,28 @@ def filter_by_ingredients(dishes, available_ingredients):
                     + ' ' + ' '.join(d.tags or [])
                     + ' ' + ' '.join(getattr(d, 'seasonings', []) or []))
         if any(kw in haystack for kw in keywords):
+            out.append(d)
+    return out
+
+
+def search_dishes(dishes, query):
+    """全文搜索菜谱：菜名 + 标签 + 食材 + 调料 都参与匹配。
+
+    多关键词用空格分隔，AND 关系（每个都要匹配）。
+    大小写不敏感。
+    """
+    if not query or not query.strip():
+        return []
+    keywords = query.strip().lower().split()
+    out = []
+    for d in dishes:
+        haystack = ' '.join([
+            d.name or '',
+            ' '.join(d.tags or []),
+            ' '.join(d.ingredients or []),
+            ' '.join(getattr(d, 'seasonings', []) or []),
+        ]).lower()
+        if all(kw in haystack for kw in keywords):
             out.append(d)
     return out
 

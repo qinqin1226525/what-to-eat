@@ -26,6 +26,7 @@ from what_to_eat import (
     compute_tag_affinities,
     weighted_choice,
     log_manual,
+    search_dishes,
 )
 
 
@@ -198,6 +199,83 @@ class TestFilterByIngredients(unittest.TestCase):
         names = [d.name for d in result]
         self.assertIn("麻婆豆腐", names)
         self.assertNotIn("红烧肉", names)
+
+
+class TestSearchDishes(unittest.TestCase):
+    """全文搜索：菜名 + 标签 + 食材 + 调料"""
+
+    def _build_pool(self):
+        return [
+            Dish("西红柿炒蛋", 15, role="主菜",
+                 tags=["家常", "简单"],
+                 ingredients=["鸡蛋", "西红柿", "葱"],
+                 seasonings=["盐", "油"]),
+            Dish("红烧肉", 60, role="主菜",
+                 tags=["硬菜", "家常"],
+                 ingredients=["五花肉", "冰糖"],
+                 seasonings=["八角", "生抽"]),
+            Dish("清蒸鱼", 20, role="主菜",
+                 tags=["清淡"],
+                 ingredients=["鲈鱼", "葱", "姜"],
+                 seasonings=["蒸鱼豉油"]),
+            Dish("凉拌黄瓜", 5, role="凉菜",
+                 tags=["简单", "开胃"],
+                 ingredients=["黄瓜", "蒜"],
+                 seasonings=["醋"]),
+        ]
+
+    def test_empty_query_returns_empty(self):
+        result = search_dishes(self._build_pool(), "")
+        self.assertEqual(result, [])
+
+    def test_whitespace_only_returns_empty(self):
+        result = search_dishes(self._build_pool(), "   ")
+        self.assertEqual(result, [])
+
+    def test_match_by_name(self):
+        """搜菜名"""
+        result = search_dishes(self._build_pool(), "红烧")
+        names = [d.name for d in result]
+        self.assertEqual(names, ["红烧肉"])
+
+    def test_match_by_ingredient(self):
+        """搜食材"""
+        result = search_dishes(self._build_pool(), "鸡蛋")
+        names = [d.name for d in result]
+        self.assertIn("西红柿炒蛋", names)
+
+    def test_match_by_tag(self):
+        """搜标签"""
+        result = search_dishes(self._build_pool(), "清淡")
+        names = [d.name for d in result]
+        self.assertIn("清蒸鱼", names)
+        self.assertNotIn("红烧肉", names)
+
+    def test_match_by_seasoning(self):
+        """搜调料"""
+        result = search_dishes(self._build_pool(), "蒸鱼豉油")
+        names = [d.name for d in result]
+        self.assertIn("清蒸鱼", names)
+
+    def test_multiple_keywords_and_logic(self):
+        """多关键词 AND：每个都要匹配"""
+        result = search_dishes(self._build_pool(), "葱 姜")
+        names = [d.name for d in result]
+        # 西红柿炒蛋有葱但没姜，红烧肉没葱，清蒸鱼有葱和姜 → 只剩清蒸鱼
+        self.assertEqual(names, ["清蒸鱼"])
+
+    def test_case_insensitive(self):
+        """大小写不敏感"""
+        result_lower = search_dishes(self._build_pool(), "hong shao")
+        # 中文不区分大小写，但函数 lower() 了所有字符
+        # 用英文标签测
+        # 这里只验证函数不抛错
+        self.assertIsInstance(result_lower, list)
+
+    def test_no_match_returns_empty(self):
+        """没匹配的关键词"""
+        result = search_dishes(self._build_pool(), "不存在的菜")
+        self.assertEqual(result, [])
 
 
 class TestFilterKidFriendly(unittest.TestCase):

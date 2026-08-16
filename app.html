@@ -227,6 +227,68 @@
 
   .history-hint { font-size: 12px; color: #888; margin-top: 12px; text-align: center; }
 
+  /* ============ 全局搜索 ============ */
+  .search-bar {
+    background: white;
+    border-radius: 14px;
+    padding: 4px 14px;
+    margin: 0 0 16px 0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search-bar input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 12px 0;
+    font-size: 15px;
+    font-family: inherit;
+    background: transparent;
+    color: #2c2c2c;
+  }
+  .search-bar .search-icon {
+    font-size: 18px;
+    opacity: 0.5;
+  }
+  .search-bar .search-clear {
+    background: #f5efe0;
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+    color: #888;
+    cursor: pointer;
+    display: none;
+    padding: 0;
+    line-height: 22px;
+  }
+  .search-bar.has-query .search-clear {
+    display: block;
+  }
+  .search-results {
+    background: white;
+    border-radius: 14px;
+    padding: 4px 16px;
+    margin: -8px 0 16px 0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+  .search-results .result-meta {
+    font-size: 12px;
+    color: #888;
+    padding: 8px 0 4px 0;
+  }
+  .search-empty {
+    color: #aaa;
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+  }
+
   /* ============ 菜谱 Modal ============ */
   .modal {
     position: fixed; inset: 0; z-index: 100;
@@ -493,6 +555,13 @@
     <button class="banner-btn" onclick="shareApp()">📤 分享</button>
   </div>
 </div>
+
+<div class="search-bar" id="search-bar">
+  <span class="search-icon">🔍</span>
+  <input type="text" id="global-search" placeholder="搜菜名、食材、标签... 空格分多词" autocomplete="off">
+  <button class="search-clear" id="search-clear" onclick="clearGlobalSearch()">×</button>
+</div>
+<div id="search-results" class="search-results" hidden></div>
 
 <div class="tabs">
   <button class="tab active" data-tab="combo">🎲 随机套餐</button>
@@ -3900,6 +3969,83 @@ function renderKidsComboWithConfirm(combo) {
   }
 }
 
+// ============ 全局搜索 ============
+function searchDishes(dishes, query) {
+  // 全文搜索：菜名 + 标签 + 食材 + 调料 都参与匹配
+  // 多关键词用空格分隔，AND 关系
+  if (!query || !query.trim()) return [];
+  const keywords = query.trim().toLowerCase().split(/\s+/).filter(k => k);
+  return dishes.filter(d => {
+    const haystack = [
+      d.name || '',
+      ...(d.tags || []),
+      ...(d.ingredients || []),
+      ...(d.seasonings || [])
+    ].join(' ').toLowerCase();
+    return keywords.every(kw => haystack.includes(kw));
+  });
+}
+
+function renderSearchResults(results, query) {
+  const container = document.getElementById('search-results');
+  const bar = document.getElementById('search-bar');
+  if (!query.trim()) {
+    container.hidden = true;
+    container.innerHTML = '';
+    bar.classList.remove('has-query');
+    return;
+  }
+  bar.classList.add('has-query');
+  if (results.length === 0) {
+    container.innerHTML = `<div class="search-empty">没找到含「${query}」的菜 😔</div>`;
+    container.hidden = false;
+    return;
+  }
+  let html = `<div class="result-meta">找到 ${results.length} 道菜</div>`;
+  results.slice(0, 30).forEach(d => {
+    const emoji = ROLE_EMOJI[d.role] || '🍽️';
+    html += `<div class="dish-row" data-dish-name="${d.name}">
+      <div class="dish-emoji">${emoji}</div>
+      <div class="dish-info">
+        <div class="dish-name">${d.name}</div>
+        <div class="dish-meta">${d.role} · 约 ${d.time_minutes} 分钟</div>
+      </div>
+    </div>`;
+  });
+  if (results.length > 30) {
+    html += `<div class="result-meta">还有 ${results.length - 30} 道没显示</div>`;
+  }
+  container.innerHTML = html;
+  container.hidden = false;
+
+  // 绑定点击查看详情
+  container.querySelectorAll('.dish-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const dish = DISHES_DATA.find(d => d.name === row.dataset.dishName);
+      if (dish) openRecipe(dish);
+    });
+  });
+}
+
+let searchDebounceTimer = null;
+function handleSearchInput(e) {
+  const q = e.target.value;
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => {
+    const results = searchDishes(DISHES_DATA, q);
+    renderSearchResults(results, q);
+  }, 150);
+}
+
+function clearGlobalSearch() {
+  const input = document.getElementById('global-search');
+  if (input) {
+    input.value = '';
+    renderSearchResults([], '');
+    input.focus();
+  }
+}
+
 // ============ 事件绑定 ============
 // ⚠️ 每个 addEventListener 都要 null-check：DOM id 不存在时不能让脚本挂掉
 // (Day 15 教训：之前删 draw-btn 按钮后忘了删引用，TypeError 中断所有后续监听器)
@@ -3926,6 +4072,15 @@ const ingredientInput = document.getElementById('ingredient-input');
 if (ingredientInput) {
   ingredientInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') checkIngredients();
+  });
+}
+
+// 全局搜索框
+const globalSearchInput = document.getElementById('global-search');
+if (globalSearchInput) {
+  globalSearchInput.addEventListener('input', handleSearchInput);
+  globalSearchInput.addEventListener('keydown', e => {
+    if (e.key === 'Escape') clearGlobalSearch();
   });
 }
 bindClick('reset-btn', () => {
