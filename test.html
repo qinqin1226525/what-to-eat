@@ -1339,6 +1339,20 @@ test("Day14.1 输入'鸡'只搜到鸡（不包含牛/羊）", () => {
   assert(!names.includes("葱爆羊肉"), "羊不应被'鸡'搜到");
 });
 
+// ============ Day 14.2：反馈 modal 微信号（防回归）============
+// 这些测试读 app.html 源码（不是模拟），确保微信号已正确替换 + 复制函数存在
+test("Day14.2 app.html 已替换 your_wechat_id 占位符", () => {
+  // 用 fetch 在浏览器里读 app.html
+  return fetch('./app.html').then(r => r.text()).then(html => {
+    assert(!html.includes('your_wechat_id'), '占位符应已被替换');
+    assert(html.includes('yilixiaotu0'), '真实微信号应已写入');
+    assert(html.includes('function copyWechat'), 'copyWechat 函数应已定义');
+    assert(html.includes('function showCopiedTip'), 'showCopiedTip 函数应已定义');
+    assert(html.includes('onclick="copyWechat()"'), '复制按钮应绑定 copyWechat');
+    assert(html.includes('id="wechat-copied-tip"'), '已复制提示元素应存在');
+  });
+});
+
 // ============ 渲染结果 ============
 const passed = results.filter(r => r.pass).length;
 const failed = results.length - passed;

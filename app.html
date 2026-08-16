@@ -520,11 +520,12 @@
       <section>
         <h3>📱 加我微信直接聊</h3>
         <div id="feedback-wechat-wrap" class="feedback-wechat">
-          <p style="font-size:13px;color:#888;">（开发者微信号，TODO: 替换成你的）</p>
-          <p style="font-size:20px;font-weight:700;color:#e85d04;margin-top:6px;">your_wechat_id</p>
-          <p style="font-size:12px;color:#888;margin-top:8px;">
-            改这个：在 app.html 里搜 <code>your_wechat_id</code>，替换成你的微信号
-          </p>
+          <p style="font-size:13px;color:#888;">（开发者微信号 · 长按可复制 或 点右侧按钮一键复制）</p>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+            <span id="wechat-id-text" style="font-size:20px;font-weight:700;color:#e85d04;flex:1;font-family:ui-monospace,Menlo,Consolas,monospace;">yilixiaotu0</span>
+            <button id="wechat-copy-btn" class="banner-btn" style="border-color:#e85d04;color:#e85d04;margin:0;font-size:13px;padding:8px 14px;flex-shrink:0;" onclick="copyWechat()">📋 复制</button>
+          </div>
+          <p id="wechat-copied-tip" style="font-size:13px;color:#2e7d32;margin-top:10px;display:none;font-weight:600;">✓ 已复制到剪贴板</p>
         </div>
       </section>
       <section>
@@ -2621,6 +2622,38 @@ function openFeedback() {
 function closeFeedback() {
   document.getElementById('feedback-modal').hidden = true;
   document.body.style.overflow = '';
+}
+
+// ============ Day 14.2：一键复制微信号 ============
+function copyWechat() {
+  const id = document.getElementById('wechat-id-text').textContent.trim();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(id).then(showCopiedTip).catch(() => fallbackCopy(id));
+  } else {
+    fallbackCopy(id);
+  }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showCopiedTip();
+  } catch (e) {
+    alert('复制失败，请手动长按选择：' + text);
+  }
+  document.body.removeChild(ta);
+}
+function showCopiedTip() {
+  const tip = document.getElementById('wechat-copied-tip');
+  if (!tip) return;
+  tip.style.display = 'block';
+  clearTimeout(showCopiedTip._t);
+  showCopiedTip._t = setTimeout(() => { tip.style.display = 'none'; }, 2000);
 }
 
 function submitFeedback() {
