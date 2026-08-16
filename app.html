@@ -3713,6 +3713,20 @@ function closeMonthlyReport() {
 }
 
 // ============ 主逻辑 ============
+class Dish {
+  constructor(d) {
+    this.name = d.name;
+    this.time_minutes = d.time_minutes;
+    this.role = d.role;
+    this.tags = d.tags || [];
+    this.ingredients = d.ingredients || [];
+    this.seasonings = d.seasonings || [];
+    this.steps = d.steps || [];
+    this.tip = d.tip || "";
+    this.nutrition = d.nutrition || [];
+  }
+}
+
 function getDishes() {
   return DISHES_DATA.map(d => new Dish(d));
 }
