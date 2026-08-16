@@ -150,11 +150,11 @@ def append_to_app_html(dish):
 
     new_dish_html = json_dish_to_html_block(dish)
     new_array = (
-        dish_array[:last_brace_idx + 4]
+        dish_array[:last_brace_idx + 3]
         + ","
         + "\n"
         + new_dish_html
-        + dish_array[last_brace_idx + 4 :]
+        + dish_array[last_brace_idx + 3 :]
     )
 
     new_html = html.replace(match.group(0), new_array + end)

@@ -2447,6 +2447,74 @@ const DISHES_DATA = [
     ],
     tip: "血皮菜易出水量大，大火快炒是关键；蛋要炒嫩"
   },
+  {
+    name: "凉拌皮蛋", time_minutes: 8, role: "凉菜",
+    tags: ["凉菜", "快手", "下酒"],
+    ingredients: ["皮蛋 3 个", "小葱 1 把", "蒜 3 瓣", "姜 1 小块"],
+    seasonings: ["生抽 2 勺", "香醋 1 勺", "香油 半勺", "盐 少许", "糖 半勺"],
+    steps: [
+      "皮蛋剥壳切瓣摆盘",
+      "蒜姜切末加小葱切葱花撒上",
+      "淋生抽+醋+香油+盐+糖调成的汁",
+      "静置 5 分钟入味即可"
+    ],
+    tip: "皮蛋选无铅溏心的口感更好"
+  },
+  {
+    name: "皮蛋豆腐", time_minutes: 5, role: "凉菜",
+    tags: ["凉菜", "快手", "简单"],
+    ingredients: ["内酯豆腐 1 盒", "皮蛋 2 个", "葱 1 根"],
+    seasonings: ["生抽", "香醋", "香油", "糖"],
+    steps: [
+      "豆腐倒扣盘里切块",
+      "皮蛋剥壳切瓣摆在豆腐上",
+      "调汁（生抽+醋+香油+糖）淋上",
+      "撒葱花即可"
+    ],
+    tip: "豆腐用内酯的嫩滑，皮蛋要溏心的切起来不碎"
+  },
+  {
+    name: "尖椒皮蛋", time_minutes: 15, role: "主菜",
+    tags: ["微辣", "下饭", "家常"],
+    ingredients: ["尖椒 4 个", "皮蛋 3 个", "蒜 4 瓣", "豆豉 1 勺"],
+    seasonings: ["生抽", "盐", "油"],
+    steps: [
+      "尖椒洗净拍扁切段",
+      "皮蛋剥壳切瓣",
+      "热油爆香蒜和豆豉",
+      "下尖椒炒至表皮微焦",
+      "下皮蛋翻匀加盐生抽出锅"
+    ],
+    tip: "尖椒用油煎出虎皮更香，皮蛋别炒太久会散"
+  },
+  {
+    name: "皮蛋瘦肉粥", time_minutes: 25, role: "早餐",
+    tags: ["早餐", "养胃", "快手"],
+    ingredients: ["大米 半杯", "皮蛋 2 个", "瘦肉 100g", "姜 2 片", "葱 1 根"],
+    seasonings: ["盐", "生抽", "料酒", "淀粉"],
+    steps: [
+      "大米淘洗加水煮成稠粥",
+      "瘦肉切丝加盐+料酒+淀粉腌10分钟",
+      "皮蛋剥壳切瓣",
+      "粥快好时下瘦肉丝和皮蛋",
+      "加姜丝煮5分钟撒葱花"
+    ],
+    tip: "大米提前泡半小时煮得更软，皮蛋下晚一点保持形状"
+  },
+  {
+    name: "三色皮蛋", time_minutes: 10, role: "凉菜",
+    tags: ["凉菜", "简单", "好看"],
+    ingredients: ["皮蛋 2 个", "咸鸭蛋 1 个", "鸡蛋 2 个"],
+    seasonings: ["盐", "香油"],
+    steps: [
+      "鸡蛋打散加少许盐倒入抹油的盘中",
+      "水开后蒸8分钟至凝固",
+      "皮蛋咸鸭蛋剥壳切碎撒在蛋羹上",
+      "淋香油再蒸2分钟即可"
+    ],
+    tip: "蛋羹中火蒸避免蜂窝，皮蛋咸鸭蛋切小块好看又入味"
+  },
+,
 
 ];
 
@@ -2631,11 +2699,19 @@ function filterByIngredients(dishes, available) {
   });
 }
 
+// ============ Day 18：荤/素分类（用于 chooseCombo 荤素平衡） ============
+// 有 '素食' tag → 素；否则 → 荤（包含 蛋/鱼/虾等"广义荤"）
+function isMeatVeg(dish) {
+  if (!dish || !dish.tags) return '荤';
+  return dish.tags.includes('素食') ? '素' : '荤';
+}
+
 function chooseCombo(dishes, history = [], window = 30, scores = null, comboSize = '1-1-1') {
   // Day 10: 过滤 skipped 状态
   // Day 17: 按 comboSize 抽多道主菜（不带主食时只抽 主菜+汤）
   //   comboSize 格式：'主菜份数-汤份数-主食份数'（主食可省略=0）
   //   例 '1-1-1' 默认；'2-1' / '3-1' / '4-1' 两菜一汤/三菜一汤/四菜一汤
+  // Day 18: 多道主菜时保证 ≥1素（避免全是荤）
   const recent = recentDishesFromHistory(history, window);
   const useScores = scores || loadScores();
   const tagAff = computeTagAffinities(useScores, dishes);
@@ -2646,19 +2722,36 @@ function chooseCombo(dishes, history = [], window = 30, scores = null, comboSize
 
   // 本次抽签已选的菜名（多道主菜内部去重，避免抽到同一道）
   const pickedNames = new Set();
-  function pick(role) {
+  // 已选主菜中的荤/素计数（用于引导后续主菜偏向）
+  const pickedMains = [];
+
+  function pick(role, forceVeg = false) {
+    // 基础候选
     let candidates = dishes.filter(d => d.role === role && !recent.has(d.name) && !pickedNames.has(d.name));
     if (candidates.length === 0) candidates = dishes.filter(d => d.role === role && !pickedNames.has(d.name));
     if (candidates.length === 0) candidates = dishes.filter(d => d.role === role);
     if (candidates.length === 0) return null;
+
+    // Day 18：荤素平衡 — 当 forceVeg=true 时只从素菜里抽（fallback 到全部）
+    if (forceVeg) {
+      const vegOnly = candidates.filter(d => isMeatVeg(d) === '素');
+      candidates = vegOnly.length > 0 ? vegOnly : candidates;
+    }
+
     const choice = weightedChoice(candidates, useScores, tagAff);
-    if (choice) pickedNames.add(choice.name);
+    if (choice) {
+      pickedNames.add(choice.name);
+      if (role === '主菜') pickedMains.push(choice);
+    }
     return choice;
   }
 
   const combo = {};
   for (let i = 0; i < numMains; i++) {
-    combo[`主菜${i > 0 ? i + 1 : ''}`] = pick("主菜");
+    // Day 18：多主菜时，最后一道强求 ≥1素
+    const needVeg = numMains >= 2 && i === numMains - 1
+      && !pickedMains.some(d => isMeatVeg(d) === '素');
+    combo[`主菜${i > 0 ? i + 1 : ''}`] = pick("主菜", needVeg);
   }
   for (let i = 0; i < numSoups; i++) {
     combo[`汤${i > 0 ? i + 1 : ''}`] = pick("汤");
@@ -3946,6 +4039,22 @@ function renderComboWithConfirm(combo) {
       result.appendChild(row);
     }
   }
+  // Day 18：营养 + 荤素覆盖 banner
+  const banner = document.createElement('div');
+  banner.style.cssText = "margin-top:14px;padding:12px 14px;border-radius:10px;background:#fff8e8;border-left:3px solid #ffc107;font-size:13px;line-height:1.8;";
+  // 蛋白/碳水/蔬菜
+  const covered = new Set();
+  const allDishes = Object.values(combo).filter(Boolean);
+  allDishes.forEach(d => classifyNutrition(d).forEach(c => covered.add(c)));
+  const order = ["蛋白", "碳水", "蔬菜"];
+  const line = order.map(c => (covered.has(c) ? "✅" : "⚠️") + " " + c).join("  ");
+  // 荤素搭配
+  const mains = Object.entries(combo).filter(([k]) => k.startsWith("主菜") && combo[k]).map(([_, d]) => d);
+  const meatCount = mains.filter(d => isMeatVeg(d) === '荤').length;
+  const vegCount = mains.filter(d => isMeatVeg(d) === '素').length;
+  const mvLine = mains.length > 0 ? `  ·  荤素：${meatCount > 0 ? `${meatCount}荤` : ''}${meatCount > 0 && vegCount > 0 ? '+' : ''}${vegCount > 0 ? `${vegCount}素` : ''}` : '';
+  banner.innerHTML = `<b>营养覆盖：</b>${line}${mvLine}`;
+  result.appendChild(banner);
 }
 
 function checkIngredients() {
@@ -4003,8 +4112,9 @@ function isRice(dish) {
   return dish.name.includes("米") && !dish.name.includes("面");
 }
 
-function chooseOneMeal(dishes, history = [], window = 30, scores = null, mustBeRice = false) {
+function chooseOneMeal(dishes, history = [], window = 30, scores = null, mustBeRice = false, comboSize = '1-1-1') {
   // Day 10: 迁移旧格式 + 过滤 skipped
+  // Day 17.1: comboSize 支持 N 菜一汤（默认 '1-1-1' 保持向后兼容）
   const effective = migrateHistory(history);
   const recent = new Set(
     effective.filter(h => isWithinWindow(h.date, window) && h.status !== 'skipped').map(h => h.dish)
@@ -4037,24 +4147,31 @@ function chooseOneMeal(dishes, history = [], window = 30, scores = null, mustBeR
   }
 
   // 配菜模式
-  function pickRole(role, exclude) {
-    let cands = dishes.filter(d => d.role === role && !exclude.has(d.name) && !recent.has(d.name));
-    if (cands.length === 0) cands = dishes.filter(d => d.role === role && !exclude.has(d.name));
+  const picked = new Set([main.name]);
+  function pickRole(role) {
+    let cands = dishes.filter(d => d.role === role && !picked.has(d.name) && !recent.has(d.name));
+    if (cands.length === 0) cands = dishes.filter(d => d.role === role && !picked.has(d.name));
     if (cands.length === 0) cands = dishes.filter(d => d.role === role);
     if (cands.length === 0) return null;
-    return weightedChoice(cands, useScores, tagAff);
+    const choice = weightedChoice(cands, useScores, tagAff);
+    if (choice) picked.add(choice.name);
+    return choice;
   }
 
-  return {
-    "主菜": pickRole("主菜", new Set([main.name])),
-    "汤":   pickRole("汤",   new Set([main.name])),
-    "主食": main,
-    "模式": "配菜模式",
-  };
+  // 按 comboSize 抽 N 道主菜（默认 1）+ 1 道汤
+  const parts = (ALLOWED_COMBO_SIZES.includes(comboSize) ? comboSize : '1-1-1').split('-').map(n => parseInt(n, 10));
+  const numMains = (parts[0] >= 1 && parts[0] <= 4) ? parts[0] : 1;
+  const result = { "主食": main, "模式": "配菜模式" };
+  for (let i = 0; i < numMains; i++) {
+    result[`主菜${i > 0 ? i + 1 : ''}`] = pickRole("主菜");
+  }
+  result["汤"] = pickRole("汤");
+  return result;
 }
 
-function chooseThreeMeals(dishes, history = [], window = 7, scores = null) {
+function chooseThreeMeals(dishes, history = [], window = 7, scores = null, comboSize = '1-1-1') {
   // Day 10: 迁移旧格式 + 过滤 skipped 状态
+  // Day 17.1: comboSize 透传到 chooseOneMeal（午晚饭按份量抽 N 菜一汤）
   const effective = migrateHistory(history);
   const recent = new Set(
     effective
@@ -4079,13 +4196,13 @@ function chooseThreeMeals(dishes, history = [], window = 7, scores = null) {
   const breakfast = pick("早餐", new Set());
 
   // 午晚饭走用户习惯版（一碗一餐 / 配菜模式）
-  const lunch = chooseOneMeal(dishes, effective, window, useScores);
+  const lunch = chooseOneMeal(dishes, effective, window, useScores, false, comboSize);
   // 避免午晚重复：把午餐选的菜加进历史传给晚餐
   const lunchNames = Object.values(lunch).filter(d => d && d.name).map(d => d.name);
   const dinnerHistory = effective.concat(lunchNames.map(n => ({dish: n, date: new Date().toISOString().slice(0, 10), status: 'confirmed'})));
   // 『一天不能两顿面条』：午餐若是一碗一餐，晚餐强制米饭模式
   const mustBeRiceDinner = (lunch.模式 === "一碗一餐");
-  const dinner = chooseOneMeal(dishes, dinnerHistory, window, useScores, mustBeRiceDinner);
+  const dinner = chooseOneMeal(dishes, dinnerHistory, window, useScores, mustBeRiceDinner, comboSize);
 
   return {"早餐": breakfast, "午餐": lunch, "晚餐": dinner};
 }
@@ -4131,7 +4248,15 @@ function renderThreeMeals(meals) {
       tag.style.cssText = "font-size:13px;color:#888;padding:2px 0 4px 4px;";
       tag.textContent = "配菜模式";
       result.appendChild(tag);
-      for (const role of ["主菜", "汤", "主食"]) {
+      // Day 17.1：先按 主菜/主菜2/主菜3/主菜4 顺序抽所有主菜槽，再抽汤、最后主食
+      const roleOrder = [];
+      for (let i = 1; i <= 4; i++) {
+        const key = i === 1 ? "主菜" : `主菜${i}`;
+        if (meal[key]) roleOrder.push(key);
+      }
+      if (meal["汤"]) roleOrder.push("汤");
+      if (meal["主食"]) roleOrder.push("主食");
+      for (const role of roleOrder) {
         const dish = meal[role];
         if (dish) addWithConfirm(dish, role, `slot-three-${label}-${role}`);
         else emptyRow(`${role}：暂无合适`);
@@ -4179,7 +4304,7 @@ function drawThreeMeals() {
     let pool = applyPrefs(dishes, prefs);
     if (pool.length === 0) pool = dishes;
     const history = loadHistory();
-    const meals = chooseThreeMeals(pool, history, 7);
+    const meals = chooseThreeMeals(pool, history, 7, null, prefs.comboSize);
     renderThreeMeals(meals);
     btn.disabled = false;
     btn.textContent = '再抽一天 🔄';
