@@ -1046,5 +1046,63 @@ class TestAddToHistoryWithMeal(unittest.TestCase):
         self.assertNotIn("meal", h[0])
 
 
+class TestAppHtmlRegression(unittest.TestCase):
+    """Day 15: 防止 app.html 改 DOM 后忘记更新 addEventListener 引用"""
+
+    def setUp(self):
+        import re
+        with open("app.html") as f:
+            content = f.read()
+        scripts = re.findall(r'<script[^>]*>(.*?)</script>', content, re.DOTALL)
+        self.js = '\n'.join(scripts)
+
+    def test_no_unsafe_addEventListener_on_getElementById(self):
+        """禁止 document.getElementById('xxx').addEventListener 这种链式调用
+        —— 一旦 id 不存在就会 TypeError 中断所有后续脚本
+        必须用 bindClick() 助手 或先 var 出来 null-check
+        """
+        import re
+        pattern = re.compile(
+            r'document\.getElementById\([^)]+\)\.addEventListener\(',
+            re.MULTILINE,
+        )
+        hits = pattern.findall(self.js)
+        self.assertEqual(
+            hits, [],
+            f"发现 {len(hits)} 个不安全的 addEventListener 调用：\n"
+            + '\n'.join(f"  {h}" for h in hits)
+            + "\n请用 bindClick(id, fn) 助手 或先 var el = getElementById(id); if (el) ..."
+        )
+
+    def test_no_unsafe_querySelector_addEventListener(self):
+        """同样禁止 querySelector(...).addEventListener 链式（可能返回 null）"""
+        import re
+        pattern = re.compile(
+            r'document\.querySelector(?:All)?\([^)]+\)\.addEventListener\(',
+            re.MULTILINE,
+        )
+        hits = pattern.findall(self.js)
+        self.assertEqual(hits, [], f"发现 {len(hits)} 个不安全的 querySelector().addEventListener")
+
+    def test_all_event_bound_ids_exist_in_dom(self):
+        """bindClick / addEventListener 引用的每个 id 必须在 HTML 里真实存在
+        （注意：getElementById('toast') 这种 lazy-create 模式不算 —— toast 是动态创建的）
+        """
+        import re
+        # 只检查 bindClick（事件绑定，必须 DOM 存在）
+        referenced_ids = set(re.findall(r"bindClick\(['\"]([^'\"]+)['\"]", self.js))
+        with open("app.html") as f:
+            html = f.read()
+        missing = []
+        for id_ in referenced_ids:
+            if not re.search(rf'id=[\"\']{re.escape(id_)}[\"\']', html):
+                missing.append(id_)
+        self.assertEqual(
+            missing, [],
+            f"bindClick 引用了 {len(missing)} 个 HTML 里不存在的 id：{missing}\n"
+            "要么补 HTML 标签，要么删 JS 引用"
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

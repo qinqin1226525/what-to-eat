@@ -501,8 +501,9 @@
 </div>
 
 <div class="panel active" id="combo">
+  <button class="primary" id="draw-btn">抽一套！</button>
   <div class="result" id="combo-result">
-    <div class="empty">点 banner 的 🎲 抽一套 开始 ✨</div>
+    <div class="empty">点击上面的按钮开始 ✨</div>
   </div>
   <div class="history-hint" id="history-hint"></div>
   <button class="reset-btn" id="reset-btn" style="display:none;">🗑️ 清空历史（让 30 天不重复重置）</button>
@@ -2246,6 +2247,20 @@ const DISHES_DATA = [
       "可调蒜泥醋汁蘸食"
 ],
     tip: "牛腱子整块卤,关火后泡一夜更入味;冷藏后切薄片不散。"
+  },,
+  {
+    name: "洋葱炒蛋", time_minutes: 12, role: "主菜",
+    tags: ["家常", "快手", "小孩爱"],
+    ingredients: ["鸡蛋 2 个", "洋葱 1 个", "葱"],
+    seasonings: ["盐", "油"],
+    steps: [
+      "鸡蛋打散加盐",
+      "洋葱切丝",
+      "爆葱下蛋炒散盛出",
+      "下洋葱炒软",
+      "倒回鸡蛋翻匀"
+    ],
+    tip: "洋葱大火快炒更香"
   },
 
 ];
@@ -3272,21 +3287,17 @@ function handleDishAction(action, dish, row) {
 }
 
 function drawCombo() {
-  const btn = document.getElementById('draw-btn');  // 旧按钮（已隐藏），banner 的🎲按钮直接调用
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = '抽签中...';
-  }
+  const btn = document.getElementById('draw-btn');
+  btn.disabled = true;
+  btn.textContent = '抽签中...';
   setTimeout(() => {
     let dishes = getDishes();
     const pool = dishes;
     const history = loadHistory();
     const combo = chooseCombo(pool, history);
     renderComboWithConfirm(combo);
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = '再抽一套 🔄';
-    }
+    btn.disabled = false;
+    btn.textContent = '再抽一套 🔄';
   }, 250);
 }
 
@@ -3594,6 +3605,14 @@ function renderKidsComboWithConfirm(combo) {
 }
 
 // ============ 事件绑定 ============
+// ⚠️ 每个 addEventListener 都要 null-check：DOM id 不存在时不能让脚本挂掉
+// (Day 15 教训：之前删 draw-btn 按钮后忘了删引用，TypeError 中断所有后续监听器)
+function bindClick(id, fn) {
+  const el = document.getElementById(id);
+  if (!el) { console.warn(`bindClick: #${id} not found`); return; }
+  el.addEventListener('click', fn);
+}
+
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -3603,14 +3622,17 @@ document.querySelectorAll('.tab').forEach(tab => {
   });
 });
 
-document.getElementById('draw-btn').addEventListener('click', drawCombo);
-document.getElementById('three-btn').addEventListener('click', drawThreeMeals);
-document.getElementById('check-btn').addEventListener('click', checkIngredients);
-document.getElementById('kids-btn').addEventListener('click', drawKidCombo);
-document.getElementById('ingredient-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') checkIngredients();
-});
-document.getElementById('reset-btn').addEventListener('click', () => {
+bindClick('draw-btn', drawCombo);
+bindClick('three-btn', drawThreeMeals);
+bindClick('check-btn', checkIngredients);
+bindClick('kids-btn', drawKidCombo);
+const ingredientInput = document.getElementById('ingredient-input');
+if (ingredientInput) {
+  ingredientInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkIngredients();
+  });
+}
+bindClick('reset-btn', () => {
   if (confirm('清空所有历史？30 天不重复会重置。')) {
     storeDel(HISTORY_KEY);
     updateHistoryHint();

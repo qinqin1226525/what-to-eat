@@ -79,6 +79,20 @@ function filterByIngredients(dishes, available) {
     '豆': ['豆', '豆腐', '豆浆'],
     '海鲜': ['虾', '蟹', '鱼', '鱿', '蛤', '海带', '紫菜'],
     '辣': ['辣', '椒', '麻辣', '红油'],
+    // 地域别名：每个变体都作为 key，展开为所有别名
+    '包菜': ['包菜', '卷心菜', '圆白菜', '茴子白', '兰包', '椰菜'],
+    '西红柿': ['西红柿', '番茄'],
+    '土豆': ['土豆', '马铃薯', '洋芋'],
+    '玉米': ['玉米', '苞谷', '棒子'],
+    '胡萝卜': ['胡萝卜', '红萝卜'],
+    '白萝卜': ['白萝卜', '萝卜', '菜头'],
+    '黄瓜': ['黄瓜', '青瓜'],
+    '辣椒': ['辣椒', '海椒', '辣子'],
+    '白菜': ['白菜', '大白菜', '绍菜'],
+    '血皮菜': ['血皮菜', '观音菜', '紫背天葵'],
+    '油麦菜': ['油麦菜', '莜麦菜'],
+    '鸡蛋': ['鸡蛋', '鸡子'],
+    '豆腐': ['豆腐', '水豆腐', '嫩豆腐'],
   };
   const keywords = new Set(available);
   for (const kw of available) {
@@ -1351,6 +1365,68 @@ test("Day14.2 app.html 已替换 your_wechat_id 占位符", () => {
     assert(html.includes('onclick="copyWechat()"'), '复制按钮应绑定 copyWechat');
     assert(html.includes('id="wechat-copied-tip"'), '已复制提示元素应存在');
   });
+});
+
+// ============ Day 14.3：地域别名同义词（包菜/兰包/番茄/马铃薯 等）============
+test("Day14.3 '兰包'能找到含'包菜'的菜", () => {
+  const dishes = [
+    { name: "手撕包菜", ingredients: ["包菜", "干辣椒"] },
+    { name: "卷心菜炒肉", ingredients: ["卷心菜"] },
+  ];
+  const r = filterByIngredients(dishes, ["兰包"]);
+  const names = r.map(d => d.name);
+  assert(names.includes("手撕包菜"), "兰包应匹配包菜");
+  assert(names.includes("卷心菜炒肉"), "兰包应匹配卷心菜");
+});
+
+test("Day14.3 '茴子白'能找到含'包菜'的菜", () => {
+  const dishes = [{ name: "手撕包菜", ingredients: ["包菜"] }];
+  const r = filterByIngredients(dishes, ["茴子白"]);
+  assert(r.length === 1, "茴子白应能找到包菜菜");
+});
+
+test("Day14.3 '番茄'能找到含'西红柿'的菜（app 数据用'番茄'）", () => {
+  const dishes = [
+    { name: "西红柿炒蛋", ingredients: ["西红柿", "鸡蛋"] },
+    { name: "番茄牛腩", ingredients: ["番茄", "牛腩"] },
+  ];
+  const r = filterByIngredients(dishes, ["番茄"]);
+  const names = r.map(d => d.name);
+  assert(names.includes("西红柿炒蛋"), "番茄应匹配西红柿");
+  assert(names.includes("番茄牛腩"), "番茄应匹配自身");
+});
+
+test("Day14.3 '马铃薯'能找到含'土豆'的菜", () => {
+  const dishes = [
+    { name: "酸辣土豆丝", ingredients: ["土豆"] },
+    { name: "土豆炖牛腩", ingredients: ["土豆", "牛腩"] },
+  ];
+  const r = filterByIngredients(dishes, ["马铃薯"]);
+  const names = r.map(d => d.name);
+  assert(names.includes("酸辣土豆丝"), "马铃薯应匹配土豆");
+  assert(names.includes("土豆炖牛腩"), "马铃薯应匹配土豆");
+});
+
+test("Day14.3 '青瓜'能找到含'黄瓜'的菜", () => {
+  const dishes = [
+    { name: "拍黄瓜", ingredients: ["黄瓜", "蒜"] },
+    { name: "凉拌青瓜", ingredients: ["青瓜"] },
+  ];
+  const r = filterByIngredients(dishes, ["青瓜"]);
+  const names = r.map(d => d.name);
+  assert(names.includes("拍黄瓜"), "青瓜应匹配黄瓜");
+  assert(names.includes("凉拌青瓜"));
+});
+
+test("Day14.3 '海椒'能找到含'辣椒'的菜", () => {
+  const dishes = [
+    { name: "宫保鸡丁", ingredients: ["干辣椒"] },
+    { name: "辣子鸡", ingredients: ["干辣椒", "花椒"] },
+  ];
+  const r = filterByIngredients(dishes, ["海椒"]);
+  const names = r.map(d => d.name);
+  assert(names.includes("宫保鸡丁"), "海椒应匹配干辣椒");
+  assert(names.includes("辣子鸡"), "海椒应匹配干辣椒");
 });
 
 // ============ 渲染结果 ============
