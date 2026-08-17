@@ -195,6 +195,50 @@ CHECKS = [
      })()""",
      True,
      "常见菜名字命中要严格走 name 路径"),
+
+    # ============ Day 20 端到端：抽菜 / 模糊 / 自加菜名 实际跑 ============
+    ("干锅花菜可被抽到",
+     """(() => {
+        const dish = DISHES_DATA.find(d => d.name === '干锅花菜');
+        return dish && dish.role === '主菜' && dish.time_minutes === 15;
+     })()""",
+     True,
+     "Day 20 加的菜必须真在 DISHES_DATA 里（Day 19 双逗号 bug 教训）"),
+
+    ("drawCombo 干锅花菜 30 次内必出",
+     """(() => {
+        let found = false;
+        for (let i = 0; i < 30 && !found; i++) {
+          const dishes = getDishes().filter(d => d.role === '主菜');
+          found = dishes.some(d => d.name === '干锅花菜');
+        }
+        return found;
+     })()""",
+     True,
+     "干锅花菜在主菜池里（不存在则被双逗号吃掉了）"),
+
+    ("fuzzyMatchDishes('干锅') 命中干锅花菜",
+     """fuzzyMatchDishes('干锅').some(m => m.dish.name === '干锅花菜')""",
+     True,
+     "打'干锅'能模糊命中干锅花菜"),
+
+    ("fuzzyMatchDishes('花菜') 命中干锅花菜",
+     """fuzzyMatchDishes('花菜').some(m => m.dish.name === '干锅花菜')""",
+     True,
+     "打'花菜'能模糊命中干锅花菜（用户用例）"),
+
+    ("openCustomDish modal 存在",
+     """(() => {
+        const m = document.getElementById('custom-dish-modal');
+        return m !== null && m.tagName === 'DIV';
+     })()""",
+     True,
+     "Day 19 自加菜名 modal 必须真在页面上"),
+
+    ("loadCustomDishes() 是函数",
+     "typeof loadCustomDishes",
+     "function",
+     "自加菜名存储函数必须可访问"),
 ]
 
 
