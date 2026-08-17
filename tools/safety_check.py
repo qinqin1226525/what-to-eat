@@ -304,6 +304,30 @@ def check_tests(quick=False):
     return True
 
 
+def check_runtime_verify():
+    """真实浏览器内 evaluate 关键函数，确认无运行时错误。
+
+    静态语法检查抓不到 ReferenceError（const 用了没定义）。
+    这里用 Chrome headless + DevTools Protocol 实际跑 expandSynonyms /
+    getDishes / filterByIngredients / drawCombo 等，把 INGREDIENT_SYNONYMS
+    这种历史 bug 直接暴露在 commit 前。
+    """
+    print(colored("▶ 运行时验证（真实浏览器 evaluate 关键函数）", "blue"))
+    rc, stdout, stderr = run(
+        ["python3", "tools/_verify_runtime.py"],
+        timeout=60,
+    )
+    # 简化输出（去掉 chrome 启动噪音，只看 ✅/❌ 行）
+    for line in stdout.split("\n"):
+        if "✅" in line or "❌" in line or "全部" in line or "通过" in line or "失败" in line:
+            print(f"  {line}")
+    if stderr.strip():
+        for line in stderr.split("\n"):
+            if line.strip() and "DevTools" not in line:
+                print(f"  {line}")
+    return rc == 0
+
+
 def show_changes():
     """显示 git 改动统计。"""
     print(colored("▶ 当前改动", "blue"))
@@ -352,6 +376,7 @@ def main():
     results.append(("onclick 函数", check_onclick_functions_exist()))
     results.append(("关键类", check_critical_classes()))
     results.append(("同步校验", check_sync()))
+    results.append(("运行时验证", check_runtime_verify()))
     if not quick:
         results.append(("测试", check_tests()))
 
