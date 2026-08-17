@@ -4284,6 +4284,26 @@ function clearSlotState(row) {
 }
 
 // 弹「吃别的」输入层（在菜下方插入）
+// Day 19.1：模糊查找（菜名/角色/标签 任一字段 contains query，模块级供 verify）
+function fuzzyMatchDishes(query) {
+  const q = (query || '').trim().toLowerCase();
+  if (!q) {
+    return getDishes().map(d => ({dish: d, matchedField: null}));
+  }
+  const out = [];
+  for (const d of getDishes()) {
+    const name = (d.name || '').toLowerCase();
+    const role = (d.role || '').toLowerCase();
+    const tags = (d.tags || []).join(' ').toLowerCase();
+    let matchedField = null;
+    if (name.includes(q)) matchedField = 'name';
+    else if (role.includes(q)) matchedField = 'role';
+    else if (tags.includes(q)) matchedField = 'tags';
+    if (matchedField) out.push({dish: d, matchedField});
+  }
+  return out;
+}
+
 function promptManualDish(row, originalDish) {
   // 移除已有输入框
   const existing = row.parentNode.querySelector('.manual-input-wrap');
@@ -4294,25 +4314,48 @@ function promptManualDish(row, originalDish) {
   wrap.style.cssText = "background:#fff7e6;padding:12px;border-radius:8px;margin:8px 0 16px 0;border:1px solid #e8dcc4;";
   wrap.innerHTML = `
     <div style="font-size:13px;color:#888;margin-bottom:6px;">🍜 实际吃了什么？</div>
+    <input type="text" class="manual-filter" placeholder="🔍 打一个字筛选（菜名/角色/标签）" style="width:100%;padding:8px;border:1px solid #e8dcc4;border-radius:6px;font-size:13px;margin-bottom:6px;">
     <div class="manual-dish-list" style="max-height:120px;overflow-y:auto;border:1px solid #e8dcc4;border-radius:6px;padding:6px;margin-bottom:8px;background:white;"></div>
     <input type="text" class="manual-input" placeholder="或者手动输入" style="width:100%;padding:8px;border:1px solid #e8dcc4;border-radius:6px;font-size:13px;">
     <div style="display:flex;gap:8px;margin-top:8px;">
       <button class="manual-confirm" style="flex:1;background:#e85d04;color:white;border:none;padding:8px;border-radius:6px;font-size:13px;cursor:pointer;">确认</button>
       <button class="manual-cancel" style="background:#fff;color:#888;border:1px solid #e8dcc4;padding:8px 12px;border-radius:6px;font-size:13px;cursor:pointer;">取消</button>
     </div>`;
-  // 填菜谱列表
-  const list = wrap.querySelector('.manual-dish-list');
-  getDishes().forEach(d => {
-    const item = document.createElement('div');
-    item.style.cssText = "padding:4px 6px;cursor:pointer;border-radius:4px;font-size:13px;";
-    item.textContent = `${ROLE_EMOJI[d.role] || '•'} ${d.name}`;
-    item.onmouseenter = () => item.style.background = '#fdf6e3';
-    item.onmouseleave = () => item.style.background = '';
-    item.onclick = () => { wrap.querySelector('.manual-input').value = d.name; };
-    list.appendChild(item);
-  });
 
+  const list = wrap.querySelector('.manual-dish-list');
+  const filterInput = wrap.querySelector('.manual-filter');
   const input = wrap.querySelector('.manual-input');
+
+  // 模糊匹配：复用模块级 fuzzyMatchDishes（菜名/role/tags 任一字段 contains query）
+  // 保留 filterDishes 别名，便于阅读
+  const filterDishes = fuzzyMatchDishes;
+
+  function renderList(query) {
+    const matches = filterDishes(query);
+    list.innerHTML = '';
+    if (matches.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.cssText = "padding:8px 6px;color:#aaa;font-size:13px;text-align:center;";
+      empty.textContent = '没有匹配的菜';
+      list.appendChild(empty);
+      return;
+    }
+    for (const {dish} of matches) {
+      const item = document.createElement('div');
+      item.style.cssText = "padding:4px 6px;cursor:pointer;border-radius:4px;font-size:13px;";
+      item.textContent = `${ROLE_EMOJI[dish.role] || '•'} ${dish.name}`;
+      item.onmouseenter = () => item.style.background = '#fdf6e3';
+      item.onmouseleave = () => item.style.background = '';
+      item.onclick = () => { input.value = dish.name; };
+      list.appendChild(item);
+    }
+  }
+
+  // 实时过滤
+  filterInput.addEventListener('input', e => renderList(e.target.value));
+  // 初始渲染（全部）
+  renderList('');
+
   const confirm = wrap.querySelector('.manual-confirm');
   const cancel = wrap.querySelector('.manual-cancel');
   confirm.onclick = () => {
@@ -4324,9 +4367,17 @@ function promptManualDish(row, originalDish) {
   };
   cancel.onclick = () => wrap.remove();
   input.onkeydown = e => { if (e.key === 'Enter') confirm.onclick(); };
+  filterInput.onkeydown = e => {
+    // 在 filter 框按 Enter → 第一个匹配项填入 input
+    if (e.key === 'Enter') {
+      const matches = filterDishes(filterInput.value);
+      if (matches.length > 0) input.value = matches[0].dish.name;
+      input.focus();
+    }
+  };
 
   row.parentNode.insertBefore(wrap, row.nextSibling);
-  input.focus();
+  filterInput.focus();
 }
 
 // 处理单个菜按钮点击

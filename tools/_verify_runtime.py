@@ -155,6 +155,46 @@ CHECKS = [
      })()""",
      "ok",
      "点'抽一套'按钮的函数路径不能抛错"),
+
+    # ============ Day 19.1：🍜 别的 模糊查找 ============
+    ("fuzzyMatchDishes 是函数",
+     "typeof fuzzyMatchDishes",
+     "function",
+     "模块级模糊匹配函数必须可访问"),
+
+    ("fuzzyMatchDishes('') 返回全部",
+     "fuzzyMatchDishes('').length",
+     lambda v: v >= 100,
+     "空 query 返回所有菜"),
+
+    ("fuzzyMatchDishes('鸡') 命中菜名",
+     """fuzzyMatchDishes('鸡').filter(m => m.matchedField === 'name').length""",
+     lambda v: v >= 5,
+     "'鸡' 是常见字，应该命中多道菜"),
+
+    ("fuzzyMatchDishes('汤') role 命中可达",
+     """fuzzyMatchDishes('汤').filter(m => m.matchedField === 'role').length""",
+     lambda v: v >= 1,
+     "role 路径可达（多数菜名含'汤'字先走 name，但菜名无'汤'的 role=汤 仍走 role）"),
+
+    ("fuzzyMatchDishes('川') 命中 tags",
+     """fuzzyMatchDishes('川').filter(m => m.matchedField === 'tags').length""",
+     lambda v: v >= 3,
+     "tags 字段匹配：输入'川'应命中标签含'川菜'的菜"),
+
+    ("fuzzyMatchDishes('xyz不存在') 返回 0",
+     "fuzzyMatchDishes('xyz不存在').length",
+     0,
+     "无匹配返回空数组"),
+
+    ("fuzzyMatchDishes('番茄') 全是 name 命中",
+     """(() => {
+        const r = fuzzyMatchDishes('番茄');
+        if (r.length === 0) return false;
+        return r.every(m => m.matchedField === 'name');
+     })()""",
+     True,
+     "常见菜名字命中要严格走 name 路径"),
 ]
 
 
