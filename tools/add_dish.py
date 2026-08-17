@@ -126,7 +126,8 @@ def json_dish_to_html_block(dish):
         # 去掉最后一行的逗号
         if lines[-1].endswith(","):
             lines[-1] = lines[-1][:-1]
-    lines.append("  },")
+    # 注意：末尾不加 "," — 由 append_to_app_html 统一加，避免双逗号
+    lines.append("  }")
     return "\n".join(lines)
 
 
@@ -289,6 +290,12 @@ def main():
 
     append_to_app_html(dish)
     print(f"✅ {APP_HTML} 已更新")
+
+    # 11.5 自我验证：检查是否写出 '},,' 双逗号（历史 bug：Day 20 加菜后产生过）
+    html = APP_HTML.read_text(encoding="utf-8")
+    if re.search(r"\},,", html):
+        print("❌ app.html 出现 '},,' 双逗号 —— 立即中止！请人工检查或 git checkout 恢复。")
+        sys.exit(1)
 
     # 12. 同步校验
     print("\n🔍 跑同步校验...")
