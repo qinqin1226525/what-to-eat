@@ -156,6 +156,38 @@
     font-size: 11px; color: #aaa; font-weight: normal;
   }
 
+  /* ============ 自定义菜卡片（Day 19） ============ */
+  .custom-dish-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: #fff8e8;
+    border: 1.5px solid #f3d9a8;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .custom-dish-card .emoji { font-size: 22px; flex-shrink: 0; }
+  .custom-dish-card .info { flex: 1; min-width: 0; }
+  .custom-dish-card .name {
+    font-weight: 600; color: #2c2c2c;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .custom-dish-card .meta {
+    font-size: 11px; color: #888; margin-top: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .custom-dish-card .del-btn {
+    background: transparent; border: none;
+    color: #d36b00; font-size: 18px; cursor: pointer;
+    width: 32px; height: 32px; border-radius: 50%;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+  }
+  .custom-dish-card .del-btn:active { background: #f0d9a8; }
+  .custom-empty {
+    padding: 20px; text-align: center; color: #aaa; font-size: 13px;
+    background: #faf6ec; border-radius: 10px;
+  }
+
   /* ============ 反馈按钮 ============ */
   .dish-feedback {
     display: flex; gap: 4px; align-items: center; flex-shrink: 0;
@@ -584,6 +616,7 @@
       <button class="more-btn" onclick="toggleMoreMenu(event)" aria-label="更多">⋯</button>
       <div class="more-menu" id="more-menu" hidden>
         <button class="more-menu-item" onclick="openManualLog(); closeMoreMenu();">📝 手动记录</button>
+        <button class="more-menu-item" onclick="openCustomDish(); closeMoreMenu();">➕ 自加菜名</button>
         <button class="more-menu-item" onclick="openMonthlyReport(); closeMoreMenu();">📊 月度报告</button>
         <button class="more-menu-item" onclick="shareApp(); closeMoreMenu();">📤 分享给朋友</button>
         <button class="more-menu-item" onclick="openFeedback(); closeMoreMenu();">💬 反馈</button>
@@ -755,6 +788,61 @@
         <button class="banner-btn" style="flex:1;border-color:#e0d5c0;color:#888;" onclick="viewLog()">📋 查看记录本</button>
         <button class="primary" style="flex:2;margin:0;font-size:16px;padding:14px;" onclick="saveManualLog()">保存记录</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 自加菜名 Modal（Day 19） ============ -->
+<div id="custom-dish-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closeCustomDish()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeCustomDish()">×</button>
+    <div class="modal-header">
+      <span style="font-size:48px;display:block;margin-bottom:8px;">➕</span>
+      <h2 class="modal-title">自加菜名</h2>
+      <div class="modal-meta">写下你会做的菜 · 抽签时自动加进候选池 · 数据存在本机</div>
+    </div>
+    <div class="modal-body">
+      <section>
+        <div class="chip-group-label">🍽️ 菜名 <span class="hint">（必填）</span></div>
+        <input type="text" id="custom-dish-name" placeholder="例如：妈妈的糖醋排骨" style="width:100%;padding:12px;border:2px solid #e0d5c0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
+      </section>
+
+      <section>
+        <div class="chip-group-label">🥢 角色 <span class="hint">（必选）</span></div>
+        <div class="chip-row" id="custom-dish-role-row">
+          <div class="chip" data-role="主菜" onclick="selectCustomRole(this)">🍖 主菜</div>
+          <div class="chip" data-role="汤" onclick="selectCustomRole(this)">🍲 汤</div>
+          <div class="chip" data-role="主食" onclick="selectCustomRole(this)">🍚 主食</div>
+          <div class="chip" data-role="凉菜" onclick="selectCustomRole(this)">🥗 凉菜</div>
+          <div class="chip" data-role="早餐" onclick="selectCustomRole(this)">🥣 早餐</div>
+        </div>
+      </section>
+
+      <section>
+        <div class="chip-group-label">🏷️ 标签 <span class="hint">（可多选，不选也能抽）</span></div>
+        <div class="chip-row" id="custom-dish-tag-row">
+          <div class="chip" data-tag="川菜" onclick="toggleCustomTag(this)">川菜</div>
+          <div class="chip" data-tag="家常" onclick="toggleCustomTag(this)">家常</div>
+          <div class="chip" data-tag="简单" onclick="toggleCustomTag(this)">简单</div>
+          <div class="chip" data-tag="快手" onclick="toggleCustomTag(this)">快手</div>
+          <div class="chip" data-tag="下饭" onclick="toggleCustomTag(this)">下饭</div>
+          <div class="chip" data-tag="硬菜" onclick="toggleCustomTag(this)">硬菜</div>
+          <div class="chip" data-tag="清淡" onclick="toggleCustomTag(this)">清淡</div>
+          <div class="chip" data-tag="小孩爱" onclick="toggleCustomTag(this)">小孩爱</div>
+          <div class="chip" data-tag="素食" onclick="toggleCustomTag(this)">素食</div>
+          <div class="chip" data-tag="开胃" onclick="toggleCustomTag(this)">开胃</div>
+        </div>
+      </section>
+
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button class="primary" style="flex:1;margin:0;font-size:16px;padding:14px;" onclick="addCustomDish()">➕ 加一道菜</button>
+      </div>
+
+      <section style="margin-top:24px;">
+        <div class="chip-group-label">📋 我加过的菜 <span class="hint" id="custom-dish-count">（0 道）</span></div>
+        <div id="custom-dish-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </section>
     </div>
   </div>
 </div>
@@ -3436,6 +3524,170 @@ function openManualLog() {
   modal.hidden = false;
 }
 
+// ============ Day 19：自加菜名（用户手动填自己会做的菜） ============
+const CUSTOM_DISHES_KEY = 'what-to-eat-custom-dishes';
+
+function loadCustomDishes() {
+  try {
+    const raw = storeGet(CUSTOM_DISHES_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveCustomDishes(arr) {
+  storeSet(CUSTOM_DISHES_KEY, JSON.stringify(arr));
+}
+
+function openCustomDish() {
+  const modal = document.getElementById('custom-dish-modal');
+  if (!modal) {
+    alert('❌ 找不到自加菜名弹窗（custom-dish-modal 不存在）。请刷新页面或清缓存。');
+    return;
+  }
+  // 重置输入态（保留 modal 已有的项，但角色/标签清空）
+  resetCustomDishForm();
+  renderCustomDishList();
+  modal.hidden = false;
+  // 自动聚焦菜名输入框
+  setTimeout(() => {
+    const nameInput = document.getElementById('custom-dish-name');
+    if (nameInput) nameInput.focus();
+  }, 100);
+}
+
+function closeCustomDish() {
+  const modal = document.getElementById('custom-dish-modal');
+  if (modal) modal.hidden = true;
+}
+
+function resetCustomDishForm() {
+  const nameInput = document.getElementById('custom-dish-name');
+  if (nameInput) nameInput.value = '';
+  // 清角色选择
+  document.querySelectorAll('#custom-dish-role-row .chip').forEach(c => c.classList.remove('active'));
+  // 清标签选择
+  document.querySelectorAll('#custom-dish-tag-row .chip').forEach(c => c.classList.remove('active'));
+}
+
+function selectCustomRole(chipEl) {
+  const row = chipEl.parentElement;
+  row.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  chipEl.classList.add('active');
+}
+
+function toggleCustomTag(chipEl) {
+  chipEl.classList.toggle('active');
+}
+
+function getSelectedCustomRole() {
+  const active = document.querySelector('#custom-dish-role-row .chip.active');
+  return active ? active.dataset.role : null;
+}
+
+function getSelectedCustomTags() {
+  return Array.from(document.querySelectorAll('#custom-dish-tag-row .chip.active'))
+    .map(c => c.dataset.tag);
+}
+
+function addCustomDish() {
+  const nameInput = document.getElementById('custom-dish-name');
+  const name = nameInput ? nameInput.value.trim() : '';
+  const role = getSelectedCustomRole();
+
+  if (!name) {
+    alert('⚠️ 请先填菜名');
+    if (nameInput) nameInput.focus();
+    return;
+  }
+  if (!role) {
+    alert('⚠️ 请选一个角色（主菜/汤/主食/凉菜/早餐）');
+    return;
+  }
+
+  const dishes = loadCustomDishes();
+  // 重名检查（在自定义库 + 内置库里都不能重名）
+  if (dishes.some(d => d.name === name)) {
+    alert(`❌ "${name}" 你已经加过了`);
+    return;
+  }
+  if (typeof DISHES_DATA !== 'undefined' && DISHES_DATA.some(d => d.name === name)) {
+    alert(`❌ "${name}" 已经是内置菜了，不用再加`);
+    return;
+  }
+
+  const newDish = {
+    name,
+    role,
+    tags: getSelectedCustomTags(),
+    time_minutes: 30,
+    ingredients: [],
+    custom: true,  // 标记为自定义菜
+  };
+  dishes.push(newDish);
+  saveCustomDishes(dishes);
+  resetCustomDishForm();
+  renderCustomDishList();
+  // 给个轻提示
+  flashCustomAdded(name);
+}
+
+function flashCustomAdded(name) {
+  // 不弹 alert，避免打断连续添加
+  const list = document.getElementById('custom-dish-list');
+  if (!list) return;
+  const first = list.firstElementChild;
+  if (first) {
+    first.style.transition = 'background 0.2s';
+    first.style.background = '#fff3d6';
+    setTimeout(() => { first.style.background = ''; }, 400);
+  }
+}
+
+function removeCustomDish(name) {
+  if (!confirm(`删除"${name}"？抽签时不再抽到这道菜。`)) return;
+  const dishes = loadCustomDishes().filter(d => d.name !== name);
+  saveCustomDishes(dishes);
+  renderCustomDishList();
+}
+
+function renderCustomDishList() {
+  const list = document.getElementById('custom-dish-list');
+  const count = document.getElementById('custom-dish-count');
+  if (!list) return;
+  const dishes = loadCustomDishes();
+  if (count) count.textContent = `（${dishes.length} 道）`;
+  list.innerHTML = '';
+  if (dishes.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'custom-empty';
+    empty.textContent = '还没加菜。先填上面表单，加几道你会做的 ✨';
+    list.appendChild(empty);
+    return;
+  }
+  for (const d of dishes) {
+    const card = document.createElement('div');
+    card.className = 'custom-dish-card';
+    const emoji = (typeof ROLE_EMOJI !== 'undefined' && ROLE_EMOJI[d.role]) || '🍽️';
+    const tagsStr = (d.tags && d.tags.length) ? d.tags.join(' · ') : '无标签';
+    card.innerHTML = `
+      <div class="emoji">${emoji}</div>
+      <div class="info">
+        <div class="name"></div>
+        <div class="meta"></div>
+      </div>
+      <button class="del-btn" aria-label="删除">🗑</button>
+    `;
+    card.querySelector('.name').textContent = d.name;
+    card.querySelector('.meta').textContent = `${d.role} · ${tagsStr}`;
+    card.querySelector('.del-btn').addEventListener('click', () => removeCustomDish(d.name));
+    list.appendChild(card);
+  }
+}
+
 // ============ Banner 右上角 ⋯ 菜单 ============
 function toggleMoreMenu(e) {
   e.stopPropagation();
@@ -3876,7 +4128,10 @@ class Dish {
 }
 
 function getDishes() {
-  return DISHES_DATA.map(d => new Dish(d));
+  // Day 19：合并内置菜 + 用户自加菜名
+  const builtin = DISHES_DATA.map(d => new Dish(d));
+  const custom = loadCustomDishes().map(d => new Dish(d));
+  return builtin.concat(custom);
 }
 
 // ============ Day 10.2：每道菜的内联确认按钮 ============
