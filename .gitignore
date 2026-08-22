@@ -19,3 +19,8 @@ __pycache__/
 # 未来如果加虚拟环境
 venv/
 .venv/
+
+# 微信小程序
+mini-app/miniprogram/node_modules/
+mini-app/cloudfunctions/*/node_modules/
+mini-app/project.private.config.json

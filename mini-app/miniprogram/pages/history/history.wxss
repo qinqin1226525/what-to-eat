@@ -1,0 +1,164 @@
+/* pages/history/history.wxss */
+
+.history-row {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.history-row:last-child {
+  border-bottom: none;
+}
+
+.history-info {
+  flex: 1;
+}
+
+.history-dish {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #222;
+  margin-bottom: 6rpx;
+}
+
+.history-meta {
+  font-size: 22rpx;
+}
+
+.history-delete {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ccc;
+  font-size: 36rpx;
+  border-radius: 50%;
+}
+
+.history-delete:active {
+  background: #f5f5f5;
+  color: #d14545;
+}
+
+.empty {
+  padding: 80rpx 24rpx;
+}
+
+/* ===== 手动记录 ===== */
+.manual-btn {
+  background: #fff5e6;
+  color: #ff9a3c;
+  border: 2rpx solid #ff9a3c;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  text-align: center;
+  font-size: 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.manual-btn:active {
+  background: #ffe4c4;
+}
+
+.manual-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 40rpx;
+  box-sizing: border-box;
+}
+
+.manual-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  width: 100%;
+  max-width: 640rpx;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.15);
+}
+
+.manual-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.manual-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #222;
+}
+
+.manual-close {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 36rpx;
+}
+
+.manual-meta {
+  font-size: 22rpx;
+  color: #999;
+  margin-bottom: 24rpx;
+}
+
+.manual-section {
+  margin-bottom: 16rpx;
+}
+
+.manual-label {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+
+.manual-label .hint {
+  color: #bbb;
+  font-size: 22rpx;
+}
+
+.manual-input {
+  background: #f7f7f7;
+  border: 2rpx solid #eee;
+  border-radius: 10rpx;
+  padding: 18rpx 20rpx;
+  font-size: 28rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.picker-input {
+  display: block;
+  line-height: 1.4;
+}
+
+.manual-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 28rpx;
+}
+
+.manual-actions .btn-secondary {
+  flex: 1;
+}
+
+.manual-actions .btn-primary {
+  flex: 2;
+  font-size: 30rpx;
+}
+
+.btn-primary-hover {
+  opacity: 0.8;
+}

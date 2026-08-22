@@ -1,0 +1,123 @@
+/* pages/fridge/fridge.wxss */
+
+/* ===== 输入卡片 ===== */
+.fridge-card {
+  padding: 20rpx 24rpx;
+}
+
+.fridge-hint {
+  font-size: 22rpx;
+  margin-bottom: 14rpx;
+  line-height: 1.4;
+}
+
+.fridge-row {
+  display: flex;
+  gap: 12rpx;
+  align-items: center;
+}
+
+.fridge-input {
+  flex: 1;
+  min-width: 0;          /* 关键：让 input 在 flex 里能收缩 */
+  padding: 16rpx 20rpx;
+  font-size: 28rpx;
+}
+
+/* 用 view 模拟按钮，避开 <button> 默认宽度怪 bug */
+.btn-add {
+  flex-shrink: 0;
+  width: 96rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  text-align: center;
+  background: #ff9a3c;
+  color: #fff;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.btn-add:active {
+  opacity: 0.8;
+}
+
+.btn-add.disabled {
+  opacity: 0.5;
+}
+
+.fridge-clear {
+  margin-top: 16rpx;
+  text-align: center;
+  color: #999;
+  font-size: 24rpx;
+  padding: 8rpx 0;
+}
+
+.fridge-clear:active {
+  color: #d14545;
+}
+
+/* ===== 空态 ===== */
+.empty {
+  padding: 32rpx 24rpx;
+}
+
+.quick-tips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.tip-chip {
+  display: inline-block;
+  background: #f5f5f5;
+  color: #666;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+}
+
+/* ===== 已有食材 ===== */
+.fridge-count {
+  font-size: 22rpx;
+  margin-bottom: 16rpx;
+}
+
+.fridge-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.fridge-item {
+  background: #fff5e6;
+  border-radius: 12rpx;
+  padding: 12rpx 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.fridge-name {
+  font-size: 26rpx;
+  color: #ff9a3c;
+}
+
+.fridge-remove {
+  width: 32rpx;
+  height: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff9a3c;
+  font-size: 28rpx;
+  border-radius: 50%;
+  background: rgba(255, 154, 60, 0.15);
+}
+
+.fridge-remove:active {
+  background: rgba(255, 154, 60, 0.3);
+}

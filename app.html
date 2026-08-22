@@ -2681,6 +2681,62 @@ const DISHES_DATA = [
     ],
     tip: "花菜焯水加盐保持脆感，颜色更白；五花肉要煸到微焦才香"
   },
+  { name: "南瓜粥", time_minutes: 30, role: "早餐",
+    tags: ["简单", "健康", "清淡"],
+    ingredients: ["南瓜 300g", "大米 100g"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "南瓜小米粥", time_minutes: 30, role: "早餐",
+    tags: ["养胃", "健康", "清淡"],
+    ingredients: ["南瓜 200g", "小米 50g", "大米 50g"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "南瓜饼", time_minutes: 20, role: "主食",
+    tags: ["素食", "甜口", "小孩爱"],
+    ingredients: ["南瓜 300g", "面粉 150g", "糖 20g"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "蒸南瓜", time_minutes: 15, role: "主菜",
+    tags: ["简单", "清淡", "懒人"],
+    ingredients: ["南瓜 500g"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "南瓜炖排骨", time_minutes: 60, role: "汤",
+    tags: ["慢炖", "下饭", "健康"],
+    ingredients: ["南瓜 400g", "排骨 300g", "姜 3 片", "葱 1 根"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "南瓜小米糊", time_minutes: 20, role: "早餐",
+    tags: ["健康", "快手", "小孩爱"],
+    ingredients: ["南瓜 200g", "小米 50g", "大米 30g"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "蛋黄焗南瓜", time_minutes: 30, role: "主菜",
+    tags: ["下饭", "简单", "小孩爱"],
+    ingredients: ["南瓜 400g", "咸蛋黄 3 个", "葱 少许"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "南瓜浓汤", time_minutes: 30, role: "汤",
+    tags: ["西餐", "简单", "健康"],
+    ingredients: ["南瓜 400g", "洋葱 半颗", "淡奶油 100ml", "黄油 20g"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
 ];
 
 // 食材同义词表（Day 12.9 冰箱/搜索用，与 what_to_eat.py INGREDIENT_SYNONYMS 保持一致）
@@ -2993,11 +3049,17 @@ function cookieSet(name, value) {
   const maxChunk = 3500;
   const chunks = Math.ceil(value.length / maxChunk);
   const expDays = 365;
+  // 记录旧分片数；新值变短时要清掉多余分片，避免长期占用 cookie 配额。
+  const oldLenMatch = document.cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_PREFIX}${name}-n=(\\d+)`));
+  const oldChunks = oldLenMatch ? parseInt(oldLenMatch[1], 10) : 0;
   for (let i = 0; i < chunks; i++) {
     const chunk = value.slice(i * maxChunk, (i + 1) * maxChunk);
     document.cookie = `${COOKIE_PREFIX}${name}-${i}=${encodeURIComponent(chunk)}; max-age=${expDays*86400}; path=/; SameSite=Lax`;
   }
   document.cookie = `${COOKIE_PREFIX}${name}-n=${chunks}; max-age=${expDays*86400}; path=/; SameSite=Lax`;
+  for (let i = chunks; i < oldChunks; i++) {
+    document.cookie = `${COOKIE_PREFIX}${name}-${i}=; max-age=0; path=/`;
+  }
 }
 
 function cookieGet(name) {
@@ -3023,21 +3085,26 @@ function cookieDel(name) {
 }
 
 function storeGet(key) {
-  // 优先 localStorage（快）
-  const local = localStorage.getItem(key);
-  if (local !== null && local !== '') return local;
-  // localStorage 空 → 尝试 cookie（跨入口同步关键）
+  // cookie 是 Safari 与 PWA 唯一共享的存储层，必须优先读取。
+  // 若先读各自隔离的 localStorage，另一入口的新记录会被旧缓存覆盖。
   const cookie = cookieGet(key);
   if (cookie !== null && cookie !== '') {
-    try { localStorage.setItem(key, cookie); } catch (e) {}  // 拉回本地，下次快
+    try { localStorage.setItem(key, cookie); } catch (e) {}
     return cookie;
   }
+  // cookie 不可用（例如本地 file:// 调试）时，仍可使用本地副本。
+  const local = localStorage.getItem(key);
+  if (local !== null && local !== '') return local;
   return null;
 }
 
 function storeSet(key, value) {
   try { localStorage.setItem(key, value); } catch (e) {}
   try { cookieSet(key, value); } catch (e) {}
+  // cookie 被浏览器拒绝或写满时，不保留旧值；否则下次会错误地读回旧数据。
+  if (cookieGet(key) !== value) {
+    try { cookieDel(key); } catch (e) {}
+  }
 }
 
 function storeDel(key) {
@@ -4856,7 +4923,7 @@ function renderSearchResults(results, query) {
   }
   bar.classList.add('has-query');
   if (results.length === 0) {
-    container.innerHTML = `<div class="search-empty">没找到含「${query}」的菜 😔</div>`;
+    container.innerHTML = `<div class="search-empty">没找到含「${escapeHtml(query)}」的菜 😔</div>`;
     container.hidden = false;
     return;
   }
@@ -4881,7 +4948,7 @@ function renderSearchResults(results, query) {
   container.querySelectorAll('.dish-row').forEach(row => {
     row.addEventListener('click', () => {
       const dish = DISHES_DATA.find(d => d.name === row.dataset.dishName);
-      if (dish) openRecipe(dish);
+      if (dish) showRecipe(dish);
     });
   });
 }

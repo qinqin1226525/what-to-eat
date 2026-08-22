@@ -1,0 +1,131 @@
+/* pages/profile/profile.wxss */
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8rpx 0;
+}
+
+.info-label {
+  color: #666;
+  font-size: 26rpx;
+}
+
+.info-value {
+  color: #222;
+  font-size: 24rpx;
+}
+
+.mono {
+  font-family: Menlo, Consolas, monospace;
+}
+
+.section {
+  padding: 16rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.section:last-child {
+  border-bottom: none;
+}
+
+.section-title {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 12rpx;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.chip {
+  background: #f5f5f5;
+  color: #666;
+  padding: 12rpx 24rpx;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+}
+
+.chip-on {
+  background: #ff9a3c;
+  color: #fff;
+}
+
+.chip-ghost {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.targets-summary {
+  margin-top: 20rpx;
+  padding-top: 16rpx;
+  border-top: 2rpx dashed #eee;
+}
+
+.target-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
+  font-size: 28rpx;
+}
+
+.target-num {
+  color: #ff9a3c;
+  font-weight: 600;
+}
+
+.switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+}
+/* ===== 添加新菜表单 ===== */
+.form-section {
+  padding: 12rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+}
+
+.form-label {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 8rpx;
+}
+
+.form-input {
+  width: 100%;
+  font-size: 28rpx;
+  padding: 8rpx 0;
+  background: transparent;
+  border: none;
+  box-sizing: border-box;
+  min-height: 48rpx;
+}
+
+/* AI 填充按钮 */
+.ai-fill-btn {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  color: #fff;
+  border: none;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.ai-fill-btn[disabled] {
+  background: #ccc;
+  color: #fff;
+}

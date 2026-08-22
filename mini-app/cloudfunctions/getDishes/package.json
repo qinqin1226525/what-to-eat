@@ -1,0 +1,9 @@
+{
+  "name": "getDishes",
+  "version": "1.0.0",
+  "description": "返回云端 dishes 集合的全部菜谱",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
