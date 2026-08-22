@@ -9,6 +9,7 @@ __pycache__/
 # 手动备份（你或我改菜谱前的 cp 备份）
 *.bak
 *.backup
+*.bak.*
 
 # 编辑器临时文件
 *.swp
