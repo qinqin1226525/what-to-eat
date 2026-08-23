@@ -1,0 +1,292 @@
+/* pages/home/home.wxss —— 手搓选菜
+   配色纪律：低饱和、米色/灰白为主、品牌色仅 1 处橙色
+   无动画、无圆点 loading、无大字 emoji（防吸引孩子）
+*/
+
+.home {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #fafaf7;
+  padding: 24rpx 32rpx;
+  box-sizing: border-box;
+}
+
+/* 顶部 */
+.home-header {
+  padding: 16rpx 0 24rpx;
+  flex-shrink: 0;
+}
+
+.home-title {
+  font-weight: 600;
+  color: #2a2a2a;
+  margin-bottom: 6rpx;
+}
+
+.home-sub {
+  color: #999;
+}
+
+/* Section（chip 行） */
+.section {
+  margin-bottom: 20rpx;
+  flex-shrink: 0;
+}
+
+.section-label {
+  color: #888;
+  margin-bottom: 10rpx;
+}
+
+.chip-scroll {
+  white-space: nowrap;
+  width: 100%;
+}
+
+/* chip */
+.chip {
+  display: inline-block;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  margin-right: 12rpx;
+  line-height: 1.4;
+}
+
+.chip-fridge {
+  background: #f0f4ed;
+  color: #5a7a4a;
+}
+
+.chip-custom {
+  background: #fff5e6;
+  color: #b8702c;
+}
+
+.chip-x {
+  margin-left: 8rpx;
+  color: #c8966a;
+  font-weight: 300;
+}
+
+.chip-add {
+  background: #fff;
+  border: 2rpx dashed #ddd;
+  padding: 8rpx 20rpx;
+}
+
+.chip-input {
+  display: inline-block;
+  width: 120rpx;
+  font-size: inherit;
+  color: #999;
+}
+
+.chip-input-ph {
+  color: #ccc;
+}
+
+/* 操作按钮 */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding: 16rpx 0 24rpx;
+  flex-shrink: 0;
+}
+
+.big-btn {
+  font-size: 32rpx;
+  padding: 28rpx 0;
+}
+
+.small-btn {
+  font-size: 26rpx;
+  padding: 18rpx 0;
+}
+
+/* 最近选了 */
+.recent {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  flex-shrink: 0;
+}
+
+.recent-label {
+  color: #888;
+  margin-bottom: 10rpx;
+}
+
+.recent-list {
+  color: #666;
+  line-height: 1.6;
+}
+
+.recent-item {
+  margin-right: 12rpx;
+}
+
+/* ===== 结果 modal ===== */
+.result-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 40rpx;
+  box-sizing: border-box;
+}
+
+.result-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 40rpx 32rpx;
+  width: 100%;
+  max-width: 640rpx;
+  position: relative;
+}
+
+.result-close {
+  position: absolute;
+  top: 16rpx;
+  right: 24rpx;
+  color: #999;
+  font-size: 32rpx;
+  width: 48rpx;
+  height: 48rpx;
+  text-align: center;
+  line-height: 48rpx;
+}
+
+.result-title {
+  font-weight: 600;
+  color: #2a2a2a;
+  margin-bottom: 24rpx;
+}
+
+.result-row {
+  padding: 24rpx 20rpx;
+  border-radius: 12rpx;
+  margin-bottom: 12rpx;
+  background: #fafaf7;
+  position: relative;
+}
+
+.result-row-hover {
+  background: #f0e8dc;
+}
+
+.result-dish {
+  font-weight: 600;
+  color: #2a2a2a;
+  margin-bottom: 6rpx;
+}
+
+.result-reason {
+  color: #888;
+  margin-bottom: 8rpx;
+}
+
+.result-eat {
+  color: #ff9a3c;
+  text-align: right;
+}
+
+/* ===== Onboarding modal ===== */
+.onboard-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 40rpx;
+  box-sizing: border-box;
+}
+
+.onboard-card {
+  background: #fff;
+  border-radius: 16rpx;
+  width: 100%;
+  max-width: 700rpx;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  padding: 32rpx 24rpx;
+  box-sizing: border-box;
+}
+
+.onboard-title {
+  font-weight: 600;
+  color: #2a2a2a;
+  margin-bottom: 6rpx;
+  flex-shrink: 0;
+}
+
+.onboard-sub {
+  color: #999;
+  margin-bottom: 20rpx;
+  flex-shrink: 0;
+}
+
+.onboard-scroll {
+  flex: 1;
+  max-height: 65vh;
+}
+
+.onboard-group {
+  margin-bottom: 24rpx;
+}
+
+.onboard-group-title {
+  color: #5a5a5a;
+  font-weight: 500;
+  margin-bottom: 12rpx;
+  padding-left: 4rpx;
+}
+
+.onboard-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.onboard-item {
+  background: #f5f5f5;
+  color: #666;
+  padding: 10rpx 18rpx;
+  border-radius: 10rpx;
+}
+
+.onboard-item-on {
+  background: #ff9a3c;
+  color: #fff;
+}
+
+.onboard-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+  flex-shrink: 0;
+}
+
+.onboard-actions .btn-secondary {
+  flex: 1;
+}
+
+.onboard-actions .btn-primary {
+  flex: 2;
+}
+
+/* 小屏适配 */
+@media (max-height: 640px) {
+  .home { padding: 16rpx 24rpx; }
+  .home-header { padding: 8rpx 0 16rpx; }
+  .section { margin-bottom: 14rpx; }
+  .actions { padding: 12rpx 0; }
+  .big-btn { padding: 22rpx 0; }
+}

@@ -1,0 +1,111 @@
+<!-- pages/home/home.wxml —— 手搓选菜（主页）
+     UI 纪律：低饱和、无动画、单屏不滚动（带孩子场景）
+-->
+<view class="home">
+
+  <!-- 顶部问候 -->
+  <view class="home-header">
+    <view class="home-title" style="font-size: {{36 * fontScale}}rpx;">今天吃什么</view>
+    <view class="home-sub" style="font-size: {{24 * fontScale}}rpx;">
+      <text wx:if="{{loading}}">加载中…</text>
+      <text wx:elif="{{customDishes.length === 0}}">先告诉我你会做哪些菜</text>
+      <text wx:else>菜池 {{customDishes.length}} 道 · 冰箱 {{fridgeItems.length}} 项</text>
+    </view>
+  </view>
+
+  <!-- 冰箱 chip 行（横向滚动） -->
+  <view class="section" wx:if="{{fridgeItems.length > 0}}">
+    <view class="section-label" style="font-size: {{22 * fontScale}}rpx;">🥬 冰箱</view>
+    <scroll-view scroll-x class="chip-scroll" enhanced show-scrollbar="{{false}}">
+      <block wx:for="{{fridgeItems}}" wx:key="*this">
+        <view class="chip chip-fridge" style="font-size: {{24 * fontScale}}rpx;">{{item}}</view>
+      </block>
+    </scroll-view>
+  </view>
+
+  <!-- 菜池 chip 行（可加可删） -->
+  <view class="section">
+    <view class="section-label" style="font-size: {{22 * fontScale}}rpx;">🍳 我会做的</view>
+    <scroll-view scroll-x class="chip-scroll" enhanced show-scrollbar="{{false}}">
+      <block wx:for="{{customDishes}}" wx:key="*this">
+        <view class="chip chip-custom" style="font-size: {{24 * fontScale}}rpx;" data-name="{{item}}" bindtap="onRemoveDish">
+          {{item}}<text class="chip-x">×</text>
+        </view>
+      </block>
+      <!-- 加菜输入 -->
+      <view class="chip chip-add" style="font-size: {{24 * fontScale}}rpx;">
+        <input class="chip-input" placeholder="+ 加菜" placeholder-class="chip-input-ph" bindconfirm="onAddDish" confirm-type="done" />
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 操作区 -->
+  <view class="actions">
+    <view class="btn-primary big-btn" bindtap="onRandomPick" hover-class="btn-primary-hover">
+      <text wx:if="{{picking}}">选菜中…</text>
+      <text wx:else>🎲 帮我选 3 道</text>
+    </view>
+    <view class="btn-secondary small-btn" bindtap="onAiInspire" hover-class="btn-primary-hover">
+      💡 AI 给点灵感
+    </view>
+  </view>
+
+  <!-- 最近选了 -->
+  <view class="recent" wx:if="{{recentPicks.length > 0}}">
+    <view class="recent-label" style="font-size: {{22 * fontScale}}rpx;">最近 7 天吃过</view>
+    <view class="recent-list" style="font-size: {{24 * fontScale}}rpx;">
+      <text wx:for="{{recentPicks}}" wx:key="*this" class="recent-item">{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 抽到结果：全屏 modal -->
+  <view wx:if="{{picked}}" class="result-mask" bindtap="closePicked">
+    <view class="result-card" catchtap="">
+      <view class="result-close" bindtap="closePicked">✕</view>
+      <view class="result-title" style="font-size: {{32 * fontScale}}rpx;">
+        <text wx:if="{{picked.source === 'ai'}}">💡 AI 灵感</text>
+        <text wx:else>🎲 今日推荐</text>
+      </view>
+      <block wx:for="{{picked.dishes}}" wx:key="*this" wx:for-item="dish" wx:for-index="idx">
+        <view class="result-row" data-dish="{{dish}}" bindtap="onEat" hover-class="result-row-hover">
+          <view class="result-dish" style="font-size: {{36 * fontScale}}rpx;">{{dish}}</view>
+          <view wx:if="{{picked.reasons && picked.reasons[idx]}}" class="result-reason" style="font-size: {{22 * fontScale}}rpx;">
+            {{picked.reasons[idx].reason}}
+          </view>
+          <view class="result-eat" style="font-size: {{24 * fontScale}}rpx;">吃这个 →</view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- Onboarding modal：首次进入弹 -->
+  <view wx:if="{{showOnboarding}}" class="onboard-mask">
+    <view class="onboard-card">
+      <view class="onboard-title" style="font-size: {{34 * fontScale}}rpx;">挑你会做的菜</view>
+      <view class="onboard-sub" style="font-size: {{24 * fontScale}}rpx;">从 125 道家常菜里勾选，可跳过</view>
+      <scroll-view scroll-y class="onboard-scroll">
+        <block wx:for="{{onboardingDishes}}" wx:key="role" wx:for-item="group">
+          <view class="onboard-group">
+            <view class="onboard-group-title" style="font-size: {{26 * fontScale}}rpx;">{{group.label}}</view>
+            <view class="onboard-grid">
+              <block wx:for="{{group.items}}" wx:key="name" wx:for-item="item">
+                <view class="onboard-item {{item.checked ? 'onboard-item-on' : ''}}"
+                      style="font-size: {{24 * fontScale}}rpx;"
+                      data-role="{{group.role}}"
+                      data-name="{{item.name}}"
+                      bindtap="onToggleOnboard">
+                  {{item.checked ? '✓ ' : ''}}{{item.name}}
+                </view>
+              </block>
+            </view>
+          </view>
+        </block>
+      </scroll-view>
+      <view class="onboard-actions">
+        <view class="btn-secondary" bindtap="closeOnboarding">跳过</view>
+        <view class="btn-primary" bindtap="saveOnboarding">保存</view>
+      </view>
+    </view>
+  </view>
+
+</view>

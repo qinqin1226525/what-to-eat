@@ -6,10 +6,16 @@ const https = require('https')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 exports.main = async (event) => {
-  const { question, profile, todayMeals, todayTotals, targets } = event
   const API_KEY = process.env.API_KEY
   const API_URL = process.env.API_URL || 'https://api.deepseek.com/v1/chat/completions'
   const MODEL = process.env.MODEL || 'deepseek-chat'
+
+  // AI 灵感模式：从菜池 ∩ 冰箱 选 3 道
+  if (event.mode === 'pickWithAI') {
+    return pickWithAI(event, { API_KEY, API_URL, MODEL })
+  }
+
+  const { question, profile, todayMeals, todayTotals, targets } = event
 
   if (!API_KEY) {
     return { ok: false, error: 'API_KEY 未配置，请在云函数环境变量里设置' }
@@ -129,6 +135,69 @@ function httpsPostJson(url, apiKey, body) {
     req.write(data)
     req.end()
   })
+}
+
+// AI 灵感：从菜池 ∩ 冰箱 - 最近 7 天，调 AI 出 3 道带理由
+async function pickWithAI(event, { API_KEY, API_URL, MODEL }) {
+  const { candidates = [], recentPicks = [], fridge = [], hint = '' } = event
+  if (!API_KEY) {
+    return { ok: false, error: 'API_KEY 未配置，请在云函数环境变量里设置' }
+  }
+  if (!Array.isArray(candidates) || candidates.length === 0) {
+    return { ok: false, error: 'candidates 为空，没菜可选' }
+  }
+
+  const systemPrompt = `你是「三餐肆计」，用户的私人饮食顾问。
+任务：从【候选菜】里挑 3 道，**必须是候选菜里的**，不能编新的。
+每道配 1 句理由（≤20 字），说明为什么现在适合。
+
+用户上下文：
+- 冰箱现有：${fridge.join('、') || '（未填）'}
+- 最近 7 天吃过：${recentPicks.join('、') || '（无）'}
+- ${hint ? '特别偏好：' + hint : ''}
+
+返回严格 JSON（不要 markdown 代码块）：
+{"picks": [{"dish": "菜名", "reason": "理由"}, ...]}
+
+规则：
+- 优先选和冰箱食材匹配的
+- 避开最近 7 天吃过的
+- 3 道菜尽量不同 role（主菜/汤/主食）
+- 理由要口语化，不要"根据您..."这种官腔`
+
+  try {
+    const data = await httpsPostJson(API_URL, API_KEY, {
+      model: MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `候选菜：${candidates.join('、')}` }
+      ],
+      max_tokens: 400,
+      temperature: 0.8,
+      stream: false,
+      response_format: { type: 'json_object' }
+    })
+
+    const reply = data.choices?.[0]?.message?.content?.trim()
+    if (!reply) {
+      return { ok: false, error: 'AI 返回为空' }
+    }
+    let parsed
+    try {
+      parsed = JSON.parse(reply)
+    } catch (e) {
+      return { ok: false, error: 'AI 返回不是 JSON: ' + reply.slice(0, 100) }
+    }
+    const picks = Array.isArray(parsed.picks) ? parsed.picks.slice(0, 3) : []
+    // 兜底校验：picks 里的 dish 必须在 candidates 里
+    const valid = picks.filter(p => p && candidates.includes(p.dish))
+    return {
+      ok: true,
+      picks: valid.map(p => ({ dish: p.dish, reason: String(p.reason || '').slice(0, 30) }))
+    }
+  } catch (err) {
+    return { ok: false, error: `AI 调用失败：${err.message || String(err)}` }
+  }
 }
 
 function buildContext(profile, todayMeals, todayTotals, targets) {

@@ -1,6 +1,9 @@
 <!-- pages/history/history.wxml -->
 <view class="container">
 
+  <!-- 顶部齿轮：跳设置（健康画像 + 偏好） -->
+  <view class="gear-btn" bindtap="onOpenSettings">⚙ 设置</view>
+
   <view class="manual-btn" bindtap="openManual">📝 手动记录今天吃了啥</view>
 
   <view wx:if="{{loading}}" class="loading">加载中…</view>

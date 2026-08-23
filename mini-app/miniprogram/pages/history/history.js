@@ -20,6 +20,13 @@ Page({
 
   onShow() {
     this.loadHistory()
+    // 首页「手动记录」入口跳过来时，自动开 modal
+    const app = getApp()
+    if (app.globalData.__openManualOnHistory) {
+      app.globalData.__openManualOnHistory = false
+      // 等 onShow 渲染完再弹，避免被覆盖
+      setTimeout(() => this.openManual(), 100)
+    }
   },
 
   async loadHistory() {
@@ -43,6 +50,11 @@ Page({
       console.warn('拉历史失败', err)
       this.setData({ loading: false })
     }
+  },
+
+  // 跳设置（健康画像 + 偏好）
+  onOpenSettings() {
+    wx.navigateTo({ url: '/pages/profile/profile' })
   },
 
   async onDelete(e) {

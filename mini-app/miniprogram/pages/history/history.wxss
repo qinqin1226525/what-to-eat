@@ -47,6 +47,18 @@
 }
 
 /* ===== 手动记录 ===== */
+.gear-btn {
+  text-align: right;
+  color: #999;
+  font-size: 24rpx;
+  padding: 8rpx 0;
+  margin-bottom: 8rpx;
+}
+
+.gear-btn:active {
+  color: #666;
+}
+
 .manual-btn {
   background: #fff5e6;
   color: #ff9a3c;

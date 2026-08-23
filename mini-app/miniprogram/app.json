@@ -1,11 +1,10 @@
 {
   "pages": [
-    "pages/index/index",
-    "pages/history/history",
+    "pages/home/home",
     "pages/fridge/fridge",
-    "pages/profile/profile",
-    "pages/stats/stats",
-    "pages/chat/chat"
+    "pages/history/history",
+    "pages/chat/chat",
+    "pages/profile/profile"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -21,20 +20,16 @@
     "backgroundColor": "#ffffff",
     "list": [
       {
-        "pagePath": "pages/index/index",
+        "pagePath": "pages/home/home",
         "text": "选菜"
-      },
-      {
-        "pagePath": "pages/history/history",
-        "text": "历史"
       },
       {
         "pagePath": "pages/fridge/fridge",
         "text": "冰箱"
       },
       {
-        "pagePath": "pages/profile/profile",
-        "text": "我的"
+        "pagePath": "pages/history/history",
+        "text": "记录"
       }
     ]
   },
