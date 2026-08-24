@@ -1,6 +1,7 @@
 // pages/home/home.js —— 手搓选菜（核心页面）
 const app = getApp()
 const cloud = require('../../utils/cloud.js')
+const util = require('../../utils/util.js')
 
 const ROLE_LABEL = {
   '主菜': '🍖 主菜',
@@ -260,7 +261,7 @@ Page({
         wx.showToast({ title: `已选 ${picked.length} 道`, icon: 'success' })
       }
     } catch (err) {
-      wx.showToast({ title: '保存失败', icon: 'none' })
+      util.showError('保存失败', err)
     }
   }
 })

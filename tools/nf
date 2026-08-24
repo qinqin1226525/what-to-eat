@@ -1,0 +1,79 @@
+#!/bin/bash
+# tools/nf —— 一键创建时间命名的文件夹
+#
+# 用法：
+#   nf                  建 ./YYYY-MM-DD/
+#   nf 工作             建 ./YYYY-MM-DD-工作/
+#   nf -t 学习          建 ./YYYY-MM-DD_HHMM-学习/
+#   nf --daily          按天建顶层目录（脚本可放进去）
+#   nf -h | --help      显示帮助
+
+set -e
+
+usage() {
+  cat <<EOF
+nf —— 一键创建时间命名的文件夹
+
+用法:
+  nf                    建 ./YYYY-MM-DD/
+  nf <名称>             建 ./YYYY-MM-DD-<名称>/
+  nf -t <名称>          建 ./YYYY-MM-DD_HHMM-<名称>/  (含时分)
+  nf --daily            建 ./YYYY-MM-DD/<名称>/       (推荐：当天多次创建不冲突)
+  nf -h, --help         显示帮助
+
+示例:
+  nf                    → ./2026-08-23/
+  nf 工作                → ./2026-08-23-工作/
+  nf -t 学习             → ./2026-08-23_0915-学习/
+  nf --daily 工作        → ./2026-08-23/工作/
+EOF
+}
+
+NAME=""
+USE_TIME=false
+DAILY=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage; exit 0 ;;
+    -t|--time) USE_TIME=true; shift ;;
+    --daily) DAILY=true; shift ;;
+    -*) echo "未知选项: $1"; usage; exit 1 ;;
+    *) NAME="$1"; shift ;;
+  esac
+done
+
+# 时间戳
+if $USE_TIME; then
+  TS=$(date +%Y-%m-%d_%H%M)
+else
+  TS=$(date +%Y-%m-%d)
+fi
+
+# 决定路径
+if $DAILY; then
+  # ./YYYY-MM-DD/<名称>/
+  BASE="$TS"
+  if [ -z "$NAME" ]; then
+    DIR="$BASE"
+  else
+    DIR="${BASE}/${NAME}"
+  fi
+else
+  # ./YYYY-MM-DD[-HHMM][-名称]/
+  if [ -z "$NAME" ]; then
+    DIR="$TS"
+  else
+    DIR="${TS}-${NAME}"
+  fi
+fi
+
+mkdir -p "$DIR"
+cd "$DIR" || exit 1
+
+# 输出结果（带图标，方便复制）
+echo "📁 $(pwd)"
+
+# macOS / Linux 通用：如果是交互终端，pwd 已经在新目录里
+# 如果想打开 Finder（macOS），取消下一行的注释
+# open . 2>/dev/null || true

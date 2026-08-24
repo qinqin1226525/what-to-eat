@@ -13,6 +13,8 @@ function call(name, data) {
 
 // 便捷封装
 const api = {
+  // 通用调用（兜底，没专门封装时用这个）
+  call,
   // 菜谱
   getDishes: () => call('getDishes'),
   addDish: (dish) => call('addDish', dish),

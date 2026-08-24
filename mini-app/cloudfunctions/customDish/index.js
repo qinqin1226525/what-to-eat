@@ -16,12 +16,30 @@ async function getOpenid() {
 // 获取当前用户的菜池文档
 async function findMyDoc() {
   const openid = await getOpenid()
-  const r = await db.collection(COL).where({ _openid: openid }).limit(1).get()
-  return { openid, doc: (r.data && r.data[0]) || null }
+  try {
+    const r = await db.collection(COL).where({ _openid: openid }).limit(1).get()
+    return { openid, doc: (r.data && r.data[0]) || null }
+  } catch (e) {
+    // 集合不存在时 createCollection 后重试一次
+    if (/-502005|not exist/i.test(e.message || '')) {
+      try { await db.createCollection(COL) } catch (_) { /* ignore */ }
+      const r2 = await db.collection(COL).where({ _openid: openid }).limit(1).get()
+      return { openid, doc: (r2.data && r2.data[0]) || null }
+    }
+    throw e
+  }
 }
 
 exports.main = async (event) => {
   const { action } = event
+  // 兜底：确保集合存在（首次访问时自动建）
+  try {
+    await db.createCollection(COL)
+  } catch (e) {
+    if (!/already exists|已存在/i.test(e.message || '')) {
+      console.warn('[customDish] createCollection:', e.message)
+    }
+  }
   try {
     if (action === 'get') {
       const { openid, doc } = await findMyDoc()

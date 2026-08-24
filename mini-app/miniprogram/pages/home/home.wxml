@@ -88,7 +88,7 @@
           <view class="onboard-group">
             <view class="onboard-group-title" style="font-size: {{26 * fontScale}}rpx;">{{group.label}}</view>
             <view class="onboard-grid">
-              <block wx:for="{{group.items}}" wx:key="name" wx:for-item="item">
+              <block wx:for="{{group.items}}" wx:key="*this" wx:for-item="item">
                 <view class="onboard-item {{item.checked ? 'onboard-item-on' : ''}}"
                       style="font-size: {{24 * fontScale}}rpx;"
                       data-role="{{group.role}}"
