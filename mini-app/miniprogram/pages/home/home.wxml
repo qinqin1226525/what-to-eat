@@ -66,9 +66,10 @@
 
   <!-- 菜池 chip 行（可加可删） -->
   <view class="section">
-    <view class="section-label" style="font-size: {{22 * fontScale}}rpx;">
+    <view class="section-label section-label-clickable" data-section="pool" catchtap="onToggleSection">
       <text>🍳 我会做的</text>
-      <text class="section-label-sub" style="font-size: {{20 * fontScale}}rpx;">{{customDishes.length}} 道 · 点 × 删除单条</text>
+      <text class="section-label-sub" style="font-size: {{20 * fontScale}}rpx;">{{customDishes.length}} 道</text>
+      <text class="section-toggle">{{expanded.pool ? '▼' : '▶'}}</text>
     </view>
     <!-- 已有菜池（chip + × 删除单条） -->
     <scroll-view scroll-x class="chip-scroll" enhanced show-scrollbar="{{false}}">
@@ -77,21 +78,23 @@
           {{item}}<text class="chip-x">×</text>
         </view>
       </block>
-      <view wx:if="{{customDishes.length === 0}}" class="chip-empty" style="font-size: {{22 * fontScale}}rpx;">还没有菜，去下面加</view>
+      <view wx:if="{{customDishes.length === 0}}" class="chip-empty" style="font-size: {{22 * fontScale}}rpx;">还没有菜，{{expanded.pool ? '下面加' : '点 ▶ 加'}}</view>
     </scroll-view>
 
-    <!-- 批量输入：5 个 input -->
-    <view class="batch-inputs">
-      <block wx:for="{{poolInputs}}" wx:key="id" wx:for-item="inp">
-        <input class="batch-input" value="{{inp.value}}" data-id="{{inp.id}}"
-               bindinput="onPoolInputChange" placeholder="菜名 {{inp.id}}" />
-      </block>
-    </view>
+    <!-- 批量输入：5 个 input（默认收起） -->
+    <view wx:if="{{expanded.pool}}">
+      <view class="batch-inputs">
+        <block wx:for="{{poolInputs}}" wx:key="id" wx:for-item="inp">
+          <input class="batch-input" value="{{inp.value}}" data-id="{{inp.id}}"
+                 bindinput="onPoolInputChange" placeholder="菜名 {{inp.id}}" />
+        </block>
+      </view>
 
-    <!-- 操作行：添加 + 保存 -->
-    <view class="pool-actions">
+      <!-- 操作行：添加 + 保存 -->
+      <view class="pool-actions">
       <view class="pool-add-row" catchtap="onAddPoolInput">+ 加一行</view>
       <view class="pool-save-btn {{savingPool ? 'disabled' : ''}}" catchtap="onSavePool">{{savingPool ? '保存中…' : '保存菜池'}}</view>
+    </view>
     </view>
   </view>
 
@@ -104,8 +107,11 @@
 
   <!-- 最近选了 -->
   <view class="recent" wx:if="{{recentPicks.length > 0}}">
-    <view class="recent-label" style="font-size: {{22 * fontScale}}rpx;">最近 7 天吃过</view>
-    <view class="recent-list" style="font-size: {{24 * fontScale}}rpx;">
+    <view class="recent-label section-label-clickable" data-section="recent" catchtap="onToggleSection">
+      <text style="font-size: {{22 * fontScale}}rpx;">最近 7 天吃过</text>
+      <text class="section-toggle">{{expanded.recent ? '▼' : '▶'}}</text>
+    </view>
+    <view wx:if="{{expanded.recent}}" class="recent-list" style="font-size: {{24 * fontScale}}rpx;">
       <text wx:for="{{recentPicks}}" wx:key="*this" class="recent-item">{{item}}</text>
     </view>
   </view>

@@ -42,6 +42,8 @@ Page({
     poolInputs: [{ id: 1, value: '' }, { id: 2, value: '' }, { id: 3, value: '' }, { id: 4, value: '' }, { id: 5, value: '' }],
     nextPoolId: 6,
     savingPool: false,
+    // 可折叠 section 状态（默认全收起）
+    expanded: { pool: false, recent: false },
     // 手动记录 modal（按饮食报告风格）
     showManualLog: false,
     manualForm: { date: '', breakfast: '', lunch: '', dinner: '' },
@@ -765,6 +767,13 @@ Page({
       }
     })
     wx.showToast({ title: `+ ${role}: ${newDish}`, icon: 'success', duration: 1000 })
+  },
+
+  // ----- 折叠/展开 section -----
+  onToggleSection(e) {
+    const section = e.currentTarget.dataset.section
+    if (!section) return
+    this.setData({ [`expanded.${section}`]: !this.data.expanded[section] })
   },
 
   // ----- 菜池：批量输入 + 保存 -----

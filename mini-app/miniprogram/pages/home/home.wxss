@@ -725,6 +725,22 @@
   align-items: center;
 }
 
+.section-label-clickable {
+  cursor: pointer;
+}
+
+.section-label-clickable:active {
+  opacity: 0.6;
+}
+
+.section-toggle {
+  color: #ff9a3c;
+  font-size: 22rpx;
+  font-weight: 600;
+  margin-left: 8rpx;
+  flex-shrink: 0;
+}
+
 .fridge-clear-link {
   color: #999;
   padding: 0 8rpx;
