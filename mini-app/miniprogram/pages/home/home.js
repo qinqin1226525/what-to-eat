@@ -22,16 +22,13 @@ const ROLE_EMOJI = {
 
 Page({
   data: {
-    fridgeItems: [],
-    fridgeInput: '',
-    savingFridge: false,
     customDishes: [],
     recentPicks: [],     // 最近7天已抽
     loading: true,
     picked: null,        // {dishes, dishInfos, reasons, source}
     pickedMeals: [],   // 用户在 modal 里「选这道」的菜名列表，多次 addMeal 用
     picking: false,
-    pickedHint: '',     // 结果 modal 的提示文字（如「冰箱没匹配到菜池」）
+    pickedHint: '',     // 结果 modal 的提示文字
     // onboarding
     showOnboarding: false,
     onboardingDishes: [],
@@ -44,6 +41,11 @@ Page({
     // 手动记录 modal（按饮食报告风格）
     showManualLog: false,
     manualForm: { date: '', breakfast: '', lunch: '', dinner: '' },
+    // 搜菜谱（输入菜名出菜谱）
+    searchInput: '',
+    searchResults: [],   // 过滤后的菜谱
+    dishGroups: [],      // 没搜索时按 role 分组展示所有菜
+    searchDetail: null, // 选中的菜详情
     // 统计（计算自 meals 集合，1 页内 inline 显示）
     stats: { totalMeals: 0, activeDays: 0, avgPerDay: 0, topDishes: [], mealDist: [] },
     // 系统信息
@@ -72,27 +74,49 @@ Page({
   async refresh() {
     this.setData({ loading: true })
     try {
-      const [fridgeRes, customRes, historyRes] = await Promise.all([
-        cloud.getFridge(),
+      const [customRes, historyRes, dishesRes] = await Promise.all([
         cloud.call('customDish', { action: 'get' }),
-        cloud.getHistory(50)
+        cloud.getHistory(50),
+        cloud.getDishes()
       ])
-      const fridgeItems = (fridgeRes && fridgeRes.ok) ? fridgeRes.items : []
       const customDishes = (customRes && customRes.ok) ? customRes.items : []
       const history = (historyRes && historyRes.ok) ? historyRes.history : []
-      // 最近 7 天已抽（status 为 confirmed 或 manual 的）
+      const allDishes = (dishesRes && dishesRes.ok) ? dishesRes.dishes : []
+      // 缓存到 globalData 给其他页/算法用
+      app.globalData.dishes = allDishes
+
+      // 按 role 分组
+      const ROLE_LABEL = { '主菜': '🍖 主菜', '汤': '🍲 汤', '主食': '🍚 主食', '凉菜': '🥗 凉菜', '早餐': '🥣 早餐' }
+      const ROLE_EMOJI = { '主菜': '🥢', '汤': '🥣', '主食': '🥯', '凉菜': '🥗', '早餐': '🍳' }
+      const grouped = {}
+      for (const d of allDishes) {
+        if (!grouped[d.role]) grouped[d.role] = []
+        grouped[d.role].push({
+          name: d.name,
+          role: d.role,
+          time: d.time_minutes || '?',
+          emoji: ROLE_EMOJI[d.role] || '🍽'
+        })
+      }
+      const ROLE_ORDER = ['主菜', '汤', '主食', '凉菜', '早餐']
+      const dishGroups = ROLE_ORDER
+        .filter(role => grouped[role] && grouped[role].length > 0)
+        .map(role => ({ role, label: ROLE_LABEL[role], items: grouped[role] }))
+
+      // 最近 7 天已抽
       const cutoff = new Date()
       cutoff.setDate(cutoff.getDate() - 7)
       const recentPicks = history
         .filter(h => h.status !== 'skipped' && new Date(h.date) >= cutoff)
         .map(h => h.dish)
 
-      // 计算本月统计
       const stats = this._computeStats(history)
 
-      this.setData({ fridgeItems, customDishes, recentPicks, stats, loading: false })
+      this.setData({
+        customDishes, recentPicks, stats, dishGroups,
+        loading: false
+      })
 
-      // 首次进入且菜池为空 → 弹 onboarding
       if (customDishes.length === 0 && !this.data._onboardingDone) {
         this.openOnboarding()
       }
@@ -131,78 +155,6 @@ Page({
     const expanded = dishes.map(() => false)
 
     this.setData({ picked: { dishes, source: 'random', expanded } })
-    this.enrichDishes(dishes).then(infos => {
-      const cur = this.data.picked
-      if (cur && cur.dishes && cur.dishes.length === dishes.length) {
-        this.setData({ picked: { ...cur, dishInfos: infos } })
-      }
-    })
-  },
-
-  // ----- 冰箱有什么 → 做啥菜 -----
-  async onFridgeRecommend() {
-    if (this.data.picking) return
-    const { customDishes, recentPicks, fridgeItems } = this.data
-    if (customDishes.length === 0) {
-      wx.showToast({ title: '菜池为空，先加几道', icon: 'none' })
-      this.openOnboarding()
-      return
-    }
-    if (fridgeItems.length === 0) {
-      wx.showToast({ title: '冰箱是空的，去加点食材', icon: 'none' })
-      return
-    }
-
-    // 从 125 道菜里找：食材里有冰箱关键字的
-    let allDishes = app.globalData.dishes || []
-    if (allDishes.length === 0) {
-      try {
-        const res = await cloud.getDishes()
-        allDishes = (res && res.ok && res.dishes) || []
-        app.globalData.dishes = allDishes
-      } catch (e) {
-        allDishes = []
-      }
-    }
-
-    // 冰箱食材 key（小写、去掉 500g 之类的数字）
-    const fridgeKeys = fridgeItems.map(f =>
-      f.replace(/\s*\d+g?$/i, '').toLowerCase()
-    ).filter(Boolean)
-
-    // 匹配：菜名含冰箱 key，或 ingredients 含冰箱 key
-    const matched = allDishes.filter(d => {
-      const name = (d.name || '').toLowerCase()
-      if (fridgeKeys.some(k => name.includes(k))) return true
-      const ings = (d.ingredients || []).map(i => i.toLowerCase())
-      return ings.some(ing => fridgeKeys.some(k => ing.includes(k)))
-    })
-
-    // 只保留菜池里的
-    const customSet = new Set(customDishes)
-    let candidates = matched.filter(d => customSet.has(d.name))
-
-    // 没匹配 → 兜底用菜池全部
-    let fallback = false
-    if (candidates.length === 0) {
-      candidates = customDishes.slice()
-      fallback = true
-    }
-
-    // 去重最近 7 天
-    const recentSet = new Set(recentPicks)
-    let pool = candidates.filter(d => !recentSet.has(d))
-    if (pool.length === 0) pool = candidates.slice()
-
-    // 洗牌取前 3
-    const shuffled = pool.slice().sort(() => Math.random() - 0.5)
-    const dishes = shuffled.slice(0, Math.min(3, shuffled.length))
-    const expanded = dishes.map(() => false)
-
-    this.setData({
-      picked: { dishes, source: 'fridge', expanded },
-      pickedHint: fallback ? '冰箱食材没匹配到菜池里的菜，从菜池随机选' : null
-    })
     this.enrichDishes(dishes).then(infos => {
       const cur = this.data.picked
       if (cur && cur.dishes && cur.dishes.length === dishes.length) {
@@ -292,62 +244,83 @@ Page({
     }
   },
 
-  // ----- 冰箱管理 -----
-  onFridgeInput(e) {
-    this.setData({ fridgeInput: e.detail.value })
-  },
-
-  async onFridgeAdd() {
-    const raw = (this.data.fridgeInput || '').trim()
-    if (!raw) {
-      wx.showToast({ title: '请输入食材', icon: 'none' })
+  // ----- 搜菜谱 -----
+  onSearchInput(e) {
+    const q = (e.detail.value || '').trim().toLowerCase()
+    this.setData({ searchInput: e.detail.value })
+    if (!q) {
+      this.setData({ searchResults: [] })
       return
     }
-    const tokens = raw.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean)
-    if (tokens.length === 0) {
-      wx.showToast({ title: '请输入食材', icon: 'none' })
-      return
-    }
-    const items = Array.from(new Set([...this.data.fridgeItems, ...tokens]))
-    this.setData({ savingFridge: true })
-    try {
-      await cloud.updateFridge(items)
-      this.setData({ fridgeItems: items, fridgeInput: '', savingFridge: false })
-      wx.showToast({ title: `已加 ${tokens.length} 项`, icon: 'success' })
-    } catch (err) {
-      this.setData({ savingFridge: false })
-      util.showError('保存失败', err)
-    }
+    // 模糊匹配：菜名 / 食材 / 标签 含 query
+    const all = app.globalData.dishes || []
+    const matched = all.filter(d => {
+      const name = (d.name || '').toLowerCase()
+      if (name.includes(q)) return true
+      const ings = (d.ingredients || []).map(i => i.toLowerCase())
+      if (ings.some(i => i.includes(q))) return true
+      const tags = (d.tags || []).map(t => t.toLowerCase())
+      if (tags.some(t => t.includes(q))) return true
+      return false
+    }).slice(0, 30)
+    // 加 emoji/role/time 给 wxml 显示
+    const ROLE_EMOJI = { '主菜': '🥢', '汤': '🥣', '主食': '🥯', '凉菜': '🥗', '早餐': '🍳' }
+    const results = matched.map(d => ({
+      name: d.name,
+      role: d.role,
+      time: d.time_minutes || '?',
+      emoji: ROLE_EMOJI[d.role] || '🍽'
+    }))
+    this.setData({ searchResults: results })
   },
 
-  async onFridgeRemove(e) {
+  // 点搜索结果 → 弹菜谱详情 modal
+  onSearchDishTap(e) {
     const name = e.currentTarget.dataset.name
     if (!name) return
-    const items = this.data.fridgeItems.filter(x => x !== name)
-    this.setData({ savingFridge: true })
-    try {
-      await cloud.updateFridge(items)
-      this.setData({ fridgeItems: items, savingFridge: false })
-    } catch (err) {
-      this.setData({ savingFridge: false })
-      util.showError('删除失败', err)
+    const all = app.globalData.dishes || []
+    const dish = all.find(d => d.name === name)
+    if (!dish) {
+      wx.showToast({ title: '没找到做法', icon: 'none' })
+      return
     }
-  },
-
-  onFridgeClear() {
-    const that = this
-    wx.showModal({
-      title: '清空冰箱？',
-      success: async (res) => {
-        if (!res.confirm) return
-        try {
-          await cloud.updateFridge([])
-          that.setData({ fridgeItems: [] })
-        } catch (err) {
-          util.showError('操作失败', err)
-        }
+    const ingredients = dish.ingredients || []
+    const seasonings = dish.seasonings || []
+    this.setData({
+      searchDetail: {
+        name: dish.name,
+        role: dish.role,
+        time: dish.time_minutes || '?',
+        emoji: { '主菜': '🥢', '汤': '🥣', '主食': '🥯', '凉菜': '🥗', '早餐': '🍳' }[dish.role] || '🍽',
+        ingredients,
+        seasonings,
+        steps: dish.steps || [],
+        tip: dish.tip || '',
+        ingredientsStr: ingredients.join('、'),
+        seasoningsStr: seasonings.join('、')
       }
     })
+  },
+
+  closeSearchDetail() {
+    this.setData({ searchDetail: null })
+  },
+
+  // 搜菜谱详情里点「就做这个」→ 记录 + 关 modal
+  async onSearchEat() {
+    const d = this.data.searchDetail
+    if (!d) return
+    try {
+      const today = new Date().toISOString().slice(0, 10)
+      await cloud.addMeal({ dish: d.name, meal: '午餐', status: 'confirmed', date: today })
+      wx.showToast({ title: `✓ ${d.name}`, icon: 'success', duration: 1500 })
+      this.setData({
+        searchDetail: null,
+        recentPicks: Array.from(new Set([d.name, ...this.data.recentPicks])).slice(0, 50)
+      })
+    } catch (err) {
+      util.showError('记录失败', err)
+    }
   },
 
   // ----- AI 顾问（聊天入口）-----

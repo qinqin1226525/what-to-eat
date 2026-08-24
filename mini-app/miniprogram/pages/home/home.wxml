@@ -34,22 +34,45 @@
     </view>
   </view>
 
-  <!-- 冰箱 chip 行（带输入框 + 删除 ×） -->
+  <!-- 冰箱 = 搜菜谱（输入菜名 → 出菜谱）-->
   <view class="section">
-    <view class="section-label" style="font-size: {{22 * fontScale}}rpx;">
-      <text>🥬 冰箱</text>
-      <text wx:if="{{fridgeItems.length > 0}}" class="fridge-clear-link" style="font-size: {{20 * fontScale}}rpx;" catchtap="onFridgeClear">清空</text>
+    <view class="section-label" style="font-size: {{22 * fontScale}}rpx;">🥬 搜菜谱</view>
+    <view class="search-row">
+      <input class="search-input" value="{{searchInput}}" bindinput="onSearchInput"
+             placeholder="搜菜名、食材、标签…" confirm-type="search" />
     </view>
-    <view class="fridge-input-row">
-      <input class="fridge-input" value="{{fridgeInput}}" bindinput="onFridgeInput"
-             bindconfirm="onFridgeAdd" placeholder="输入食材，逗号分隔…" confirm-type="done" />
-      <view class="fridge-add-btn {{savingFridge ? 'disabled' : ''}}" catchtap="onFridgeAdd">加</view>
+    <!-- 搜索结果列表 -->
+    <view class="search-results" wx:if="{{searchResults.length > 0}}">
+      <block wx:for="{{searchResults}}" wx:key="name" wx:for-item="d">
+        <view class="search-result-row" data-name="{{d.name}}" catchtap="onSearchDishTap" hover-class="search-result-hover">
+          <text class="search-result-emoji" style="font-size: {{36 * fontScale}}rpx;">{{d.emoji}}</text>
+          <view class="search-result-info">
+            <view class="search-result-name" style="font-size: {{28 * fontScale}}rpx;">{{d.name}}</view>
+            <view class="search-result-meta" style="font-size: {{20 * fontScale}}rpx;">{{d.role}} · 约 {{d.time}} 分钟</view>
+          </view>
+          <text class="search-result-arrow">›</text>
+        </view>
+      </block>
     </view>
-    <scroll-view scroll-x wx:if="{{fridgeItems.length > 0}}" class="chip-scroll" enhanced show-scrollbar="{{false}}">
-      <view wx:for="{{fridgeItems}}" wx:key="*this"
-            class="chip chip-fridge" style="font-size: {{24 * fontScale}}rpx;"
-            data-name="{{item}}" catchtap="onFridgeRemove">{{item}}<text class="chip-x">×</text></view>
-    </scroll-view>
+    <!-- 无搜索结果显示所有菜（按 role 分组） -->
+    <view wx:elif="{{!searchInput}}" class="search-all">
+      <block wx:for="{{dishGroups}}" wx:key="role" wx:for-item="g">
+        <view class="dish-group">
+          <view class="dish-group-title" style="font-size: {{24 * fontScale}}rpx;">{{g.label}}（{{g.items.length}}）</view>
+          <view class="dish-group-list">
+            <block wx:for="{{g.items}}" wx:key="name" wx:for-item="d">
+              <view class="dish-group-chip" data-name="{{d.name}}" catchtap="onSearchDishTap" hover-class="search-result-hover">
+                {{d.emoji}} {{d.name}}
+              </view>
+            </block>
+          </view>
+        </view>
+      </block>
+    </view>
+    <!-- 搜索无结果 -->
+    <view wx:elif="{{searchInput && searchResults.length === 0}}" class="search-empty">
+      没找到「{{searchInput}}」相关的菜谱
+    </view>
   </view>
 
   <!-- 菜池 chip 行（可加可删） -->
@@ -67,11 +90,8 @@
     </scroll-view>
   </view>
 
-  <!-- 二级操作（3 个小按钮横排） -->
+  <!-- 二级操作 -->
   <view class="sub-actions">
-    <view class="sub-action-btn" catchtap="onFridgeRecommend">
-      <text style="font-size: {{24 * fontScale}}rpx;">🥬 冰箱→做啥</text>
-    </view>
     <view class="sub-action-btn" catchtap="onAiInspire">
       <text style="font-size: {{24 * fontScale}}rpx;">🤖 AI 顾问</text>
     </view>
@@ -131,6 +151,50 @@
           <view class="stats-meal-count" style="font-size: {{22 * fontScale}}rpx;">{{m.count}}</view>
         </view>
       </block>
+    </view>
+  </view>
+
+  <!-- 搜菜谱详情 modal（点搜索结果触发） -->
+  <view wx:if="{{searchDetail}}" class="search-detail-mask" catchtap="closeSearchDetail">
+    <view class="search-detail-card" catchtap="">
+      <view class="search-detail-header">
+        <text class="search-detail-emoji" style="font-size: {{64 * fontScale}}rpx;">{{searchDetail.emoji}}</text>
+        <view class="search-detail-title-block">
+          <view class="search-detail-title" style="font-size: {{36 * fontScale}}rpx;">{{searchDetail.name}}</view>
+          <view class="search-detail-meta" style="font-size: {{22 * fontScale}}rpx;">{{searchDetail.role}} · 约 {{searchDetail.time}} 分钟</view>
+        </view>
+        <view class="search-detail-close" catchtap="closeSearchDetail">✕</view>
+      </view>
+
+      <scroll-view scroll-y class="search-detail-scroll">
+        <block wx:if="{{searchDetail.ingredients.length > 0}}">
+          <view class="sd-section-title" style="font-size: {{24 * fontScale}}rpx;">🥕 食材</view>
+          <view class="sd-text" style="font-size: {{26 * fontScale}}rpx;">{{searchDetail.ingredientsStr}}</view>
+        </block>
+
+        <block wx:if="{{searchDetail.seasonings.length > 0}}">
+          <view class="sd-section-title" style="font-size: {{24 * fontScale}}rpx;">🧂 调料</view>
+          <view class="sd-text" style="font-size: {{26 * fontScale}}rpx;">{{searchDetail.seasoningsStr}}</view>
+        </block>
+
+        <block wx:if="{{searchDetail.steps.length > 0}}">
+          <view class="sd-section-title" style="font-size: {{24 * fontScale}}rpx;">📝 做法</view>
+          <block wx:for="{{searchDetail.steps}}" wx:key="*this" wx:for-item="step" wx:for-index="sidx">
+            <view class="sd-step" style="font-size: {{26 * fontScale}}rpx;">
+              <text class="sd-step-num">{{sidx + 1}}.</text>
+              <text class="sd-step-text">{{step}}</text>
+            </view>
+          </block>
+        </block>
+
+        <view wx:if="{{searchDetail.tip}}" class="sd-tip" style="font-size: {{26 * fontScale}}rpx;">
+          💡 {{searchDetail.tip}}
+        </view>
+      </scroll-view>
+
+      <view class="search-detail-actions">
+        <view class="btn-primary search-detail-eat" catchtap="onSearchEat" hover-class="btn-primary-hover">就做这个 ✓</view>
+      </view>
     </view>
   </view>
 
