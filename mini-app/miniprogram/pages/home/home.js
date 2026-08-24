@@ -181,6 +181,9 @@ Page({
     this.setData({ picked: null })
   },
 
+  // 拦截冒泡的空 handler（给 result-card 用）
+  _noop() {},
+
   // ----- enrich：把菜名 → {name, role, time, emoji, ingredients, ...} -----
   async enrichDishes(names) {
     if (!names || names.length === 0) return []

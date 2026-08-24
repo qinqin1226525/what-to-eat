@@ -10,6 +10,8 @@
   background: #fafaf7;
   padding: 24rpx 32rpx;
   box-sizing: border-box;
+  /* v2 NFR-3 单页不滚动，但菜池/最近吃过多时内容溢出 → 允许纵向滚动 */
+  overflow-y: auto;
 }
 
 /* 顶部 */

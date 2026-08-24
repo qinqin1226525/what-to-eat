@@ -60,7 +60,7 @@
 
   <!-- 抽到结果：全屏 modal -->
   <view wx:if="{{picked}}" class="result-mask" bindtap="closePicked">
-    <view class="result-card" catchtap="">
+    <view class="result-card" catchtap="_noop">
       <view class="result-close" bindtap="closePicked">✕</view>
       <view class="result-title" style="font-size: {{32 * fontScale}}rpx;">
         <text wx:if="{{picked.source === 'ai'}}">💡 AI 灵感</text>
@@ -118,10 +118,10 @@
 
           <!-- 右侧：4 个按钮垂直 -->
           <view class="result-row-buttons">
-            <view class="result-btn result-btn-eat" style="font-size: {{24 * fontScale}}rpx;" data-dish="{{dish}}" bindtap="onEat">✓ 就做</view>
-            <view class="result-btn result-btn-swap" style="font-size: {{24 * fontScale}}rpx;" data-idx="{{idx}}" bindtap="onSwapDish">🔄 换一道</view>
-            <view class="result-btn result-btn-custom" style="font-size: {{24 * fontScale}}rpx;" data-idx="{{idx}}" bindtap="onCustomDish">🍽 别的</view>
-            <view class="result-btn result-btn-skip" style="font-size: {{24 * fontScale}}rpx;" data-idx="{{idx}}" bindtap="onSkip">✕ 跳过</view>
+            <view class="result-btn result-btn-eat" style="font-size: {{24 * fontScale}}rpx;" data-dish="{{dish}}" catchtap="onEat">✓ 就做</view>
+            <view class="result-btn result-btn-swap" style="font-size: {{24 * fontScale}}rpx;" data-idx="{{idx}}" catchtap="onSwapDish">🔄 换一道</view>
+            <view class="result-btn result-btn-custom" style="font-size: {{24 * fontScale}}rpx;" data-idx="{{idx}}" catchtap="onCustomDish">🍽 别的</view>
+            <view class="result-btn result-btn-skip" style="font-size: {{24 * fontScale}}rpx;" data-idx="{{idx}}" catchtap="onSkip">✕ 跳过</view>
           </view>
         </view>
       </block>
