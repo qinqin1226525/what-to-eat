@@ -43,7 +43,7 @@ Page({
     nextPoolId: 6,
     savingPool: false,
     // 可折叠 section 状态（默认全收起）
-    expanded: { pool: false, recent: false },
+    expanded: { pool: false, recent: false, stats: false },
     // 手动记录 modal（按饮食报告风格）
     showManualLog: false,
     manualForm: { date: '', breakfast: '', lunch: '', dinner: '' },
@@ -973,3 +973,18 @@ Page({
     wx.navigateTo({ url: '/pages/profile/profile' })
   }
 })
+
+// ===== 转发给朋友 =====
+Page.onShareAppMessage = function () {
+  return {
+    title: '今天吃什么 — 饭点选菜助手',
+    path: '/pages/home/home'
+  }
+}
+
+// ===== 分享到朋友圈 =====
+Page.onShareTimeline = function () {
+  return {
+    title: '今天吃什么 — 饭点选菜助手'
+  }
+}

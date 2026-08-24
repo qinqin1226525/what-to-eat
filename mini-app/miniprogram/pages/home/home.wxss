@@ -993,6 +993,18 @@
   padding: 18rpx 8rpx;
   text-align: center;
   color: #5a5a5a;
+  font-size: 26rpx;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* button 元素重置（小程序 button 有默认样式） */
+button.sub-action-btn {
+  display: block;
+}
+
+button.sub-action-btn::after {
+  border: none;
 }
 
 .sub-action-btn:active {

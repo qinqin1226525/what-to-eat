@@ -118,7 +118,11 @@
 
   <!-- 统计 section（永久显示在底部） -->
   <view class="stats-section" id="stats-section">
-    <view class="stats-section-title" style="font-size: {{28 * fontScale}}rpx;">📊 本月饮食报告</view>
+    <view class="stats-section-title section-label-clickable" data-section="stats" catchtap="onToggleSection">
+      <text>📊 本月饮食报告</text>
+      <text class="section-toggle">{{expanded.stats ? '▼' : '▶'}}</text>
+    </view>
+    <view wx:if="{{expanded.stats}}">
     <view class="stats-section-sub" style="font-size: {{22 * fontScale}}rpx;">
       <block wx:if="{{loading}}">加载中…</block>
       <block wx:elif="{{stats.totalMeals === 0}}">本月还没记录，点点上面的按钮开始吧</block>
@@ -162,6 +166,7 @@
           <view class="stats-meal-count" style="font-size: {{22 * fontScale}}rpx;">{{m.count}}</view>
         </view>
       </block>
+    </view>
     </view>
   </view>
 
