@@ -195,6 +195,22 @@
   text-align: right;
 }
 
+.result-add-more {
+  margin-top: 16rpx;
+  padding: 20rpx;
+  border: 2rpx dashed #ddd;
+  border-radius: 12rpx;
+  text-align: center;
+  color: #999;
+  font-size: 26rpx;
+}
+
+.result-add-more-hover {
+  background: #fafaf7;
+  border-color: #ff9a3c;
+  color: #ff9a3c;
+}
+
 /* ===== 菜谱详情 modal ===== */
 .detail-mask {
   position: fixed;

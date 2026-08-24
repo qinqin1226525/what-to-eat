@@ -154,6 +154,39 @@ Page({
     this.setData({ picked: null })
   },
 
+  // 再加一道：人多时往当前列表追加第 4/5/... 道
+  onAddOneMore() {
+    const { picked, customDishes, recentPicks, fridgeItems } = this.data
+    if (!picked || !picked.dishes) return
+
+    const recentSet = new Set(recentPicks)
+    const inPicked = new Set(picked.dishes)
+    const candidates = customDishes.filter(d =>
+      !recentSet.has(d) && !inPicked.has(d)
+    )
+    if (candidates.length === 0) {
+      wx.showToast({ title: '没菜可加了', icon: 'none' })
+      return
+    }
+    const fridgeKeys = fridgeItems.map(f =>
+      f.replace(/\s*\d+g?$/i, '').toLowerCase()
+    )
+    const matched = candidates.filter(d => {
+      const lc = d.toLowerCase()
+      return fridgeKeys.some(k => lc.includes(k))
+    })
+    const pool = matched.length > 0 ? matched : candidates
+    const newDish = pool[Math.floor(Math.random() * pool.length)]
+
+    const newDishes = [...picked.dishes, newDish]
+    // AI reasons 数组加一个空位（避免索引错位）
+    const newReasons = picked.reasons ? [...picked.reasons, { dish: newDish, reason: '' }] : picked.reasons
+    this.setData({
+      picked: { ...picked, dishes: newDishes, reasons: newReasons }
+    })
+    wx.showToast({ title: `+1 ${newDish}`, icon: 'success', duration: 1200 })
+  },
+
   // ----- 点菜名 → 弹详情 modal -----
   onDishTap(e) {
     const name = e.currentTarget.dataset.name

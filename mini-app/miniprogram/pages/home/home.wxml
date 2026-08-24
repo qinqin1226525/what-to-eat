@@ -75,6 +75,9 @@
           <view class="result-eat" style="font-size: {{24 * fontScale}}rpx;">看做法 →</view>
         </view>
       </block>
+      <view class="result-add-more" bindtap="onAddOneMore" hover-class="result-add-more-hover">
+        + 再加一道
+      </view>
     </view>
   </view>
 
