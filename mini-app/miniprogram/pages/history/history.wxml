@@ -1,11 +1,35 @@
-<!-- pages/history/history.wxml -->
+<!-- pages/history/history.wxml —— 清单页（冰箱 + 手动记录 + 历史）-->
 <view class="container">
 
-  <!-- 顶部齿轮：跳设置（健康画像 + 偏好） -->
+  <!-- 顶部齿轮：跳设置 -->
   <view class="gear-btn" bindtap="onOpenSettings">⚙ 设置</view>
 
+  <!-- 冰箱 section -->
+  <view class="card fridge-card">
+    <view class="card-title fridge-card-title">
+      <text>🥬 冰箱</text>
+      <text wx:if="{{fridgeItems.length > 0}}" class="fridge-clear-link" bindtap="onFridgeClear">清空</text>
+    </view>
+    <view class="text-muted fridge-hint">去「选菜」用「冰箱有什么」功能</view>
+    <view class="fridge-row">
+      <input class="input fridge-input" value="{{fridgeInput}}" bindinput="onFridgeInput"
+             placeholder="输入食材，逗号分隔…" confirm-type="done" bindconfirm="onFridgeAdd" />
+      <view class="btn-add {{savingFridge ? 'disabled' : ''}}" bindtap="onFridgeAdd">加</view>
+    </view>
+    <view wx:if="{{fridgeItems.length > 0}}" class="fridge-grid">
+      <block wx:for="{{fridgeItems}}" wx:key="*this">
+        <view class="fridge-item">
+          <text class="fridge-name">{{item}}</text>
+          <view class="fridge-remove" data-name="{{item}}" bindtap="onFridgeRemove">×</view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 手动记录按钮 -->
   <view class="manual-btn" bindtap="openManual">📝 手动记录今天吃了啥</view>
 
+  <!-- 历史记录 -->
   <view wx:if="{{loading}}" class="loading">加载中…</view>
 
   <view wx:elif="{{grouped.length === 0}}" class="empty card">

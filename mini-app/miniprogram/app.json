@@ -1,8 +1,8 @@
 {
   "pages": [
     "pages/home/home",
-    "pages/fridge/fridge",
     "pages/history/history",
+    "pages/fridge/fridge",
     "pages/chat/chat",
     "pages/profile/profile"
   ],
@@ -24,12 +24,8 @@
         "text": "选菜"
       },
       {
-        "pagePath": "pages/fridge/fridge",
-        "text": "冰箱"
-      },
-      {
         "pagePath": "pages/history/history",
-        "text": "记录"
+        "text": "清单"
       }
     ]
   },

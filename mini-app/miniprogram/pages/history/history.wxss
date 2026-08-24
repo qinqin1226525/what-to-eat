@@ -1,5 +1,123 @@
-/* pages/history/history.wxss */
+/* pages/history/history.wxss —— 清单页（合并冰箱+记录）*/
 
+.gear-btn {
+  text-align: right;
+  color: #999;
+  font-size: 24rpx;
+  padding: 8rpx 0;
+  margin-bottom: 8rpx;
+}
+
+.gear-btn:active {
+  color: #666;
+}
+
+/* ===== 冰箱 section ===== */
+.fridge-card {
+  padding: 20rpx 24rpx;
+}
+
+.fridge-card-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fridge-clear-link {
+  font-size: 24rpx;
+  font-weight: normal;
+  color: #999;
+}
+
+.fridge-clear-link:active {
+  color: #d14545;
+}
+
+.fridge-hint {
+  font-size: 22rpx;
+  margin-bottom: 14rpx;
+  line-height: 1.4;
+}
+
+.fridge-row {
+  display: flex;
+  gap: 12rpx;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.fridge-input {
+  flex: 1;
+  min-width: 0;
+  padding: 14rpx 18rpx;
+  font-size: 28rpx;
+}
+
+.btn-add {
+  flex-shrink: 0;
+  width: 88rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  text-align: center;
+  background: #ff9a3c;
+  color: #fff;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.btn-add:active { opacity: 0.8; }
+.btn-add.disabled { opacity: 0.5; }
+
+.fridge-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.fridge-item {
+  background: #fff5e6;
+  border-radius: 12rpx;
+  padding: 10rpx 14rpx;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.fridge-name {
+  font-size: 26rpx;
+  color: #b8702c;
+}
+
+.fridge-remove {
+  width: 28rpx;
+  height: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c8966a;
+  font-size: 26rpx;
+}
+
+.fridge-remove:active { color: #d14545; }
+
+/* ===== 手动记录按钮 ===== */
+.manual-btn {
+  background: #fff5e6;
+  color: #ff9a3c;
+  border: 2rpx solid #ff9a3c;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  text-align: center;
+  font-size: 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.manual-btn:active {
+  background: #ffe4c4;
+}
+
+/* ===== 历史记录 ===== */
 .history-row {
   display: flex;
   align-items: center;
@@ -11,9 +129,7 @@
   border-bottom: none;
 }
 
-.history-info {
-  flex: 1;
-}
+.history-info { flex: 1; }
 
 .history-dish {
   font-size: 30rpx;
@@ -43,37 +159,10 @@
 }
 
 .empty {
-  padding: 80rpx 24rpx;
+  padding: 60rpx 24rpx;
 }
 
-/* ===== 手动记录 ===== */
-.gear-btn {
-  text-align: right;
-  color: #999;
-  font-size: 24rpx;
-  padding: 8rpx 0;
-  margin-bottom: 8rpx;
-}
-
-.gear-btn:active {
-  color: #666;
-}
-
-.manual-btn {
-  background: #fff5e6;
-  color: #ff9a3c;
-  border: 2rpx solid #ff9a3c;
-  border-radius: 12rpx;
-  padding: 20rpx;
-  text-align: center;
-  font-size: 28rpx;
-  margin-bottom: 20rpx;
-}
-
-.manual-btn:active {
-  background: #ffe4c4;
-}
-
+/* ===== 手动记录 modal ===== */
 .manual-mask {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -162,15 +251,7 @@
   margin-top: 28rpx;
 }
 
-.manual-actions .btn-secondary {
-  flex: 1;
-}
+.manual-actions .btn-secondary { flex: 1; }
+.manual-actions .btn-primary { flex: 2; font-size: 30rpx; }
 
-.manual-actions .btn-primary {
-  flex: 2;
-  font-size: 30rpx;
-}
-
-.btn-primary-hover {
-  opacity: 0.8;
-}
+.btn-primary-hover { opacity: 0.8; }

@@ -1,4 +1,4 @@
-// pages/history/history.js
+// pages/history/history.js —— 清单页（冰箱 + 手动记录 + 历史记录）
 const cloud = require('../../utils/cloud.js')
 const util = require('../../utils/util.js')
 
@@ -10,31 +10,99 @@ const STATUS_LABEL = {
 
 Page({
   data: {
-    grouped: [],          // [{date, items: [...]}, ...]
+    // 历史
+    grouped: [],
     loading: true,
     // 手动记录 modal
     showManualLog: false,
     manualForm: { date: '', breakfast: '', lunch: '', dinner: '' },
-    savingManual: false
+    savingManual: false,
+    // 冰箱
+    fridgeItems: [],
+    fridgeInput: '',
+    savingFridge: false
   },
 
   onShow() {
+    this.loadFridge()
     this.loadHistory()
     // 首页「手动记录」入口跳过来时，自动开 modal
     const app = getApp()
     if (app.globalData.__openManualOnHistory) {
       app.globalData.__openManualOnHistory = false
-      // 等 onShow 渲染完再弹，避免被覆盖
       setTimeout(() => this.openManual(), 100)
     }
   },
 
+  // ----- 冰箱 -----
+  async loadFridge() {
+    try {
+      const res = await cloud.getFridge()
+      this.setData({ fridgeItems: (res && res.ok) ? res.items : [] })
+    } catch (err) {
+      console.warn('拉冰箱失败', err)
+    }
+  },
+
+  onFridgeInput(e) {
+    this.setData({ fridgeInput: e.detail.value })
+  },
+
+  async onFridgeAdd() {
+    const raw = this.data.fridgeInput.trim()
+    if (!raw) {
+      wx.showToast({ title: '请输入食材', icon: 'none' })
+      return
+    }
+    const tokens = raw.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean)
+    const items = Array.from(new Set([...this.data.fridgeItems, ...tokens]))
+    this.setData({ savingFridge: true })
+    try {
+      await cloud.updateFridge(items)
+      this.setData({ fridgeItems: items, fridgeInput: '', savingFridge: false })
+      wx.showToast({ title: `已加 ${tokens.length} 项`, icon: 'success' })
+    } catch (err) {
+      this.setData({ savingFridge: false })
+      util.showError('保存失败', err)
+    }
+  },
+
+  async onFridgeRemove(e) {
+    const name = e.currentTarget.dataset.name
+    if (!name) return
+    const items = this.data.fridgeItems.filter(x => x !== name)
+    this.setData({ savingFridge: true })
+    try {
+      await cloud.updateFridge(items)
+      this.setData({ fridgeItems: items, savingFridge: false })
+    } catch (err) {
+      this.setData({ savingFridge: false })
+      util.showError('删除失败', err)
+    }
+  },
+
+  onFridgeClear() {
+    const that = this
+    wx.showModal({
+      title: '清空冰箱？',
+      success: async (res) => {
+        if (!res.confirm) return
+        try {
+          await cloud.updateFridge([])
+          that.setData({ fridgeItems: [] })
+        } catch (err) {
+          util.showError('操作失败', err)
+        }
+      }
+    })
+  },
+
+  // ----- 历史 -----
   async loadHistory() {
     this.setData({ loading: true })
     try {
       const res = await cloud.getHistory(500)
       const history = (res && res.ok) ? res.history : []
-      // 按日期分组
       const map = new Map()
       for (const h of history) {
         const date = h.date || '未知'
@@ -44,7 +112,7 @@ Page({
       const grouped = Array.from(map.entries())
         .map(([date, items]) => ({ date, items }))
         .sort((a, b) => b.date.localeCompare(a.date))
-        .slice(0, 60)   // 最近 60 天
+        .slice(0, 60)
       this.setData({ grouped, loading: false })
     } catch (err) {
       console.warn('拉历史失败', err)
@@ -52,7 +120,6 @@ Page({
     }
   },
 
-  // 跳设置（健康画像 + 偏好）
   onOpenSettings() {
     wx.navigateTo({ url: '/pages/profile/profile' })
   },
@@ -110,7 +177,6 @@ Page({
 
   async onManualSave() {
     const f = this.data.manualForm
-    // 三餐都空就不保存
     if (!f.breakfast.trim() && !f.lunch.trim() && !f.dinner.trim()) {
       wx.showToast({ title: '至少填一餐吧', icon: 'none' })
       return
@@ -134,7 +200,6 @@ Page({
     this.setData({ savingManual: true })
     let ok = 0, fail = 0
     try {
-      // 串行调用，避免触发云函数并发限制
       for (const { meal, dish } of all) {
         try {
           await cloud.addMeal({ dish, meal, status: 'manual', date: f.date })

@@ -19,6 +19,7 @@ Page({
     loading: true,
     picked: null,        // 抽到的结果 {dishes: [], source: 'random'|'ai'}
     picking: false,
+    dishDetail: null,     // 详情 modal 数据
     // onboarding
     showOnboarding: false,
     onboardingDishes: [],  // [{role, name, checked}]
@@ -153,7 +154,60 @@ Page({
     this.setData({ picked: null })
   },
 
-  // ----- 「吃这个」一键记录 -----
+  // ----- 点菜名 → 弹详情 modal -----
+  onDishTap(e) {
+    const name = e.currentTarget.dataset.name
+    if (!name) return
+    const dishes = app.globalData.dishes || []
+    const dish = dishes.find(d => d.name === name)
+    if (!dish) {
+      // globalData 没有 → 现场拉一次
+      this.loadAndShowDetail(name)
+      return
+    }
+    this.setData({ dishDetail: this.formatDishDetail(dish) })
+  },
+
+  async loadAndShowDetail(name) {
+    try {
+      const res = await cloud.getDishes()
+      const dishes = (res && res.ok && res.dishes) || []
+      const dish = dishes.find(d => d.name === name)
+      if (dish) {
+        // 顺手刷一下 globalData 缓存
+        app.globalData.dishes = dishes
+        this.setData({ dishDetail: this.formatDishDetail(dish) })
+      } else {
+        wx.showToast({ title: '没找到做法', icon: 'none' })
+      }
+    } catch (err) {
+      util.showError('加载失败', err)
+    }
+  },
+
+  formatDishDetail(dish) {
+    const ingredients = dish.ingredients || []
+    const seasonings = dish.seasonings || []
+    return {
+      name: dish.name,
+      role: dish.role || '主菜',
+      time: dish.time_minutes || '?',
+      tags: dish.tags || [],
+      emoji: dish.emoji || '🍽',
+      ingredients,
+      seasonings,
+      steps: dish.steps || [],
+      tip: dish.tip || '',
+      ingredientsStr: ingredients.join('、'),
+      seasoningsStr: seasonings.join('、')
+    }
+  },
+
+  closeDishDetail() {
+    this.setData({ dishDetail: null })
+  },
+
+  // ----- 「吃这个」一键记录（支持传 dish 名 + 自动关掉详情 modal） -----
   async onEat(e) {
     const dish = e.currentTarget.dataset.dish
     if (!dish) return
@@ -161,13 +215,13 @@ Page({
       const today = new Date().toISOString().slice(0, 10)
       await cloud.addMeal({ dish, meal: '午餐', status: 'confirmed', date: today })
       wx.showToast({ title: `✓ ${dish}`, icon: 'success', duration: 1500 })
-      // 刷新 recentPicks
       this.setData({
         picked: null,
+        dishDetail: null,
         recentPicks: Array.from(new Set([dish, ...this.data.recentPicks])).slice(0, 50)
       })
     } catch (err) {
-      wx.showToast({ title: '记录失败', icon: 'none' })
+      util.showError('记录失败', err)
     }
   },
 
@@ -240,6 +294,26 @@ Page({
     if (!roleGroup) return
     const item = roleGroup.items.find(i => i.name === name)
     if (item) item.checked = !item.checked
+    this.setData({ onboardingDishes: list })
+  },
+
+  // 全选某个 role 组
+  onSelectGroup(e) {
+    const { role } = e.currentTarget.dataset
+    const list = this.data.onboardingDishes
+    const group = list.find(g => g.role === role)
+    if (!group) return
+    group.items.forEach(item => { item.checked = true })
+    this.setData({ onboardingDishes: list })
+  },
+
+  // 清除某个 role 组
+  onClearGroup(e) {
+    const { role } = e.currentTarget.dataset
+    const list = this.data.onboardingDishes
+    const group = list.find(g => g.role === role)
+    if (!group) return
+    group.items.forEach(item => { item.checked = false })
     this.setData({ onboardingDishes: list })
   },
 
