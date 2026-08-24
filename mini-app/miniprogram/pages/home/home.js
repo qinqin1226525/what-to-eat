@@ -23,10 +23,13 @@ const ROLE_EMOJI = {
 Page({
   data: {
     fridgeItems: [],
+    fridgeInput: '',
+    savingFridge: false,
     customDishes: [],
     recentPicks: [],     // 最近7天已抽
     loading: true,
     picked: null,        // {dishes, dishInfos, reasons, source}
+    pickedMeals: [],   // 用户在 modal 里「选这道」的菜名列表，多次 addMeal 用
     picking: false,
     pickedHint: '',     // 结果 modal 的提示文字（如「冰箱没匹配到菜池」）
     // onboarding
@@ -38,6 +41,9 @@ Page({
     customCandidates: [],
     customFocus: false,
     customTargetIdx: -1,
+    // 手动记录 modal（按饮食报告风格）
+    showManualLog: false,
+    manualForm: { date: '', breakfast: '', lunch: '', dinner: '' },
     // 系统信息
     screenWidth: 375,
     fontScale: 1.0,
@@ -199,10 +205,143 @@ Page({
     })
   },
 
-  // ----- 手动记录今天吃了啥（跳清单 tab 并自动开 modal）-----
+  // ----- 手动记录今天吃了啥（直接在 home 弹 modal）-----
   onManualRecord() {
-    app.globalData.__openManualOnHistory = true
-    wx.switchTab({ url: '/pages/history/history' })
+    this.setData({
+      showManualLog: true,
+      manualForm: { date: util.todayISO(), breakfast: '', lunch: '', dinner: '' }
+    })
+  },
+
+  closeManualLog() {
+    this.setData({ showManualLog: false })
+  },
+
+  onManualField(e) {
+    const field = e.currentTarget.dataset.field
+    this.setData({ [`manualForm.${field}`]: e.detail.value })
+  },
+
+  onManualDateTap() {
+    // 单纯给 picker 点击用（picker 自带触发）
+  },
+
+  parseManualInput(str) {
+    if (!str) return []
+    const seen = new Set()
+    const out = []
+    for (const raw of String(str).split(',')) {
+      const name = raw.trim()
+      if (!name || seen.has(name)) continue
+      seen.add(name)
+      out.push(name)
+    }
+    return out
+  },
+
+  async onManualSave() {
+    const f = this.data.manualForm
+    if (!f.breakfast.trim() && !f.lunch.trim() && !f.dinner.trim()) {
+      wx.showToast({ title: '至少填一餐吧', icon: 'none' })
+      return
+    }
+    if (!f.date) {
+      wx.showToast({ title: '请选择日期', icon: 'none' })
+      return
+    }
+
+    const meals = [
+      { meal: '早餐', dishes: this.parseManualInput(f.breakfast) },
+      { meal: '午餐', dishes: this.parseManualInput(f.lunch) },
+      { meal: '晚餐', dishes: this.parseManualInput(f.dinner) }
+    ]
+    const all = meals.flatMap(m => m.dishes.map(d => ({ meal: m.meal, dish: d })))
+    if (all.length === 0) {
+      wx.showToast({ title: '没有可保存的菜', icon: 'none' })
+      return
+    }
+
+    let ok = 0, fail = 0
+    try {
+      for (const { meal, dish } of all) {
+        try {
+          await cloud.addMeal({ dish, meal, status: 'manual', date: f.date })
+          ok++
+        } catch (e) {
+          fail++
+        }
+      }
+      if (fail === 0) {
+        wx.showToast({ title: `已记录 ${ok} 条`, icon: 'success' })
+      } else if (ok > 0) {
+        wx.showToast({ title: `成功 ${ok}，失败 ${fail}`, icon: 'none' })
+      } else {
+        util.showError('保存失败', new Error('全部失败'))
+      }
+      this.setData({ showManualLog: false })
+      // 刷新最近吃过（更新统计和最近）
+      this.refresh()
+    } catch (err) {
+      util.showError('保存失败', err)
+    }
+  },
+
+  // ----- 冰箱管理 -----
+  onFridgeInput(e) {
+    this.setData({ fridgeInput: e.detail.value })
+  },
+
+  async onFridgeAdd() {
+    const raw = (this.data.fridgeInput || '').trim()
+    if (!raw) {
+      wx.showToast({ title: '请输入食材', icon: 'none' })
+      return
+    }
+    const tokens = raw.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean)
+    if (tokens.length === 0) {
+      wx.showToast({ title: '请输入食材', icon: 'none' })
+      return
+    }
+    const items = Array.from(new Set([...this.data.fridgeItems, ...tokens]))
+    this.setData({ savingFridge: true })
+    try {
+      await cloud.updateFridge(items)
+      this.setData({ fridgeItems: items, fridgeInput: '', savingFridge: false })
+      wx.showToast({ title: `已加 ${tokens.length} 项`, icon: 'success' })
+    } catch (err) {
+      this.setData({ savingFridge: false })
+      util.showError('保存失败', err)
+    }
+  },
+
+  async onFridgeRemove(e) {
+    const name = e.currentTarget.dataset.name
+    if (!name) return
+    const items = this.data.fridgeItems.filter(x => x !== name)
+    this.setData({ savingFridge: true })
+    try {
+      await cloud.updateFridge(items)
+      this.setData({ fridgeItems: items, savingFridge: false })
+    } catch (err) {
+      this.setData({ savingFridge: false })
+      util.showError('删除失败', err)
+    }
+  },
+
+  onFridgeClear() {
+    const that = this
+    wx.showModal({
+      title: '清空冰箱？',
+      success: async (res) => {
+        if (!res.confirm) return
+        try {
+          await cloud.updateFridge([])
+          that.setData({ fridgeItems: [] })
+        } catch (err) {
+          util.showError('操作失败', err)
+        }
+      }
+    })
   },
 
   // ----- AI 灵感 -----
@@ -257,7 +396,7 @@ Page({
 
   // ----- 关闭结果卡片 -----
   closePicked() {
-    this.setData({ picked: null, pickedHint: '' })
+    this.setData({ picked: null, pickedMeals: [], pickedHint: '' })
   },
 
   // 拦截冒泡的空 handler（给 result-card 用）
@@ -475,17 +614,83 @@ Page({
   async onEat(e) {
     const dish = e.currentTarget.dataset.dish
     if (!dish) return
-    try {
-      const today = new Date().toISOString().slice(0, 10)
-      await cloud.addMeal({ dish, meal: '午餐', status: 'confirmed', date: today })
-      wx.showToast({ title: `✓ ${dish}`, icon: 'success', duration: 1500 })
-      this.setData({
-        picked: null,
-        recentPicks: Array.from(new Set([dish, ...this.data.recentPicks])).slice(0, 50)
-      })
-    } catch (err) {
-      util.showError('记录失败', err)
+    // 多选模式：加入 pickedMeals，不关 modal，不立即 addMeal
+    // 真正的 addMeal 在 finishEat 里统一执行（避免反复 toast）
+    const pickedMeals = Array.from(new Set([...this.data.pickedMeals, dish]))
+    this.setData({ pickedMeals })
+    wx.showToast({ title: `✓ 已选 ${dish}`, icon: 'success', duration: 800 })
+  },
+
+  // 「✅ 就做这些」—— 一次性 addMeal 多道，关闭 modal
+  async finishEat() {
+    const { pickedMeals } = this.data
+    if (pickedMeals.length === 0) {
+      wx.showToast({ title: '还没选菜', icon: 'none' })
+      return
     }
+    const today = new Date().toISOString().slice(0, 10)
+    let ok = 0, fail = 0
+    for (const dish of pickedMeals) {
+      try {
+        await cloud.addMeal({ dish, meal: '午餐', status: 'confirmed', date: today })
+        ok++
+      } catch (e) {
+        fail++
+      }
+    }
+    if (fail === 0) {
+      wx.showToast({ title: `✓ 记录 ${ok} 道`, icon: 'success', duration: 1500 })
+    } else {
+      wx.showToast({ title: `成功 ${ok} 失败 ${fail}`, icon: 'none', duration: 2500 })
+    }
+    // 更新 recentPicks + 关闭 modal
+    const recentPicks = Array.from(new Set([...pickedMeals, ...this.data.recentPicks])).slice(0, 50)
+    this.setData({ picked: null, pickedMeals: [], pickedHint: '', recentPicks })
+  },
+
+  // 「➕ 主菜/汤/主食/凉菜」—— 按 role 追加一道菜到结果列表
+  addMoreDish(e) {
+    const role = e.currentTarget.dataset.role
+    if (!role) return
+    const { customDishes, recentPicks, picked, pickedMeals } = this.data
+    if (!picked || !picked.dishes) return
+    // 候选 = 菜池里该 role 的菜 - 已吃/已选/已在 modal 里
+    const dishesDB = app.globalData.dishes || []
+    const recentSet = new Set([...recentPicks, ...pickedMeals, ...picked.dishes])
+    const candidates = customDishes.filter(name => {
+      const dish = dishesDB.find(d => d.name === name)
+      return dish && dish.role === role && !recentSet.has(name)
+    })
+    if (candidates.length === 0) {
+      wx.showToast({ title: `${role} 没菜可加`, icon: 'none' })
+      return
+    }
+    // 启发式：菜名包含冰箱食材的优先
+    const { fridgeItems } = this.data
+    const fridgeKeys = fridgeItems.map(f => f.replace(/\s*\d+g?$/i, '').toLowerCase())
+    const matched = candidates.filter(d => {
+      const lc = d.toLowerCase()
+      return fridgeKeys.some(k => lc.includes(k))
+    })
+    const pool = matched.length > 0 ? matched : candidates
+    const newDish = pool[Math.floor(Math.random() * pool.length)]
+    // 追加到 picked.dishes + expanded
+    const newPicked = {
+      ...picked,
+      dishes: [...picked.dishes, newDish],
+      expanded: [...picked.expanded, false],
+      dishInfos: picked.dishInfos ? [...picked.dishInfos, null] : null,  // 后面 enrich
+      reasons: picked.reasons ? [...picked.reasons, { dish: newDish, reason: '' }] : null,
+    }
+    this.setData({ picked: newPicked })
+    // 重新 enrich（异步）
+    this.enrichDishes(newPicked.dishes).then(infos => {
+      const cur = this.data.picked
+      if (cur && cur.dishes.length === newPicked.dishes.length) {
+        this.setData({ picked: { ...cur, dishInfos: infos } })
+      }
+    })
+    wx.showToast({ title: `+ ${role}: ${newDish}`, icon: 'success', duration: 1000 })
   },
 
   // ----- 菜池增删 -----

@@ -13,12 +13,20 @@
     </view>
   </view>
 
-  <!-- 冰箱 chip 行（横向滚动） -->
-  <view class="section" wx:if="{{fridgeItems.length > 0}}">
-    <view class="section-label" style="font-size: {{22 * fontScale}}rpx;">🥬 冰箱</view>
-    <scroll-view scroll-x class="chip-scroll" enhanced show-scrollbar="{{false}}">
+  <!-- 冰箱 chip 行（带输入框 + 删除 ×） -->
+  <view class="section">
+    <view class="section-label" style="font-size: {{22 * fontScale}}rpx;">
+      <text>🥬 冰箱</text>
+      <text wx:if="{{fridgeItems.length > 0}}" class="fridge-clear-link" style="font-size: {{20 * fontScale}}rpx;" catchtap="onFridgeClear">清空</text>
+    </view>
+    <view class="fridge-input-row">
+      <input class="fridge-input" value="{{fridgeInput}}" bindinput="onFridgeInput"
+             bindconfirm="onFridgeAdd" placeholder="输入食材，逗号分隔…" confirm-type="done" />
+      <view class="fridge-add-btn {{savingFridge ? 'disabled' : ''}}" catchtap="onFridgeAdd">加</view>
+    </view>
+    <scroll-view scroll-x wx:if="{{fridgeItems.length > 0}}" class="chip-scroll" enhanced show-scrollbar="{{false}}">
       <block wx:for="{{fridgeItems}}" wx:key="*this">
-        <view class="chip chip-fridge" style="font-size: {{24 * fontScale}}rpx;">{{item}}</view>
+        <view class="chip chip-fridge" style="font-size: {{24 * fontScale}}rpx;" data-name="{{item}}" catchtap="onFridgeRemove">{{item}}<text class="chip-x">×</text></view>
       </block>
     </scroll-view>
   </view>
@@ -74,6 +82,7 @@
         <block wx:else>🎲 今日推荐</block>
       </view>
       <view wx:if="{{pickedHint}}" class="result-hint" style="font-size: {{22 * fontScale}}rpx;">{{pickedHint}}</view>
+      <view wx:if="{{pickedMeals.length > 0}}" class="picked-hint" style="font-size: {{22 * fontScale}}rpx;">✓ 已选 {{pickedMeals.length}} 道：{{pickedMeals.join('、')}}</view>
       <block wx:for="{{picked.dishes}}" wx:key="*this" wx:for-item="dish" wx:for-index="idx">
         <view wx:if="{{picked.dishInfos && picked.dishInfos[idx]}}">
           <!-- 左侧：emoji + 菜名（带 › 展开符号）+ role·时间 -->
@@ -118,7 +127,11 @@
                   <text>{{step}}</text>
                 </view>
               </block>
-            </block>
+            <view class="result-btn {{pickedMeals.indexOf(dish) >= 0 ? 'result-btn-eat-done' : 'result-btn-eat'}}"
+                  style="font-size: {{24 * fontScale}}rpx;" data-dish="{{dish}}" catchtap="onEat">
+              <block wx:if="{{pickedMeals.indexOf(dish) >= 0}}">✓ 已选</block>
+              <block wx:else>✓ 选这道</block>
+            </view>
             <view wx:if="{{picked.dishInfos[idx].tip}}" class="result-tip" style="font-size: {{24 * fontScale}}rpx;">
               💡 {{picked.dishInfos[idx].tip}}
             </view>
@@ -156,6 +169,59 @@
       </view>
       <view class="custom-actions">
         <view class="btn-secondary" bindtap="closeCustomDish">取消</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 手动记录 modal（按饮食报告风格：温暖米色 + 卡片化） -->
+  <view wx:if="{{showManualLog}}" class="manual-mask" catchtap="closeManualLog">
+    <view class="manual-card" catchtap="">
+      <view class="manual-header">
+        <view class="manual-icon">📝</view>
+        <view class="manual-title" style="font-size: {{32 * fontScale}}rpx;">{{manualForm.date}} · 手动记录</view>
+        <view class="manual-close" catchtap="closeManualLog">✕</view>
+      </view>
+      <view class="manual-meta" style="font-size: {{22 * fontScale}}rpx;">多个菜用逗号分隔 · 可只填一餐</view>
+
+      <!-- 日期选择器 -->
+      <view class="manual-date-card" catchtap="onManualDateTap">
+        <text class="manual-date-label" style="font-size: {{22 * fontScale}}rpx;">📅 日期</text>
+        <picker mode="date" value="{{manualForm.date}}" bindchange="onManualField" data-field="date">
+          <view class="manual-date-value" style="font-size: {{28 * fontScale}}rpx;">{{manualForm.date}}</view>
+        </picker>
+      </view>
+
+      <!-- 3 段：早/午/晚 -->
+      <view class="manual-meal-section">
+        <view class="manual-meal-header">
+          <text class="manual-meal-emoji">☀️</text>
+          <text class="manual-meal-name" style="font-size: {{28 * fontScale}}rpx;">早餐</text>
+          <text wx:if="{{manualForm.breakfast}}" class="manual-meal-count" style="font-size: {{20 * fontScale}}rpx;">已填</text>
+        </view>
+        <input class="manual-meal-input" value="{{manualForm.breakfast}}" bindinput="onManualField" data-field="breakfast" placeholder="例：面包,牛奶" />
+      </view>
+
+      <view class="manual-meal-section">
+        <view class="manual-meal-header">
+          <text class="manual-meal-emoji">🌞</text>
+          <text class="manual-meal-name" style="font-size: {{28 * fontScale}}rpx;">午餐</text>
+          <text wx:if="{{manualForm.lunch}}" class="manual-meal-count" style="font-size: {{20 * fontScale}}rpx;">已填</text>
+        </view>
+        <input class="manual-meal-input" value="{{manualForm.lunch}}" bindinput="onManualField" data-field="lunch" placeholder="例：宫保鸡丁,米饭" />
+      </view>
+
+      <view class="manual-meal-section">
+        <view class="manual-meal-header">
+          <text class="manual-meal-emoji">🌙</text>
+          <text class="manual-meal-name" style="font-size: {{28 * fontScale}}rpx;">晚餐</text>
+          <text wx:if="{{manualForm.dinner}}" class="manual-meal-count" style="font-size: {{20 * fontScale}}rpx;">已填</text>
+        </view>
+        <input class="manual-meal-input" value="{{manualForm.dinner}}" bindinput="onManualField" data-field="dinner" placeholder="例：番茄蛋汤,清炒时蔬" />
+      </view>
+
+      <view class="manual-actions">
+        <view class="btn-secondary manual-cancel" catchtap="closeManualLog">取消</view>
+        <view class="btn-primary manual-save" catchtap="onManualSave" hover-class="btn-primary-hover">保存记录</view>
       </view>
     </view>
   </view>

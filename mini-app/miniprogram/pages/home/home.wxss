@@ -562,3 +562,206 @@
   .actions { padding: 12rpx 0; }
   .big-btn { padding: 22rpx 0; }
 }
+
+/* ===== 冰箱输入区 ===== */
+.section-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fridge-clear-link {
+  color: #999;
+  padding: 0 8rpx;
+}
+
+.fridge-clear-link:active {
+  color: #d14545;
+}
+
+.fridge-input-row {
+  display: flex;
+  gap: 8rpx;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.fridge-input {
+  flex: 1;
+  background: #f7f7f7;
+  border: 2rpx solid #eee;
+  border-radius: 10rpx;
+  padding: 12rpx 16rpx;
+  font-size: 26rpx;
+  min-width: 0;
+}
+
+.fridge-add-btn {
+  flex-shrink: 0;
+  background: #ff9a3c;
+  color: #fff;
+  border-radius: 10rpx;
+  width: 72rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.fridge-add-btn:active { opacity: 0.8; }
+.fridge-add-btn.disabled { opacity: 0.5; }
+
+.chip chip-fridge {
+  position: relative;
+}
+
+/* ===== 手动记录 modal（按饮食报告风格：温暖米色 + 卡片化）===== */
+.manual-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 32rpx;
+  box-sizing: border-box;
+}
+
+.manual-card {
+  background: #fafaf7;
+  border-radius: 20rpx;
+  padding: 32rpx 28rpx;
+  width: 100%;
+  max-width: 680rpx;
+  max-height: 88vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+}
+
+.manual-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+  position: relative;
+}
+
+.manual-icon {
+  font-size: 48rpx;
+  margin-right: 12rpx;
+  line-height: 1;
+}
+
+.manual-title {
+  flex: 1;
+  font-weight: 600;
+  color: #2a2a2a;
+}
+
+.manual-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 36rpx;
+}
+
+.manual-meta {
+  color: #999;
+  margin-bottom: 20rpx;
+}
+
+.manual-date-card {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.03);
+}
+
+.manual-date-label {
+  color: #999;
+}
+
+.manual-date-value {
+  color: #2a2a2a;
+  font-weight: 500;
+}
+
+.manual-meal-section {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 12rpx;
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.03);
+}
+
+.manual-meal-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.manual-meal-emoji {
+  font-size: 32rpx;
+  margin-right: 10rpx;
+  line-height: 1;
+}
+
+.manual-meal-name {
+  color: #2a2a2a;
+  font-weight: 500;
+  flex: 1;
+}
+
+.manual-meal-count {
+  color: #2da44e;
+  background: #e8f7ed;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+}
+
+.manual-meal-input {
+  background: #fafaf7;
+  border: 2rpx solid #f0ebe0;
+  border-radius: 10rpx;
+  padding: 14rpx 16rpx;
+  font-size: 28rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.manual-meal-input:focus {
+  border-color: #ff9a3c;
+}
+
+.manual-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.manual-cancel {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0;
+}
+
+.manual-save {
+  flex: 2;
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0;
+  font-size: 30rpx;
+}
