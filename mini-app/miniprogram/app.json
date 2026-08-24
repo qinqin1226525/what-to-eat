@@ -1,10 +1,10 @@
 {
   "pages": [
     "pages/home/home",
-    "pages/history/history",
-    "pages/fridge/fridge",
+    "pages/stats/stats",
     "pages/chat/chat",
-    "pages/profile/profile"
+    "pages/profile/profile",
+    "pages/fridge/fridge"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -24,8 +24,8 @@
         "text": "选菜"
       },
       {
-        "pagePath": "pages/history/history",
-        "text": "清单"
+        "pagePath": "pages/stats/stats",
+        "text": "统计"
       }
     ]
   },
