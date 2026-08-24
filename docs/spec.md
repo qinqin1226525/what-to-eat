@@ -127,27 +127,42 @@ function pick3({ customDishes, fridgeItems, recentPicks }) {
 
 ---
 
-## S4. 一键记录流程
+## S4. 一键记录流程（**v2.1 升级为多选模式**）
 
-**触发**：结果 modal 点「吃这个 →」
+**触发**：结果 modal 每道菜点「✓ 选这道」→ 加入 `pickedMeals`，不关 modal；底部「✅ 就做这些」统一记录。
 
-**API 调用**：
+**API 调用**（多次循环）：
 ```js
-cloud.addMeal({
-  dish: <抽到的菜名>,
-  meal: '午餐',          // 默认值
-  status: 'confirmed',
-  date: today           // ISO 格式 YYYY-MM-DD
-})
+for (const dish of pickedMeals) {
+  await cloud.addMeal({
+    dish,
+    meal: '午餐',            // 默认值
+    status: 'confirmed',
+    date: today               // ISO 格式 YYYY-MM-DD
+  })
+}
 ```
 
 **UI 反馈**：
-- toast：「✓ 菜名」，1.5 秒自动消失
-- 不弹确认 modal（避免打断）
+- 点「✓ 选这道」→ toast「✓ 已选 菜名」，按钮变深绿「✓ 已选」态，modal 顶部加「✓ 已选 X 道：菜1、菜2...」
+- 点「✅ 就做这些」→ toast「✓ 记录 X 道」，关闭 modal
+- 「✓ 选这道」/「✅ 就做这些」在 pickedMeals 为空时是灰色禁用态
 
 **边界**：
-- addMeal 失败 → toast「记录失败」+ 保留结果 modal（用户可重试）
-- 用户连续点多个「吃这个」→ 多次 addMeal（无去重，每次都记）
+- addMeal 部分失败 → toast「成功 X 失败 Y」
+- pickedMeals 为空 → 不能点「✅ 就做这些」（按钮禁用 + toast「还没选菜」）
+
+**v2.1 加菜按钮**（底部 chip 行）：
+- 「➕ 主菜/🥣 汤/🍚 主食/🥗 凉菜」4 个 chip
+- 点哪个 role → 追加一道该 role 的菜到 picked.dishes
+- 候选 = 菜池里该 role 的菜 - 已吃/已选/已在 modal
+- 启发式：菜名包含冰箱食材的优先
+- 没菜 → toast「主菜 没菜可加」
+
+**v2.1 偏离记录**：
+- ❌ 违反 ADR-005「极简 UI」（底部多了一条 chip 行 + 主按钮）
+- ✅ 符合 JTBD 调研 #11（来客人要 4-5 道）+ 用户实际反馈
+- 折中：按钮文案克制、chip 极简、橙色按钮只在「✅ 就做这些」一处用
 
 ---
 

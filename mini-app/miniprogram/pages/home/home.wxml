@@ -27,8 +27,8 @@
     <scroll-view scroll-x wx:if="{{fridgeItems.length > 0}}" class="chip-scroll" enhanced show-scrollbar="{{false}}">
       <block wx:for="{{fridgeItems}}" wx:key="*this">
         <view class="chip chip-fridge" style="font-size: {{24 * fontScale}}rpx;" data-name="{{item}}" catchtap="onFridgeRemove">{{item}}<text class="chip-x">×</text></view>
-      </block>
-    </scroll-view>
+
+      </scroll-view>
   </view>
 
   <!-- 菜池 chip 行（可加可删） -->
@@ -60,7 +60,7 @@
       📝 手动记录今天吃了啥
     </view>
     <view class="btn-secondary small-btn" catchtap="onAiInspire" hover-class="btn-primary-hover">
-      💡 AI 给点灵感
+      🤖 AI 顾问
     </view>
   </view>
 
@@ -77,7 +77,7 @@
     <view class="result-card" catchtap="_noop">
       <view class="result-close" bindtap="closePicked">✕</view>
       <view class="result-title" style="font-size: {{32 * fontScale}}rpx;">
-        <block wx:if="{{picked.source === 'ai'}}">💡 AI 灵感</block>
+        <block wx:if="{{picked.source === 'ai'}}">🤖 AI 顾问</block>
         <block wx:elif="{{picked.source === 'fridge'}}">🥬 冰箱有什么</block>
         <block wx:else>🎲 今日推荐</block>
       </view>
@@ -126,26 +126,39 @@
                   <text class="result-step-num">{{sidx + 1}}.</text>
                   <text>{{step}}</text>
                 </view>
-              </block>
-            <view class="result-btn {{pickedMeals.indexOf(dish) >= 0 ? 'result-btn-eat-done' : 'result-btn-eat'}}"
-                  style="font-size: {{24 * fontScale}}rpx;" data-dish="{{dish}}" catchtap="onEat">
-              <block wx:if="{{pickedMeals.indexOf(dish) >= 0}}">✓ 已选</block>
-              <block wx:else>✓ 选这道</block>
-            </view>
-            <view wx:if="{{picked.dishInfos[idx].tip}}" class="result-tip" style="font-size: {{24 * fontScale}}rpx;">
-              💡 {{picked.dishInfos[idx].tip}}
             </view>
           </view>
 
           <!-- 右侧：4 个按钮垂直 -->
           <view class="result-row-buttons">
-            <view class="result-btn result-btn-eat" style="font-size: {{24 * fontScale}}rpx;" data-dish="{{dish}}" catchtap="onEat">✓ 就做</view>
+            <view class="result-btn {{pickedMeals.indexOf(dish) >= 0 ? 'result-btn-eat-done' : 'result-btn-eat'}}"
+                  style="font-size: {{24 * fontScale}}rpx;" data-dish="{{dish}}" catchtap="onEat">
+              <block wx:if="{{pickedMeals.indexOf(dish) >= 0}}">✓ 已选</block>
+              <block wx:else>✓ 选这道</block>
+            </view>
             <view class="result-btn result-btn-swap" style="font-size: {{24 * fontScale}}rpx;" data-idx="{{idx}}" catchtap="onSwapDish">🔄 换一道</view>
             <view class="result-btn result-btn-custom" style="font-size: {{24 * fontScale}}rpx;" data-idx="{{idx}}" catchtap="onCustomDish">🍽 别的</view>
             <view class="result-btn result-btn-skip" style="font-size: {{24 * fontScale}}rpx;" data-idx="{{idx}}" catchtap="onSkip">✕ 跳过</view>
           </view>
         </view>
       </block>
+
+      <!-- 底部：再来一道 chip 行 + 就做这些主按钮 -->
+      <view class="result-footer">
+        <view class="footer-label" style="font-size: {{22 * fontScale}}rpx;">➕ 再来一道</view>
+        <view class="role-add-row">
+          <view class="role-add-chip" data-role="主菜" catchtap="addMoreDish">🍖 主菜</view>
+          <view class="role-add-chip" data-role="汤" catchtap="addMoreDish">🥣 汤</view>
+          <view class="role-add-chip" data-role="主食" catchtap="addMoreDish">🍚 主食</view>
+          <view class="role-add-chip" data-role="凉菜" catchtap="addMoreDish">🥗 凉菜</view>
+        </view>
+        <view class="result-btn-finish {{pickedMeals.length === 0 ? 'result-btn-finish-disabled' : ''}}"
+              catchtap="finishEat" style="font-size: {{30 * fontScale}}rpx;">
+          <block wx:if="{{pickedMeals.length === 0}}">👆 选几道菜再点这个</block>
+          <block wx:elif="{{pickedMeals.length === 1}}">✅ 就做 {{pickedMeals[0]}}</block>
+          <block wx:else>✅ 就做这些（{{pickedMeals.length}} 道）</block>
+        </view>
+      </view>
     </view>
   </view>
 
