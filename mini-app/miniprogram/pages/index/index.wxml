@@ -59,16 +59,6 @@
         <view class="mode-title">一日三餐</view>
         <view class="mode-desc">早 + 午 + 晚</view>
       </view>
-      <view class="mode-card" data-mode="budget-time" bindtap="onMode">
-        <view class="mode-icon">⏱️</view>
-        <view class="mode-title">预算时间</view>
-        <view class="mode-desc">按可用时间选菜 · 5 档可选</view>
-      </view>
-      <view class="mode-card" data-mode="scenario" bindtap="onMode">
-        <view class="mode-icon">🎭</view>
-        <view class="mode-title">按场景</view>
-        <view class="mode-desc">深夜 / 聚会 / 减脂等 6 种</view>
-      </view>
       <view class="mode-card" data-mode="fridge" bindtap="onMode">
         <view class="mode-icon">🥬</view>
         <view class="mode-title">冰箱有什么</view>
@@ -135,122 +125,6 @@
     </view>
   </block>
 
-  <!-- 预算时间：档位选择 -->
-  <block wx:if="{{mode === 'budget-time'}}">
-    <view class="card">
-      <view class="card-title">⏱️ 你最多能花多少时间？</view>
-      <view class="text-muted" style="margin-bottom:24rpx;">选个档位，3 秒拿到推荐菜</view>
-      <view class="chip-row">
-        <block wx:for="{{budgetOptions}}" wx:key="value" wx:for-item="opt">
-          <view class="chip {{selectedBudgetTime === opt.value ? 'chip-on' : 'chip-ghost'}}"
-                data-minutes="{{opt.value}}" bindtap="onBudgetTimeSelect">
-            {{opt.label}}
-          </view>
-        </block>
-      </view>
-      <view wx:if="{{lastBudgetTime > 0 && selectedBudgetTime !== lastBudgetTime}}"
-            style="margin-top:20rpx;font-size:24rpx;color:#999;">
-        💡 上次选了 {{lastBudgetTime}} 分钟
-      </view>
-    </view>
-    <view style="margin-top:16rpx;">
-      <button class="btn-ghost" bindtap="reset">返回</button>
-    </view>
-  </block>
-
-  <!-- 预算时间：结果（复用 one-meal 结构） -->
-  <block wx:if="{{mode === 'budget-time-result' && result}}">
-    <view class="card">
-      <view class="card-title">⏱️ {{selectedBudgetTime > 0 ? selectedBudgetTime + ' 分钟内' : '不限时间'}} 推荐</view>
-      <view class="text-muted" style="margin-bottom:20rpx;">
-        <block wx:if="{{result.isOneBowl}}">一碗一餐 · 不配菜不配汤</block>
-        <block wx:elif="{{result.isCombo}}">配菜模式 · 主菜 + 汤 + 主食</block>
-        <block wx:else>按时间筛选 · 不超过 {{selectedBudgetTime || '∞'}} 分钟</block>
-      </view>
-      <block wx:for="{{result.dishes}}" wx:key="name" wx:for-item="dish">
-        <view class="dish-row" data-dish="{{dish}}" bindtap="showDishDetail">
-          <view class="dish-emoji">{{dish.emoji}}</view>
-          <view class="dish-info">
-            <view class="dish-name">{{dish.name}}</view>
-            <view class="dish-meta">约 {{dish.time_minutes}} 分钟</view>
-          </view>
-          <view class="swap-btn" data-slot="{{dish._slot}}" catchtap="onSwapOneDish">换这道</view>
-        </view>
-      </block>
-      <view wx:if="{{result.dishes.length === 0}}" class="text-muted text-center" style="padding:40rpx 0;">
-        😢 {{selectedBudgetTime}} 分钟内没找到合适的菜，换个档位试试
-      </view>
-      <view class="divider"></view>
-      <view style="display:flex;gap:16rpx;">
-        <view style="flex:1;">
-          <button class="btn-primary" data-dish="{{result.recordDish}}" data-meal="" bindtap="confirmEat">就它了</button>
-        </view>
-        <view style="flex:1;">
-          <button class="btn-secondary" bindtap="onBudgetTimeReset">换档位</button>
-        </view>
-      </view>
-      <view style="margin-top:16rpx;">
-        <button class="btn-ghost" bindtap="reset">返回</button>
-      </view>
-    </view>
-  </block>
-
-  <!-- 场景：场景卡片网格 -->
-  <block wx:if="{{mode === 'scenario'}}">
-    <view class="card">
-      <view class="card-title">🎭 今天什么场合？</view>
-      <view class="text-muted" style="margin-bottom:24rpx;">为不同场景挑专属菜单</view>
-      <view wx:if="{{lastScenario && selectedScenario}}"
-            class="text-muted" style="margin-bottom:20rpx;font-size:24rpx;">
-        💡 上次选了「{{selectedScenario.name}}」 — 直接进入点 <text style="color:#ff9a3c;" bindtap="onScenarioQuickContinue">继续</text>，换别的选下方
-      </view>
-      <view class="scenario-grid">
-        <block wx:for="{{scenarios}}" wx:key="id" wx:for-item="sc">
-          <view class="scenario-card {{lastScenario === sc.id ? 'scenario-card-last' : ''}}"
-                data-id="{{sc.id}}" bindtap="onScenarioSelect">
-            <view class="scenario-emoji">{{sc.emoji}}</view>
-            <view class="scenario-name">{{sc.name}}</view>
-            <view class="scenario-desc">{{sc.desc}}</view>
-          </view>
-        </block>
-      </view>
-    </view>
-    <view style="margin-top:16rpx;">
-      <button class="btn-ghost" bindtap="reset">返回</button>
-    </view>
-  </block>
-
-  <!-- 场景：结果（复用 dish-row） -->
-  <block wx:if="{{mode === 'scenario-result' && result && selectedScenario}}">
-    <view class="card">
-      <view class="card-title">{{selectedScenario.emoji}} {{selectedScenario.name}}</view>
-      <view class="text-muted" style="margin-bottom:20rpx;">{{selectedScenario.desc}}</view>
-      <block wx:for="{{result.dishes}}" wx:key="name" wx:for-item="dish">
-        <view class="dish-row" data-dish="{{dish}}" bindtap="showDishDetail">
-          <view class="dish-emoji">{{dish.emoji}}</view>
-          <view class="dish-info">
-            <view class="dish-name">{{dish.name}}</view>
-            <view class="dish-meta">约 {{dish.time_minutes}} 分钟</view>
-          </view>
-          <view class="swap-btn" data-slot="{{dish._slot}}" catchtap="onSwapScenarioDish">换这道</view>
-        </view>
-      </block>
-      <view wx:if="{{result.dishes.length === 0}}" class="text-muted text-center" style="padding:40rpx 0;">
-        😢 这个场景暂时没合适的，换个场景试试
-      </view>
-      <view class="divider"></view>
-      <view style="display:flex;gap:16rpx;">
-        <view style="flex:1;">
-          <button class="btn-primary" data-dish="{{result.recordDish}}" data-meal="" bindtap="confirmEat">就它了</button>
-        </view>
-        <view style="flex:1;">
-          <button class="btn-secondary" bindtap="onScenarioReset">换场景</button>
-        </view>
-      </view>
-      <view style="margin-top:16rpx;">
-        <button class="btn-ghost" bindtap="reset">返回</button>
-      </view>
-    </view>
   </block>
 
   <!-- 一日三餐 -->

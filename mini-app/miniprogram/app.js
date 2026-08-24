@@ -13,11 +13,6 @@ App({
     profile: null,    // Phase 2: 健康档案
     targets: null,    // Phase 2: 推荐摄入
     cloudReady: false,
-    // 已引导过的新功能（用 App 实例缓存，V2 可改 wx.storage）
-    guidedFeatures: {
-      budgetTime: false,
-      scenario: false,
-    },
   },
 
   onLaunch() {

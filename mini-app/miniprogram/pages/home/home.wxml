@@ -67,71 +67,56 @@
         <text wx:else>🎲 今日推荐</text>
       </view>
       <block wx:for="{{picked.dishes}}" wx:key="*this" wx:for-item="dish" wx:for-index="idx">
-        <view class="result-row" data-name="{{dish}}" bindtap="onDishTap" hover-class="result-row-hover">
-          <view class="result-dish" style="font-size: {{36 * fontScale}}rpx;">{{dish}}</view>
-          <view wx:if="{{picked.reasons && picked.reasons[idx]}}" class="result-reason" style="font-size: {{22 * fontScale}}rpx;">
+        <view class="result-row" wx:if="{{picked.dishInfos && picked.dishInfos[idx]}}">
+          <view class="result-row-header" data-idx="{{idx}}" bindtap="onToggleExpand" hover-class="result-row-header-hover">
+            <view class="result-dish" style="font-size: {{36 * fontScale}}rpx;">{{dish}}</view>
+            <view class="result-row-toggle" style="font-size: {{20 * fontScale}}rpx;">
+              <text wx:if="{{picked.expanded && picked.expanded[idx]}}">▼</text>
+              <text wx:else>▶</text>
+            </view>
+          </view>
+
+          <!-- AI 理由（如果有） -->
+          <view wx:if="{{picked.reasons && picked.reasons[idx] && picked.reasons[idx].reason}}" class="result-reason" style="font-size: {{22 * fontScale}}rpx;">
             {{picked.reasons[idx].reason}}
           </view>
-          <view class="result-eat" style="font-size: {{24 * fontScale}}rpx;">看做法 →</view>
+
+          <!-- 食材 + 调料 + 时间：always inline -->
+          <view class="result-meta" style="font-size: {{24 * fontScale}}rpx;">
+            <text class="result-meta-line" wx:if="{{picked.dishInfos[idx].ingredientsStr}}">
+              🥕 {{picked.dishInfos[idx].ingredientsStr}}
+            </text>
+            <text class="result-meta-line" wx:if="{{picked.dishInfos[idx].seasoningsStr}}">
+              🧂 {{picked.dishInfos[idx].seasoningsStr}}
+            </text>
+            <text class="result-meta-line">⏱ {{picked.dishInfos[idx].time}} 分钟</text>
+          </view>
+
+          <!-- 展开：步骤 + 小贴士 -->
+          <view wx:if="{{picked.expanded && picked.expanded[idx]}}" class="result-expand">
+            <block wx:if="{{picked.dishInfos[idx].steps.length > 0}}">
+              <view class="result-section-title" style="font-size: {{24 * fontScale}}rpx;">📝 做法</view>
+              <block wx:for="{{picked.dishInfos[idx].steps}}" wx:key="*this" wx:for-item="step" wx:for-index="sidx">
+                <view class="result-step" style="font-size: {{24 * fontScale}}rpx;">
+                  <text class="result-step-num">{{sidx + 1}}.</text>
+                  <text>{{step}}</text>
+                </view>
+              </block>
+            </block>
+            <view wx:if="{{picked.dishInfos[idx].tip}}" class="result-tip" style="font-size: {{24 * fontScale}}rpx;">
+              💡 {{picked.dishInfos[idx].tip}}
+            </view>
+          </view>
+
+          <!-- 操作：换 + 做 -->
+          <view class="result-row-actions">
+            <view class="btn-secondary result-swap" style="font-size: {{24 * fontScale}}rpx;" data-idx="{{idx}}" bindtap="onSwapDish">换一道</view>
+            <view class="btn-primary result-eat-btn" style="font-size: {{28 * fontScale}}rpx;" data-dish="{{dish}}" bindtap="onEat">就做这个 ✓</view>
+          </view>
         </view>
       </block>
       <view class="result-add-more" bindtap="onAddOneMore" hover-class="result-add-more-hover">
         + 再加一道
-      </view>
-    </view>
-  </view>
-
-  <!-- 菜谱详情 modal（点 result-row 触发）-->
-  <view wx:if="{{dishDetail}}" class="detail-mask" bindtap="closeDishDetail">
-    <view class="detail-card" catchtap="">
-      <view class="detail-header">
-        <view class="detail-emoji">{{dishDetail.emoji}}</view>
-        <view class="detail-title">{{dishDetail.name}}</view>
-        <view class="detail-close" bindtap="closeDishDetail">✕</view>
-      </view>
-      <view class="detail-meta">
-        <text class="tag">{{dishDetail.role}}</text>
-        <text class="tag">⏱ {{dishDetail.time}} 分钟</text>
-        <block wx:for="{{dishDetail.tags}}" wx:key="*this">
-          <text class="tag">{{item}}</text>
-        </block>
-      </view>
-
-      <block wx:if="{{dishDetail.ingredients.length > 0}}">
-        <view class="detail-section-title">🥕 食材</view>
-        <view class="detail-text">{{dishDetail.ingredientsStr}}</view>
-      </block>
-
-      <block wx:if="{{dishDetail.seasonings.length > 0}}">
-        <view class="detail-section-title">🧂 调料</view>
-        <view class="detail-text">{{dishDetail.seasoningsStr}}</view>
-      </block>
-
-      <block wx:if="{{dishDetail.steps.length > 0}}">
-        <view class="detail-section-title">📝 做法</view>
-        <view wx:for="{{dishDetail.steps}}" wx:key="*this" wx:for-item="step" wx:for-index="idx" class="detail-step">
-          <text class="step-num">{{idx + 1}}.</text>
-          <text class="step-text">{{step}}</text>
-        </view>
-      </block>
-
-      <block wx:if="{{dishDetail.tip}}">
-        <view class="detail-tip">💡 {{dishDetail.tip}}</view>
-      </block>
-
-      <block wx:if="{{!dishDetail.steps.length && !dishDetail.tip && !dishDetail.ingredients.length}}">
-        <view class="text-muted text-center" style="padding:32rpx 0;font-size:24rpx;">暂无做法</view>
-      </block>
-
-      <view class="detail-actions">
-        <view class="btn-secondary detail-swap-btn"
-              style="font-size: {{28 * fontScale}}rpx;"
-              bindtap="onSwapDish">换一换</view>
-        <view class="btn-primary detail-eat-btn"
-              style="font-size: {{30 * fontScale}}rpx;"
-              data-dish="{{dishDetail.name}}"
-              bindtap="onEat"
-              hover-class="btn-primary-hover">吃这个 ✓</view>
       </view>
     </view>
   </view>

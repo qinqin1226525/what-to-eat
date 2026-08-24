@@ -17,9 +17,8 @@ Page({
     customDishes: [],
     recentPicks: [],     // 最近7天已抽
     loading: true,
-    picked: null,        // 抽到的结果 {dishes: [], source: 'random'|'ai'}
+    picked: null,        // 抽到的结果 {dishes, dishInfos, expanded, reasons, source}
     picking: false,
-    dishDetail: null,     // 详情 modal 数据
     // onboarding
     showOnboarding: false,
     onboardingDishes: [],  // [{role, name, checked}]
@@ -103,8 +102,16 @@ Page({
     // 洗牌取前 3
     const shuffled = pool.slice().sort(() => Math.random() - 0.5)
     const dishes = shuffled.slice(0, Math.min(3, shuffled.length))
+    const expanded = dishes.map(() => false)
 
-    this.setData({ picked: { dishes, source: 'random' } })
+    this.setData({ picked: { dishes, source: 'random', expanded } })
+    // 异步加载完整菜谱信息（不影响显示，ingredients/seasonings 会填充）
+    this.enrichDishes(dishes).then(infos => {
+      const cur = this.data.picked
+      if (cur && cur.dishes && cur.dishes.length === dishes.length) {
+        this.setData({ picked: { ...cur, dishInfos: infos } })
+      }
+    })
   },
 
   // ----- AI 灵感 -----
@@ -132,7 +139,16 @@ Page({
         fridge: fridgeItems
       })
       if (res && res.ok && res.picks && res.picks.length > 0) {
-        this.setData({ picked: { dishes: res.picks.map(p => p.dish), reasons: res.picks, source: 'ai' } })
+        const dishes = res.picks.map(p => p.dish)
+        const expanded = dishes.map(() => false)
+        this.setData({ picked: { dishes, reasons: res.picks, source: 'ai', expanded } })
+        // 异步加载菜谱详情
+        this.enrichDishes(dishes).then(infos => {
+          const cur = this.data.picked
+          if (cur && cur.dishes && cur.dishes.length === dishes.length) {
+            this.setData({ picked: { ...cur, dishInfos: infos } })
+          }
+        })
       } else {
         // AI 失败兜底：走本地随机
         wx.showToast({ title: 'AI 暂不可用，本地随机', icon: 'none' })
@@ -179,85 +195,89 @@ Page({
     const newDish = pool[Math.floor(Math.random() * pool.length)]
 
     const newDishes = [...picked.dishes, newDish]
-    // AI reasons 数组加一个空位（避免索引错位）
     const newReasons = picked.reasons ? [...picked.reasons, { dish: newDish, reason: '' }] : picked.reasons
+    const newExpanded = picked.expanded ? [...picked.expanded, false] : newDishes.map(() => false)
+    // 先更新 dishes（用户立刻看到菜名 +1），再异步拉详情
     this.setData({
-      picked: { ...picked, dishes: newDishes, reasons: newReasons }
+      picked: { ...picked, dishes: newDishes, reasons: newReasons, expanded: newExpanded }
+    })
+    this.enrichDishes([newDish]).then(infos => {
+      const cur = this.data.picked
+      if (!cur) return
+      const newInfos = cur.dishInfos ? cur.dishInfos.slice() : []
+      newInfos[newInfos.length] = infos[0]
+      this.setData({ picked: { ...cur, dishInfos: newInfos } })
     })
     wx.showToast({ title: `+1 ${newDish}`, icon: 'success', duration: 1200 })
   },
 
-  // ----- 点菜名 → 弹详情 modal -----
-  onDishTap(e) {
-    const name = e.currentTarget.dataset.name
-    if (!name) return
-    const dishes = app.globalData.dishes || []
-    const dish = dishes.find(d => d.name === name)
-    if (!dish) {
-      // globalData 没有 → 现场拉一次
-      this.loadAndShowDetail(name)
-      return
-    }
-    this.setData({ dishDetail: this.formatDishDetail(dish) })
-  },
-
-  async loadAndShowDetail(name) {
-    try {
-      const res = await cloud.getDishes()
-      const dishes = (res && res.ok && res.dishes) || []
-      const dish = dishes.find(d => d.name === name)
-      if (dish) {
-        // 顺手刷一下 globalData 缓存
+  // ----- 内联展示：把菜名 → 完整菜谱信息 -----
+  // 用法：await this.enrichDishes(['番茄炒蛋', '紫菜蛋汤']) → [{name, ingredients, ...}, ...]
+  async enrichDishes(names) {
+    if (!names || names.length === 0) return []
+    let dishes = app.globalData.dishes || []
+    // globalData 没缓存时现场拉
+    if (dishes.length === 0) {
+      try {
+        const res = await cloud.getDishes()
+        dishes = (res && res.ok && res.dishes) || []
         app.globalData.dishes = dishes
-        this.setData({ dishDetail: this.formatDishDetail(dish) })
-      } else {
-        wx.showToast({ title: '没找到做法', icon: 'none' })
+      } catch (e) {
+        dishes = []
       }
-    } catch (err) {
-      util.showError('加载失败', err)
     }
+    const byName = new Map(dishes.map(d => [d.name, d]))
+    return names.map(name => {
+      const d = byName.get(name)
+      if (!d) {
+        return {
+          name,
+          ingredients: [], ingredientsStr: '',
+          seasonings: [], seasoningsStr: '',
+          steps: [], tip: '', time: '?'
+        }
+      }
+      const ingredients = d.ingredients || []
+      const seasonings = d.seasonings || []
+      return {
+        name: d.name,
+        time: d.time_minutes || '?',
+        ingredients,
+        seasonings,
+        steps: d.steps || [],
+        tip: d.tip || '',
+        ingredientsStr: ingredients.join('、'),
+        seasoningsStr: seasonings.join('、')
+      }
+    })
   },
 
-  formatDishDetail(dish) {
-    const ingredients = dish.ingredients || []
-    const seasonings = dish.seasonings || []
-    return {
-      name: dish.name,
-      role: dish.role || '主菜',
-      time: dish.time_minutes || '?',
-      tags: dish.tags || [],
-      emoji: dish.emoji || '🍽',
-      ingredients,
-      seasonings,
-      steps: dish.steps || [],
-      tip: dish.tip || '',
-      ingredientsStr: ingredients.join('、'),
-      seasoningsStr: seasonings.join('、')
-    }
+  // 点菜名 → 切换展开/收起做法
+  onToggleExpand(e) {
+    const idx = e.currentTarget.dataset.idx
+    const picked = this.data.picked
+    if (!picked) return
+    const expanded = picked.expanded ? [...picked.expanded] : picked.dishes.map(() => false)
+    expanded[idx] = !expanded[idx]
+    this.setData({ picked: { ...picked, expanded } })
   },
 
-  closeDishDetail() {
-    this.setData({ dishDetail: null })
-  },
-
-  // 换一道：用新随机菜替换当前详情的那道
-  onSwapDish() {
-    const detail = this.data.dishDetail
-    if (!detail || !detail.name) return
+  // 换一道：用新随机菜替换 idx 那道（内联版）
+  onSwapDish(e) {
+    const idx = Number(e.currentTarget.dataset.idx)
     const { picked, customDishes, recentPicks, fridgeItems } = this.data
-    if (!picked || !picked.dishes) return
+    if (!picked || !picked.dishes || isNaN(idx)) return
+    const targetName = picked.dishes[idx]
 
-    // 候选 = 菜池 - 最近7天 - 当前3 道里其它2 道
     const recentSet = new Set(recentPicks)
-    const othersInPicked = new Set(picked.dishes.filter(d => d !== detail.name))
+    const othersInPicked = new Set(picked.dishes.filter((_, i) => i !== idx))
     const candidates = customDishes.filter(d =>
-      !recentSet.has(d) && !othersInPicked.has(d) && d !== detail.name
+      !recentSet.has(d) && !othersInPicked.has(d) && d !== targetName
     )
     if (candidates.length === 0) {
       wx.showToast({ title: '没菜可换了', icon: 'none' })
       return
     }
-    // 启发式：优先匹配冰箱
     const fridgeKeys = fridgeItems.map(f =>
       f.replace(/\s*\d+g?$/i, '').toLowerCase()
     )
@@ -268,22 +288,31 @@ Page({
     const pool = matched.length > 0 ? matched : candidates
     const newDish = pool[Math.floor(Math.random() * pool.length)]
 
-    // 替换 picked.dishes 里的那一道（保留 reason 如果有）
-    const newDishes = picked.dishes.map(d => d === detail.name ? newDish : d)
-    let newReasons = picked.reasons
-    if (picked.reasons) {
-      newReasons = picked.reasons.map(r =>
-        r && r.dish === detail.name ? { ...r, dish: newDish } : r
-      )
-    }
+    // 替换 dishes + dishInfos + reasons + expanded
+    const newDishes = picked.dishes.slice()
+    newDishes[idx] = newDish
+    const newInfos = picked.dishInfos ? picked.dishInfos.slice() : []
+    // 新菜的 info 等 enrich 完再设
     this.setData({
-      picked: { ...picked, dishes: newDishes, reasons: newReasons }
+      picked: { ...picked, dishes: newDishes, dishInfos: newInfos }
     })
-    // 重新拉新菜的详情
-    this.onDishTap({ currentTarget: { dataset: { name: newDish } } })
+    // 异步拉新菜 info 替换
+    this.enrichDishes([newDish]).then(infos => {
+      const cur = this.data.picked
+      if (!cur) return
+      const finalInfos = cur.dishInfos ? cur.dishInfos.slice() : []
+      finalInfos[idx] = infos[0]
+      this.setData({ picked: { ...cur, dishInfos: finalInfos } })
+    })
+    // reasons 同步替换
+    if (picked.reasons) {
+      const newReasons = picked.reasons.slice()
+      if (newReasons[idx]) newReasons[idx] = { ...newReasons[idx], dish: newDish }
+      this.setData({ picked: { ...this.data.picked, reasons: newReasons } })
+    }
   },
 
-  // ----- 「吃这个」一键记录（支持传 dish 名 + 自动关掉详情 modal） -----
+  // ----- 「就做这个」一键记录 -----
   async onEat(e) {
     const dish = e.currentTarget.dataset.dish
     if (!dish) return
@@ -293,7 +322,6 @@ Page({
       wx.showToast({ title: `✓ ${dish}`, icon: 'success', duration: 1500 })
       this.setData({
         picked: null,
-        dishDetail: null,
         recentPicks: Array.from(new Set([dish, ...this.data.recentPicks])).slice(0, 50)
       })
     } catch (err) {
