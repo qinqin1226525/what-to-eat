@@ -56,7 +56,9 @@ function pick3({ customDishes, fridgeItems, recentPicks }) {
 
 ---
 
-## S2. AI 灵感算法（pickWithAI）
+## S2. AI 顾问聊天（默认 mode）
+
+> 注：早期 spec 写过 `pickWithAI` 模式做选菜，但实测用户期望是**聊天**而非 AI 选菜。pickWithAI 模式代码保留在 aiAdvisor 云函数里，home.js 不再调用——未来若需要 AI 选菜可单独启用。
 
 **端点**：`aiAdvisor` 云函数，`mode: 'pickWithAI'`
 
@@ -223,6 +225,6 @@ for (const dish of pickedMeals) {
 |---|---|
 | 启动 → 可交互 | < 1.5s |
 | 「🎲 选菜」点击 → 显示结果 | < 200ms（本地随机） |
-| 「💡 AI 灵感」点击 → 显示结果 | < 5s（含 API 调用） |
+| 「🤖 AI 顾问」点击 → 跳转 chat 页 | < 100ms |
 | 一次 addMeal | < 1s |
 | 包体积（前端）| < 200KB（当前 ~50KB）|

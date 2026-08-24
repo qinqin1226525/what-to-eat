@@ -32,7 +32,7 @@ pages:     home   fridge   history  (+ profile 作为二级页 + chat 隐藏)
 **取舍**：
 - 「选菜」= 首页 = 手搓选菜（核心）
 - 「记录」= 历史（含手动记录） + ⚙ 齿轮入口到「我的」
-- 「AI 顾问」「健康画像」「seed 工具」藏在二级页面，不放 tabBar
+- 「AI 顾问」（聊天）「健康画像」「seed 工具」藏在二级页面，不放 tabBar
 
 ## Consequences
 

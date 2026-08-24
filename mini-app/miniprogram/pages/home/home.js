@@ -89,8 +89,17 @@ Page({
       ])
       const customDishes = (customRes && customRes.ok) ? customRes.items : []
       const history = (historyRes && historyRes.ok) ? historyRes.history : []
-      const allDishes = (dishesRes && dishesRes.ok) ? dishesRes.dishes : []
-      // 缓存到 globalData 给其他页/算法用
+      const rawDishes = (dishesRes && dishesRes.ok) ? dishesRes.dishes : []
+
+      // 防御性去重：云端 getDishes 已经去重，但历史数据可能还有残留
+      const seen = new Set()
+      const allDishes = []
+      for (const d of rawDishes) {
+        if (!d || !d.name || seen.has(d.name)) continue
+        seen.add(d.name)
+        allDishes.push(d)
+      }
+      // 缓存到 globalData
       app.globalData.dishes = allDishes
 
       // 按 role 分组
@@ -262,15 +271,26 @@ Page({
     }
     // 模糊匹配：菜名 / 食材 / 标签 含 query
     const all = app.globalData.dishes || []
-    const matched = all.filter(d => {
+    const seen = new Set()
+    const matched = []
+    for (const d of all) {
       const name = (d.name || '').toLowerCase()
-      if (name.includes(q)) return true
-      const ings = (d.ingredients || []).map(i => i.toLowerCase())
-      if (ings.some(i => i.includes(q))) return true
-      const tags = (d.tags || []).map(t => t.toLowerCase())
-      if (tags.some(t => t.includes(q))) return true
-      return false
-    }).slice(0, 30)
+      let hit = false
+      if (name.includes(q)) hit = true
+      else {
+        const ings = (d.ingredients || []).map(i => i.toLowerCase())
+        if (ings.some(i => i.includes(q))) hit = true
+        else {
+          const tags = (d.tags || []).map(t => t.toLowerCase())
+          if (tags.some(t => t.includes(q))) hit = true
+        }
+      }
+      if (hit && !seen.has(d.name)) {
+        seen.add(d.name)
+        matched.push(d)
+        if (matched.length >= 30) break
+      }
+    }
     // 加 emoji/role/time 给 wxml 显示
     const ROLE_EMOJI = { '主菜': '🥢', '汤': '🥣', '主食': '🥯', '凉菜': '🥗', '早餐': '🍳' }
     const results = matched.map(d => ({
