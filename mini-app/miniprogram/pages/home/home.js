@@ -45,6 +45,7 @@ Page({
     searchInput: '',
     searchResults: [],   // 过滤后的菜谱
     dishGroups: [],      // 没搜索时按 role 分组展示所有菜
+    expandedGroups: [],  // 哪些 role 展开了（默认空 = 全部收起）
     searchDetail: null, // 选中的菜详情
     // 手动记录本（看历史 + 编辑 + 删除）
     showLogbook: false,
@@ -328,6 +329,19 @@ Page({
         seasoningsStr: seasonings.join('、')
       }
     })
+  },
+
+  // 切换 role 分组展开/收起
+  onToggleGroup(e) {
+    const role = e.currentTarget.dataset.role
+    if (!role) return
+    const expanded = this.data.expandedGroups
+    const idx = expanded.indexOf(role)
+    if (idx >= 0) {
+      this.setData({ expandedGroups: expanded.filter(r => r !== role) })
+    } else {
+      this.setData({ expandedGroups: [...expanded, role] })
+    }
   },
 
   closeSearchDetail() {

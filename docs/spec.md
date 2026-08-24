@@ -60,49 +60,47 @@ function pick3({ customDishes, fridgeItems, recentPicks }) {
 
 > 注：早期 spec 写过 `pickWithAI` 模式做选菜，但实测用户期望是**聊天**而非 AI 选菜。pickWithAI 模式代码保留在 aiAdvisor 云函数里，home.js 不再调用——未来若需要 AI 选菜可单独启用。
 
-**端点**：`aiAdvisor` 云函数，`mode: 'pickWithAI'`
+**触发**：home 页点「🤖 AI 顾问」按钮 → `wx.navigateTo({url: '/pages/chat/chat'})`
+
+**端点**：`aiAdvisor` 云函数，**无 mode 参数**（默认走聊天分支）
 
 **输入**：
-- `candidates`: 候选菜池（同 S1）
-- `recentPicks`: 同上
-- `fridge`: 同上
-- `hint`: 用户的特别偏好（可选，目前未传）
+- `question`: 用户提问
+- `profile`: 健康档案（年龄/体重/目标）
+- `todayMeals`: 今日已吃
+- `todayTotals` + `targets`: 今日营养 vs 推荐摄入
 
 **System Prompt**（固定）：
 
 ```
-你是「三餐肆计」，用户的私人饮食顾问。
-任务：从【候选菜】里挑 3 道，必须是候选菜里的，不能编新的。
-每道配 1 句理由（≤20 字），说明为什么现在适合。
-
-用户上下文：
-- 冰箱现有：{fridge}
-- 最近 7 天吃过：{recentPicks}
-- {hint?}
-
-返回严格 JSON（不要 markdown 代码块）：
-{"picks": [{"dish": "菜名", "reason": "理由"}, ...]}
-
-规则：
-- 优先选和冰箱食材匹配的
-- 避开最近 7 天吃过的
-- 3 道菜尽量不同 role（主菜/汤/主食）
-- 理由要口语化，不要"根据您..."这种官腔
+你是「三餐肆计」——用户的私人中文饮食顾问。
+能力：推荐个性化菜谱 / 解读今日营养 / 教做菜 / 回答食材搭配
+规则：只用中文 / 3-6 句话 / 必要时编号列举 / 不诊断疾病（建议咨询医生）
 ```
 
 **API 参数**：
 - `model: 'deepseek-chat'`
-- `max_tokens: 400`
-- `temperature: 0.8`
-- `response_format: { type: 'json_object' }`（强制 JSON 输出）
-
-**校验**：
-- AI 返回的 `dish` 必须在 `candidates` 里（兜底防 AI 幻觉）
-- 理由截断到 30 字
+- `max_tokens: 800`
+- `temperature: 0.7`
+- 流式输出（SSE）→ 聊天页打字机效果
 
 **降级**：
-- API_KEY 未配 / AI 调用失败 / 返回非 JSON → 客户端 fallback 到 S1 本地随机
-- toast 提示「AI 暂不可用，本地随机」
+- API_KEY 未配置 → 聊天页显示「AI 暂不可用，请在云函数环境变量里设置 API_KEY」
+- 调用失败 / 超时 → toast「AI 暂不可用」
+
+---
+
+### 历史：废弃的 `pickWithAI` 模式
+
+**状态**：保留在 `aiAdvisor/index.js`，**home.js 不再调用**。
+
+**触发**：传 `mode: 'pickWithAI'`。
+
+**行为**：从候选菜池 + 冰箱 + 最近 7 天选 3 道菜 + 理由。
+
+**为什么废弃**：用户实际期望的是**聊天**（解读营养 / 教做菜），**不需要 AI 帮他选菜**——选菜逻辑已经够好（手搓菜池 + 启发式），AI 介入反而画蛇添足。
+
+**未来若启用**：单独做一个 "🤖 AI 推荐 3 道" 按钮，在"今天点不出来"场景下用。
 
 ---
 

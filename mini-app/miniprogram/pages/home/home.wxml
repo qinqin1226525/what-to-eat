@@ -58,8 +58,12 @@
     <view wx:elif="{{!searchInput}}" class="search-all">
       <block wx:for="{{dishGroups}}" wx:key="role" wx:for-item="g">
         <view class="dish-group">
-          <view class="dish-group-title" style="font-size: {{24 * fontScale}}rpx;">{{g.label}}（{{g.items.length}}）</view>
-          <view class="dish-group-list">
+          <view class="dish-group-title" data-role="{{g.role}}" catchtap="onToggleGroup" hover-class="dish-group-title-hover">
+            <text class="dish-group-toggle">{{expandedGroups.indexOf(g.role) >= 0 ? '▼' : '▶'}}</text>
+            <text style="font-size: {{26 * fontScale}}rpx;">{{g.label}}</text>
+            <text class="dish-group-count" style="font-size: {{22 * fontScale}}rpx;">（{{g.items.length}}）</text>
+          </view>
+          <view wx:if="{{expandedGroups.indexOf(g.role) >= 0}}" class="dish-group-list">
             <block wx:for="{{g.items}}" wx:key="name" wx:for-item="d">
               <view class="dish-group-chip" data-name="{{d.name}}" catchtap="onSearchDishTap" hover-class="search-result-hover">
                 {{d.emoji}} {{d.name}}

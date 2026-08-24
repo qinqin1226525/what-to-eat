@@ -1134,9 +1134,38 @@
 }
 
 .dish-group-title {
-  color: #5a5a5a;
-  font-weight: 500;
-  margin-bottom: 12rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  color: #2a2a2a;
+  font-weight: 600;
+  padding: 4rpx 0;
+  margin-bottom: 0;
+}
+
+.dish-group-title-hover {
+  opacity: 0.6;
+}
+
+.dish-group-toggle {
+  color: #ff9a3c;
+  font-size: 22rpx;
+  font-weight: 600;
+  width: 28rpx;
+  flex-shrink: 0;
+}
+
+.dish-group-count {
+  color: #999;
+  font-weight: normal;
+  margin-left: auto;
+}
+
+.dish-group-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 14rpx;
 }
 
 .dish-group-list {
