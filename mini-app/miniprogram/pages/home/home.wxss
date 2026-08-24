@@ -89,6 +89,79 @@
   color: #ccc;
 }
 
+.chip-empty {
+  color: #bbb;
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+}
+
+.section-label-sub {
+  color: #999;
+  font-weight: normal;
+}
+
+/* 菜池批量输入 */
+.batch-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  margin-top: 12rpx;
+}
+
+.batch-input {
+  background: #fff;
+  border: 2rpx solid #f0ebe0;
+  border-radius: 10rpx;
+  padding: 14rpx 20rpx;
+  font-size: 28rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.batch-input:focus {
+  border-color: #ff9a3c;
+}
+
+.pool-actions {
+  display: flex;
+  gap: 12rpx;
+  align-items: center;
+  margin-top: 14rpx;
+}
+
+.pool-add-row {
+  background: #fff;
+  color: #ff9a3c;
+  border: 2rpx solid #ff9a3c;
+  border-radius: 10rpx;
+  padding: 16rpx 24rpx;
+  font-size: 26rpx;
+  white-space: nowrap;
+}
+
+.pool-add-row:active {
+  background: #fff5e6;
+}
+
+.pool-save-btn {
+  flex: 1;
+  background: linear-gradient(135deg, #ff9a3c, #e88a30);
+  color: #fff;
+  border-radius: 10rpx;
+  padding: 18rpx 0;
+  font-size: 30rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+.pool-save-btn:active {
+  opacity: 0.85;
+}
+
+.pool-save-btn.disabled {
+  opacity: 0.5;
+}
+
 /* 操作按钮 */
 .actions {
   display: flex;

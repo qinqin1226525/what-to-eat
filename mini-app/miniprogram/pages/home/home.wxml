@@ -66,17 +66,33 @@
 
   <!-- 菜池 chip 行（可加可删） -->
   <view class="section">
-    <view class="section-label" style="font-size: {{22 * fontScale}}rpx;">🍳 我会做的</view>
+    <view class="section-label" style="font-size: {{22 * fontScale}}rpx;">
+      <text>🍳 我会做的</text>
+      <text class="section-label-sub" style="font-size: {{20 * fontScale}}rpx;">{{customDishes.length}} 道 · 点 × 删除单条</text>
+    </view>
+    <!-- 已有菜池（chip + × 删除单条） -->
     <scroll-view scroll-x class="chip-scroll" enhanced show-scrollbar="{{false}}">
       <block wx:for="{{customDishes}}" wx:key="*this">
-        <view class="chip chip-custom" style="font-size: {{24 * fontScale}}rpx;" data-name="{{item}}" bindtap="onRemoveDish">
+        <view class="chip chip-custom" style="font-size: {{24 * fontScale}}rpx;" data-name="{{item}}" catchtap="onRemoveDish">
           {{item}}<text class="chip-x">×</text>
         </view>
       </block>
-      <view class="chip chip-add" style="font-size: {{24 * fontScale}}rpx;">
-        <input class="chip-input" placeholder="+ 加菜" placeholder-class="chip-input-ph" bindconfirm="onAddDish" confirm-type="done" />
-      </view>
+      <view wx:if="{{customDishes.length === 0}}" class="chip-empty" style="font-size: {{22 * fontScale}}rpx;">还没有菜，去下面加</view>
     </scroll-view>
+
+    <!-- 批量输入：5 个 input -->
+    <view class="batch-inputs">
+      <block wx:for="{{poolInputs}}" wx:key="id" wx:for-item="inp">
+        <input class="batch-input" value="{{inp.value}}" data-id="{{inp.id}}"
+               bindinput="onPoolInputChange" placeholder="菜名 {{inp.id}}" />
+      </block>
+    </view>
+
+    <!-- 操作行：添加 + 保存 -->
+    <view class="pool-actions">
+      <view class="pool-add-row" catchtap="onAddPoolInput">+ 加一行</view>
+      <view class="pool-save-btn {{savingPool ? 'disabled' : ''}}" catchtap="onSavePool">{{savingPool ? '保存中…' : '保存菜池'}}</view>
+    </view>
   </view>
 
   <!-- 二级操作 -->

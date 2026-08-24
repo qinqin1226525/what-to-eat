@@ -38,6 +38,10 @@ Page({
     customCandidates: [],
     customFocus: false,
     customTargetIdx: -1,
+    // 菜池批量输入
+    poolInputs: [{ id: 1, value: '' }, { id: 2, value: '' }, { id: 3, value: '' }, { id: 4, value: '' }, { id: 5, value: '' }],
+    nextPoolId: 6,
+    savingPool: false,
     // 手动记录 modal（按饮食报告风格）
     showManualLog: false,
     manualForm: { date: '', breakfast: '', lunch: '', dinner: '' },
@@ -763,19 +767,50 @@ Page({
     wx.showToast({ title: `+ ${role}: ${newDish}`, icon: 'success', duration: 1000 })
   },
 
-  // ----- 菜池增删 -----
-  async onAddDish(e) {
-    const value = (e.detail.value || '').trim()
-    if (!value) return
+  // ----- 菜池：批量输入 + 保存 -----
+  onPoolInputChange(e) {
+    const id = Number(e.currentTarget.dataset.id)
+    const value = e.detail.value || ''
+    const inputs = this.data.poolInputs.map(inp =>
+      inp.id === id ? { ...inp, value } : inp
+    )
+    this.setData({ poolInputs: inputs })
+  },
+
+  onAddPoolInput() {
+    const inputs = [...this.data.poolInputs, { id: this.data.nextPoolId, value: '' }]
+    this.setData({ poolInputs: inputs, nextPoolId: this.data.nextPoolId + 1 })
+  },
+
+  async onSavePool() {
+    if (this.data.savingPool) return
+    // 收集非空输入
+    const newItems = this.data.poolInputs
+      .map(i => (i.value || '').trim())
+      .filter(Boolean)
+    if (newItems.length === 0) {
+      wx.showToast({ title: '请先输入菜名', icon: 'none' })
+      return
+    }
+    // 合并去重
+    const merged = Array.from(new Set([...this.data.customDishes, ...newItems]))
+    this.setData({ savingPool: true })
     try {
-      await cloud.call('customDish', { action: 'add', items: [value] })
-      this.setData({
-        customDishes: Array.from(new Set([...this.data.customDishes, value])),
-        inputValue: ''
-      })
-      wx.showToast({ title: '已加', icon: 'success', duration: 1000 })
+      const res = await cloud.call('customDish', { action: 'replace', items: merged })
+      if (res && res.ok) {
+        this.setData({
+          customDishes: merged,
+          poolInputs: this.data.poolInputs.map(i => ({ ...i, value: '' })),
+          savingPool: false
+        })
+        wx.showToast({ title: `已加 ${newItems.length} 道`, icon: 'success' })
+      } else {
+        this.setData({ savingPool: false })
+        util.showError('保存失败', new Error((res && res.error) || '未知错误'))
+      }
     } catch (err) {
-      wx.showToast({ title: '加失败', icon: 'none' })
+      this.setData({ savingPool: false })
+      util.showError('保存失败', err)
     }
   },
 
