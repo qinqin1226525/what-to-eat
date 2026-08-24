@@ -167,128 +167,189 @@
   margin-bottom: 24rpx;
 }
 
-.result-row {
-  padding: 20rpx 20rpx;
-  border-radius: 12rpx;
-  margin-bottom: 12rpx;
-  background: #fafaf7;
-  position: relative;
-}
-
-.result-row-hover {
-  background: #f0e8dc;
-}
-
-.result-row-header {
+.result-row-main {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 4rpx 0;
+  gap: 16rpx;
+  padding: 16rpx 0 12rpx;
+  border-bottom: 2rpx solid #f5f5f5;
 }
 
-.result-row-header-hover {
-  opacity: 0.7;
+.result-emoji {
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.result-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .result-dish {
   font-weight: 600;
   color: #2a2a2a;
-  font-size: 36rpx;
-}
-
-.result-row-toggle {
-  color: #ff9a3c;
-  font-weight: 600;
-  padding-left: 12rpx;
-}
-
-.result-reason {
-  color: #888;
-  margin: 6rpx 0;
+  margin-bottom: 4rpx;
 }
 
 .result-meta {
-  margin: 6rpx 0;
+  color: #888;
+  margin-bottom: 4rpx;
+}
+
+.result-reason {
+  color: #999;
+  font-style: italic;
+}
+
+.result-row-buttons {
   display: flex;
   flex-direction: column;
-  gap: 4rpx;
+  gap: 8rpx;
+  padding: 12rpx 0 16rpx;
 }
 
-.result-meta-line {
-  color: #5a5a5a;
-  line-height: 1.5;
-  word-break: break-all;
+.result-btn {
+  display: block;
+  text-align: center;
+  padding: 12rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  line-height: 1.4;
 }
 
-.result-expand {
-  margin: 10rpx 0;
-  padding-top: 10rpx;
-  border-top: 2rpx dashed #eee;
+/* ✓ 就做 — 绿色实心 */
+.result-btn-eat {
+  background: #2da44e;
+  color: #fff;
+  border: 2rpx solid #2da44e;
 }
 
-.result-section-title {
-  color: #5a5a5a;
-  font-weight: 600;
-  margin: 8rpx 0;
+.result-btn-eat:active {
+  background: #258a42;
 }
 
-.result-step {
-  color: #444;
-  line-height: 1.6;
-  margin-bottom: 4rpx;
-  display: flex;
+/* 🔄 换一道 — 蓝色边框 */
+.result-btn-swap {
+  background: #fff;
+  color: #3b82f6;
+  border: 2rpx solid #3b82f6;
 }
 
-.result-step-num {
+.result-btn-swap:active {
+  background: #f0f5ff;
+}
+
+/* 🍽 别的 — 橙色边框（跟品牌色一致）*/
+.result-btn-custom {
+  background: #fff;
   color: #ff9a3c;
-  font-weight: 600;
-  margin-right: 8rpx;
-  flex-shrink: 0;
+  border: 2rpx solid #ff9a3c;
 }
 
-.result-tip {
-  color: #8a6d3b;
-  background: #fff8eb;
-  padding: 10rpx 14rpx;
-  border-radius: 8rpx;
-  margin-top: 10rpx;
-  line-height: 1.5;
+.result-btn-custom:active {
+  background: #fff5e6;
 }
 
-.result-row-actions {
+/* ✕ 跳过 — 红色边框 */
+.result-btn-skip {
+  background: #fff;
+  color: #d14545;
+  border: 2rpx solid #d14545;
+}
+
+.result-btn-skip:active {
+  background: #fde8e8;
+}
+
+/* ===== 「别的」modal ===== */
+.custom-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  gap: 12rpx;
-  margin-top: 14rpx;
+  align-items: center;
+  justify-content: center;
+  z-index: 150;
+  padding: 40rpx;
+  box-sizing: border-box;
 }
 
-.result-swap {
+.custom-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 28rpx 24rpx;
+  width: 100%;
+  max-width: 640rpx;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-title {
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 4rpx;
+}
+
+.custom-sub {
+  color: #999;
+  margin-bottom: 16rpx;
+}
+
+.custom-input {
+  background: #f7f7f7;
+  border: 2rpx solid #eee;
+  border-radius: 10rpx;
+  padding: 18rpx 20rpx;
+  font-size: 28rpx;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 16rpx;
+}
+
+.custom-candidates {
   flex: 1;
-  height: 76rpx;
-  line-height: 76rpx;
-  padding: 0;
-  font-size: 26rpx;
+  overflow-y: auto;
 }
 
-.result-eat-btn {
-  flex: 2;
-  font-size: 30rpx;
-  padding: 0;
+.custom-candidates-title {
+  color: #999;
+  margin-bottom: 8rpx;
 }
 
-.result-add-more {
-  margin-top: 16rpx;
-  padding: 20rpx;
-  border: 2rpx dashed #ddd;
+.custom-candidate {
+  background: #fff5e6;
+  color: #b8702c;
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.custom-candidate:active {
+  background: #ffe4c4;
+}
+
+.custom-add-new {
+  background: #fff5e6;
+  color: #ff9a3c;
+  padding: 16rpx 20rpx;
   border-radius: 12rpx;
   text-align: center;
-  color: #999;
-  font-size: 26rpx;
+  margin-top: 8rpx;
 }
 
-.result-add-more-hover {
-  background: #fafaf7;
-  border-color: #ff9a3c;
-  color: #ff9a3c;
+.custom-add-new:active {
+  background: #ffe4c4;
+}
+
+.custom-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.custom-actions .btn-secondary {
+  flex: 1;
 }
 
 /* ===== Onboarding modal ===== */
