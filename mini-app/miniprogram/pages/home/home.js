@@ -44,8 +44,6 @@ Page({
     // 搜菜谱（输入菜名出菜谱）
     searchInput: '',
     searchResults: [],   // 过滤后的菜谱
-    dishGroups: [],      // 没搜索时按 role 分组展示所有菜
-    expandedGroups: [],  // 哪些 role 展开了（默认空 = 全部收起）
     searchDetail: null, // 选中的菜详情
     // 手动记录本（看历史 + 编辑 + 删除）
     showLogbook: false,
@@ -103,23 +101,8 @@ Page({
       // 缓存到 globalData
       app.globalData.dishes = allDishes
 
-      // 按 role 分组
-      const ROLE_LABEL = { '主菜': '🍖 主菜', '汤': '🍲 汤', '主食': '🍚 主食', '凉菜': '🥗 凉菜', '早餐': '🥣 早餐' }
-      const ROLE_EMOJI = { '主菜': '🥢', '汤': '🥣', '主食': '🥯', '凉菜': '🥗', '早餐': '🍳' }
-      const grouped = {}
-      for (const d of allDishes) {
-        if (!grouped[d.role]) grouped[d.role] = []
-        grouped[d.role].push({
-          name: d.name,
-          role: d.role,
-          time: d.time_minutes || '?',
-          emoji: ROLE_EMOJI[d.role] || '🍽'
-        })
-      }
-      const ROLE_ORDER = ['主菜', '汤', '主食', '凉菜', '早餐']
-      const dishGroups = ROLE_ORDER
-        .filter(role => grouped[role] && grouped[role].length > 0)
-        .map(role => ({ role, label: ROLE_LABEL[role], items: grouped[role] }))
+      // 缓存到 globalData
+      app.globalData.dishes = allDishes
 
       // 最近 7 天已抽
       const cutoff = new Date()
@@ -131,7 +114,7 @@ Page({
       const stats = this._computeStats(history)
 
       this.setData({
-        customDishes, recentPicks, stats, dishGroups,
+        customDishes, recentPicks, stats,
         loading: false
       })
 
@@ -329,19 +312,6 @@ Page({
         seasoningsStr: seasonings.join('、')
       }
     })
-  },
-
-  // 切换 role 分组展开/收起
-  onToggleGroup(e) {
-    const role = e.currentTarget.dataset.role
-    if (!role) return
-    const expanded = this.data.expandedGroups
-    const idx = expanded.indexOf(role)
-    if (idx >= 0) {
-      this.setData({ expandedGroups: expanded.filter(r => r !== role) })
-    } else {
-      this.setData({ expandedGroups: [...expanded, role] })
-    }
   },
 
   closeSearchDetail() {

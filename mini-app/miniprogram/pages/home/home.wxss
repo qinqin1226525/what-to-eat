@@ -1125,61 +1125,12 @@
   margin-top: 12rpx;
 }
 
-.dish-group {
-  background: #fff;
-  border-radius: 14rpx;
-  padding: 16rpx 20rpx;
-  margin-bottom: 12rpx;
-  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.03);
-}
-
-.dish-group-title {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  color: #2a2a2a;
-  font-weight: 600;
-  padding: 4rpx 0;
-  margin-bottom: 0;
-}
-
-.dish-group-title-hover {
-  opacity: 0.6;
-}
-
-.dish-group-toggle {
-  color: #ff9a3c;
-  font-size: 22rpx;
-  font-weight: 600;
-  width: 28rpx;
-  flex-shrink: 0;
-}
-
-.dish-group-count {
-  color: #999;
-  font-weight: normal;
-  margin-left: auto;
-}
-
-.dish-group-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10rpx;
-  margin-top: 14rpx;
-}
-
-.dish-group-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10rpx;
-}
-
-.dish-group-chip {
-  background: #fafaf7;
-  color: #444;
-  padding: 10rpx 18rpx;
-  border-radius: 999rpx;
+/* 搜菜谱空提示 */
+.search-hint {
+  text-align: center;
+  color: #bbb;
   font-size: 24rpx;
+  padding: 24rpx 0 8rpx;
 }
 
 .search-empty {

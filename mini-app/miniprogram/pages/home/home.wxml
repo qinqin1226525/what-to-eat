@@ -54,24 +54,9 @@
         </view>
       </block>
     </view>
-    <!-- 无搜索结果显示所有菜（按 role 分组） -->
-    <view wx:elif="{{!searchInput}}" class="search-all">
-      <block wx:for="{{dishGroups}}" wx:key="role" wx:for-item="g">
-        <view class="dish-group">
-          <view class="dish-group-title" data-role="{{g.role}}" catchtap="onToggleGroup" hover-class="dish-group-title-hover">
-            <text class="dish-group-toggle">{{expandedGroups.indexOf(g.role) >= 0 ? '▼' : '▶'}}</text>
-            <text style="font-size: {{26 * fontScale}}rpx;">{{g.label}}</text>
-            <text class="dish-group-count" style="font-size: {{22 * fontScale}}rpx;">（{{g.items.length}}）</text>
-          </view>
-          <view wx:if="{{expandedGroups.indexOf(g.role) >= 0}}" class="dish-group-list">
-            <block wx:for="{{g.items}}" wx:key="name" wx:for-item="d">
-              <view class="dish-group-chip" data-name="{{d.name}}" catchtap="onSearchDishTap" hover-class="search-result-hover">
-                {{d.emoji}} {{d.name}}
-              </view>
-            </block>
-          </view>
-        </view>
-      </block>
+    <!-- 空输入时只显示提示 -->
+    <view wx:elif="{{!searchInput}}" class="search-hint">
+      <text>输入菜名 / 食材 / 标签开始搜</text>
     </view>
     <!-- 搜索无结果 -->
     <view wx:elif="{{searchInput && searchResults.length === 0}}" class="search-empty">
