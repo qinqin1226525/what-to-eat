@@ -301,7 +301,7 @@
 
   <!-- AI 聊口味 modal -->
   <view wx:if="{{showAiChat}}" class="ai-mask" catchtap="closeAiChat">
-    <view class="ai-card" catchtap="">
+    <view class="ai-card" catchtap="onNoop">
       <view class="ai-header">
         <view class="ai-title" style="font-size: {{32 * fontScale}}rpx;">🎙️ 跟 AI 聊口味</view>
         <view class="ai-close" catchtap="closeAiChat">✕</view>

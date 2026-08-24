@@ -1,10 +1,7 @@
 {
   "pages": [
     "pages/home/home",
-    "pages/stats/stats",
-    "pages/chat/chat",
-    "pages/profile/profile",
-    "pages/fridge/fridge"
+    "pages/profile/profile"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -12,22 +9,6 @@
     "navigationBarTitleText": "今天吃什么",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#f7f7f7"
-  },
-  "tabBar": {
-    "color": "#7A7E83",
-    "selectedColor": "#ff9a3c",
-    "borderStyle": "black",
-    "backgroundColor": "#ffffff",
-    "list": [
-      {
-        "pagePath": "pages/home/home",
-        "text": "选菜"
-      },
-      {
-        "pagePath": "pages/stats/stats",
-        "text": "统计"
-      }
-    ]
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",

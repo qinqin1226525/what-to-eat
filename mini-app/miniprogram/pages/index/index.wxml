@@ -262,7 +262,7 @@
 
   <!-- 菜谱详情弹窗（覆盖所有页面） -->
   <view wx:if="{{showDetail && detailDish}}" class="detail-mask" bindtap="closeDishDetail">
-    <view class="detail-card" catchtap="">
+    <view class="detail-card" catchtap="_noop">
       <view class="detail-header">
         <view class="detail-emoji">{{detailDish.emoji}}</view>
         <view class="detail-title">{{detailDish.name}}</view>

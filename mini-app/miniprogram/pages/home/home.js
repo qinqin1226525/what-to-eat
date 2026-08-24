@@ -44,6 +44,8 @@ Page({
     // 手动记录 modal（按饮食报告风格）
     showManualLog: false,
     manualForm: { date: '', breakfast: '', lunch: '', dinner: '' },
+    // 统计（计算自 meals 集合，1 页内 inline 显示）
+    stats: { totalMeals: 0, activeDays: 0, avgPerDay: 0, topDishes: [], mealDist: [] },
     // 系统信息
     screenWidth: 375,
     fontScale: 1.0,
@@ -77,14 +79,18 @@ Page({
       ])
       const fridgeItems = (fridgeRes && fridgeRes.ok) ? fridgeRes.items : []
       const customDishes = (customRes && customRes.ok) ? customRes.items : []
+      const history = (historyRes && historyRes.ok) ? historyRes.history : []
       // 最近 7 天已抽（status 为 confirmed 或 manual 的）
       const cutoff = new Date()
       cutoff.setDate(cutoff.getDate() - 7)
-      const recentPicks = (historyRes && historyRes.ok ? historyRes.history : [])
+      const recentPicks = history
         .filter(h => h.status !== 'skipped' && new Date(h.date) >= cutoff)
         .map(h => h.dish)
 
-      this.setData({ fridgeItems, customDishes, recentPicks, loading: false })
+      // 计算本月统计
+      const stats = this._computeStats(history)
+
+      this.setData({ fridgeItems, customDishes, recentPicks, stats, loading: false })
 
       // 首次进入且菜池为空 → 弹 onboarding
       if (customDishes.length === 0 && !this.data._onboardingDone) {
@@ -805,5 +811,57 @@ Page({
     } catch (err) {
       util.showError('保存失败', err)
     }
+  },
+
+  // ----- 计算本月统计（client 端跑，复用已拉的 history）-----
+  _computeStats(history) {
+    const now = new Date()
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    const thisMonth = (history || []).filter(h =>
+      h.status !== 'skipped' && h.date && h.date.startsWith(monthKey)
+    )
+    const totalMeals = thisMonth.length
+    const days = new Set(thisMonth.map(h => h.date))
+    const activeDays = days.size
+    const avgPerDay = activeDays > 0 ? (totalMeals / activeDays).toFixed(1) : '0'
+
+    const dishCount = {}
+    for (const h of thisMonth) {
+      dishCount[h.dish] = (dishCount[h.dish] || 0) + 1
+    }
+    const RANK_COLORS = ['#e85d04', '#ff9a3c', '#fbbf24', '#84cc16', '#3b82f6']
+    const topDishes = Object.entries(dishCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count], i) => ({
+        rank: i + 1, name, count, color: RANK_COLORS[i] || '#999'
+      }))
+
+    const mealCount = { '早餐': 0, '午餐': 0, '晚餐': 0 }
+    for (const h of thisMonth) {
+      const m = h.meal || '午餐'
+      if (mealCount[m] !== undefined) mealCount[m]++
+    }
+    const MEAL_COLORS = { '早餐': '#fbbf24', '午餐': '#ff9a3c', '晚餐': '#8b5cf6' }
+    const maxMeal = Math.max(mealCount['早餐'], mealCount['午餐'], mealCount['晚餐'], 1)
+    const mealDist = ['早餐', '午餐', '晚餐'].map(meal => {
+      const c = mealCount[meal]
+      return {
+        meal, count: c,
+        fill: c > 0 ? Math.round(c / maxMeal * 100) : 0,
+        color: MEAL_COLORS[meal]
+      }
+    })
+
+    return { totalMeals, activeDays, avgPerDay, topDishes, mealDist }
+  },
+
+  // ----- 顶部 4 按钮 handlers -----
+  onScrollToStats() {
+    wx.pageScrollTo({ selector: '#stats-section', duration: 300 })
+  },
+
+  onOpenSettings() {
+    wx.navigateTo({ url: '/pages/profile/profile' })
   }
 })

@@ -59,7 +59,7 @@
 
   <!-- 手动记录 modal -->
   <view wx:if="{{showManualLog}}" class="manual-mask" bindtap="closeManual">
-    <view class="manual-card" catchtap="">
+    <view class="manual-card" catchtap="_noop">
       <view class="manual-header">
         <view class="manual-title">手动记录今天吃了啥</view>
         <view class="manual-close" bindtap="closeManual">✕</view>

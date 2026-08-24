@@ -1,5 +1,6 @@
-<!-- pages/home/home.wxml —— 手搓选菜（主页）
+<!-- pages/home/home.wxml —— 1 页式主页
      UI 纪律：低饱和、无动画、单屏不滚动（带孩子场景）
+     整体结构：顶 4 按钮 → 主操作 → 二级操作 → 冰箱+菜池 → 最近 → 统计
 -->
 <view class="home">
 
@@ -10,6 +11,26 @@
       <text wx:if="{{loading}}">加载中…</text>
       <text wx:elif="{{customDishes.length === 0}}">先告诉我你会做哪些菜</text>
       <text wx:else>菜池 {{customDishes.length}} 道 · 冰箱 {{fridgeItems.length}} 项</text>
+    </view>
+  </view>
+
+  <!-- 顶部 4 按钮横排（主导航） -->
+  <view class="top-nav">
+    <view class="top-nav-btn" catchtap="onRandomPick">
+      <text class="top-nav-emoji" style="font-size: {{40 * fontScale}}rpx;">🎲</text>
+      <text class="top-nav-text" style="font-size: {{22 * fontScale}}rpx;">抽一套</text>
+    </view>
+    <view class="top-nav-btn" catchtap="onManualRecord">
+      <text class="top-nav-emoji" style="font-size: {{40 * fontScale}}rpx;">📝</text>
+      <text class="top-nav-text" style="font-size: {{22 * fontScale}}rpx;">记录</text>
+    </view>
+    <view class="top-nav-btn" catchtap="onScrollToStats">
+      <text class="top-nav-emoji" style="font-size: {{40 * fontScale}}rpx;">📊</text>
+      <text class="top-nav-text" style="font-size: {{22 * fontScale}}rpx;">统计</text>
+    </view>
+    <view class="top-nav-btn" catchtap="onOpenSettings">
+      <text class="top-nav-emoji" style="font-size: {{40 * fontScale}}rpx;">⚙</text>
+      <text class="top-nav-text" style="font-size: {{22 * fontScale}}rpx;">设置</text>
     </view>
   </view>
 
@@ -25,10 +46,10 @@
       <view class="fridge-add-btn {{savingFridge ? 'disabled' : ''}}" catchtap="onFridgeAdd">加</view>
     </view>
     <scroll-view scroll-x wx:if="{{fridgeItems.length > 0}}" class="chip-scroll" enhanced show-scrollbar="{{false}}">
-      <block wx:for="{{fridgeItems}}" wx:key="*this">
-        <view class="chip chip-fridge" style="font-size: {{24 * fontScale}}rpx;" data-name="{{item}}" catchtap="onFridgeRemove">{{item}}<text class="chip-x">×</text></view>
-
-      </scroll-view>
+      <view wx:for="{{fridgeItems}}" wx:key="*this"
+            class="chip chip-fridge" style="font-size: {{24 * fontScale}}rpx;"
+            data-name="{{item}}" catchtap="onFridgeRemove">{{item}}<text class="chip-x">×</text></view>
+    </scroll-view>
   </view>
 
   <!-- 菜池 chip 行（可加可删） -->
@@ -40,27 +61,19 @@
           {{item}}<text class="chip-x">×</text>
         </view>
       </block>
-      <!-- 加菜输入 -->
       <view class="chip chip-add" style="font-size: {{24 * fontScale}}rpx;">
         <input class="chip-input" placeholder="+ 加菜" placeholder-class="chip-input-ph" bindconfirm="onAddDish" confirm-type="done" />
       </view>
     </scroll-view>
   </view>
 
-  <!-- 操作区 -->
-  <view class="actions">
-    <view class="btn-primary big-btn" catchtap="onRandomPick" hover-class="btn-primary-hover">
-      <text wx:if="{{picking}}">选菜中…</text>
-      <text wx:else>🎲 帮我选 3 道</text>
+  <!-- 二级操作（3 个小按钮横排） -->
+  <view class="sub-actions">
+    <view class="sub-action-btn" catchtap="onFridgeRecommend">
+      <text style="font-size: {{24 * fontScale}}rpx;">🥬 冰箱→做啥</text>
     </view>
-    <view class="btn-primary big-btn" catchtap="onFridgeRecommend" hover-class="btn-primary-hover">
-      🥬 冰箱有什么 → 做啥菜
-    </view>
-    <view class="btn-primary big-btn" catchtap="onManualRecord" hover-class="btn-primary-hover">
-      📝 手动记录今天吃了啥
-    </view>
-    <view class="btn-secondary small-btn" catchtap="onAiInspire" hover-class="btn-primary-hover">
-      🤖 AI 顾问
+    <view class="sub-action-btn" catchtap="onAiInspire">
+      <text style="font-size: {{24 * fontScale}}rpx;">🤖 AI 顾问</text>
     </view>
   </view>
 
@@ -69,6 +82,55 @@
     <view class="recent-label" style="font-size: {{22 * fontScale}}rpx;">最近 7 天吃过</view>
     <view class="recent-list" style="font-size: {{24 * fontScale}}rpx;">
       <text wx:for="{{recentPicks}}" wx:key="*this" class="recent-item">{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 统计 section（永久显示在底部） -->
+  <view class="stats-section" id="stats-section">
+    <view class="stats-section-title" style="font-size: {{28 * fontScale}}rpx;">📊 本月饮食报告</view>
+    <view class="stats-section-sub" style="font-size: {{22 * fontScale}}rpx;">
+      <block wx:if="{{loading}}">加载中…</block>
+      <block wx:elif="{{stats.totalMeals === 0}}">本月还没记录，点点上面的按钮开始吧</block>
+      <block wx:else>本月 {{stats.totalMeals}} 条记录 · {{stats.activeDays}} 天</block>
+    </view>
+
+    <view wx:if="{{stats.totalMeals > 0}}" class="stats-cards">
+      <view class="stats-card">
+        <view class="stats-num" style="font-size: {{48 * fontScale}}rpx;">{{stats.totalMeals}}</view>
+        <view class="stats-label" style="font-size: {{20 * fontScale}}rpx;">本月吃了（道）</view>
+      </view>
+      <view class="stats-card">
+        <view class="stats-num stats-num-green" style="font-size: {{48 * fontScale}}rpx;">{{stats.activeDays}}</view>
+        <view class="stats-label" style="font-size: {{20 * fontScale}}rpx;">有记录天数</view>
+      </view>
+      <view class="stats-card">
+        <view class="stats-num" style="font-size: {{48 * fontScale}}rpx;">{{stats.avgPerDay}}</view>
+        <view class="stats-label" style="font-size: {{20 * fontScale}}rpx;">平均每天（餐）</view>
+      </view>
+    </view>
+
+    <view wx:if="{{stats.topDishes.length > 0}}" class="stats-sub-section">
+      <view class="stats-sub-title" style="font-size: {{24 * fontScale}}rpx;">🏆 Top {{stats.topDishes.length}}</view>
+      <block wx:for="{{stats.topDishes}}" wx:key="rank" wx:for-item="d">
+        <view class="stats-top-row">
+          <view class="stats-top-rank" style="background: {{d.color}}; font-size: {{22 * fontScale}}rpx;">{{d.rank}}</view>
+          <view class="stats-top-name" style="font-size: {{26 * fontScale}}rpx;">{{d.name}}</view>
+          <view class="stats-top-count" style="font-size: {{22 * fontScale}}rpx;">{{d.count}} 次</view>
+        </view>
+      </block>
+    </view>
+
+    <view wx:if="{{stats.totalMeals > 0}}" class="stats-sub-section">
+      <view class="stats-sub-title" style="font-size: {{24 * fontScale}}rpx;">🍱 三餐分布</view>
+      <block wx:for="{{stats.mealDist}}" wx:key="meal" wx:for-item="m">
+        <view class="stats-meal-row">
+          <view class="stats-meal-label" style="font-size: {{26 * fontScale}}rpx;">{{m.meal}}</view>
+          <view class="stats-meal-bar-wrap">
+            <view class="stats-meal-bar" style="width: {{m.fill}}%; background: {{m.color}};"></view>
+          </view>
+          <view class="stats-meal-count" style="font-size: {{22 * fontScale}}rpx;">{{m.count}}</view>
+        </view>
+      </block>
     </view>
   </view>
 
@@ -126,6 +188,10 @@
                   <text class="result-step-num">{{sidx + 1}}.</text>
                   <text>{{step}}</text>
                 </view>
+              </block>
+            </block>
+            <view wx:if="{{picked.dishInfos[idx].tip}}" class="result-tip" style="font-size: {{24 * fontScale}}rpx;">
+              💡 {{picked.dishInfos[idx].tip}}
             </view>
           </view>
 
@@ -164,7 +230,7 @@
 
   <!-- 「别的」modal：手动输入菜名 + 模糊查询 -->
   <view wx:if="{{showCustomDish}}" class="custom-mask" bindtap="closeCustomDish">
-    <view class="custom-card" catchtap="">
+    <view class="custom-card" catchtap="_noop">
       <view class="custom-title" style="font-size: {{32 * fontScale}}rpx;">换个别的</view>
       <view class="custom-sub" style="font-size: {{22 * fontScale}}rpx;">输入菜名，或从下方候选里挑</view>
       <input class="custom-input" value="{{customInput}}" bindinput="onCustomInput"
@@ -188,7 +254,7 @@
 
   <!-- 手动记录 modal（按饮食报告风格：温暖米色 + 卡片化） -->
   <view wx:if="{{showManualLog}}" class="manual-mask" catchtap="closeManualLog">
-    <view class="manual-card" catchtap="">
+    <view class="manual-card" catchtap="_noop">
       <view class="manual-header">
         <view class="manual-icon">📝</view>
         <view class="manual-title" style="font-size: {{32 * fontScale}}rpx;">{{manualForm.date}} · 手动记录</view>

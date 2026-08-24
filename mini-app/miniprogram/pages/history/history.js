@@ -157,6 +157,9 @@ Page({
     this.setData({ showManualLog: false })
   },
 
+  // 占位：阻止 modal 内部点击冒泡到 mask
+  _noop() {},
+
   onManualField(e) {
     const field = e.currentTarget.dataset.field
     this.setData({ [`manualForm.${field}`]: e.detail.value })

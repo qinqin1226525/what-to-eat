@@ -61,6 +61,9 @@ Page({
     }
   },
 
+  // 占位：阻止 modal 内部点击冒泡到 mask
+  _noop() {},
+
   // ------- 模式选择 -------
   onMode(e) {
     const mode = e.currentTarget.dataset.mode
