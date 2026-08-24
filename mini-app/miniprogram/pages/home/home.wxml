@@ -68,17 +68,51 @@
       </view>
       <block wx:for="{{picked.dishes}}" wx:key="*this" wx:for-item="dish" wx:for-index="idx">
         <view wx:if="{{picked.dishInfos && picked.dishInfos[idx]}}">
-          <!-- 左侧：emoji + 菜名 + role·时间 -->
+          <!-- 左侧：emoji + 菜名（带 › 展开符号）+ role·时间 -->
           <view class="result-row-main">
             <view class="result-emoji" style="font-size: {{48 * fontScale}}rpx;">{{picked.dishInfos[idx].emoji}}</view>
             <view class="result-info">
-              <view class="result-dish" style="font-size: {{34 * fontScale}}rpx;">{{dish}}</view>
+              <view class="result-dish-line" data-idx="{{idx}}" bindtap="onToggleExpand" hover-class="result-dish-line-hover">
+                <text class="result-dish" style="font-size: {{34 * fontScale}}rpx;">{{dish}}</text>
+                <text class="result-toggle" style="font-size: {{26 * fontScale}}rpx;">
+                  <block wx:if="{{picked.expanded && picked.expanded[idx]}}">▼</block>
+                  <block wx:else>›</block>
+                </text>
+              </view>
               <view class="result-meta" style="font-size: {{22 * fontScale}}rpx;">
                 {{picked.dishInfos[idx].role}} · 约 {{picked.dishInfos[idx].time}} 分钟
               </view>
               <view wx:if="{{picked.reasons && picked.reasons[idx] && picked.reasons[idx].reason}}" class="result-reason" style="font-size: {{22 * fontScale}}rpx;">
                 💡 {{picked.reasons[idx].reason}}
               </view>
+            </view>
+          </view>
+
+          <!-- 展开：步骤 + 小贴士（点 › 触发） -->
+          <view wx:if="{{picked.expanded && picked.expanded[idx]}}" class="result-expand">
+            <block wx:if="{{picked.dishInfos[idx].ingredients && picked.dishInfos[idx].ingredients.length > 0}}">
+              <view class="result-expand-section" style="font-size: {{24 * fontScale}}rpx;">
+                <text class="result-expand-label">食材：</text>
+                <text class="result-expand-text">{{picked.dishInfos[idx].ingredientsStr}}</text>
+              </view>
+            </block>
+            <block wx:if="{{picked.dishInfos[idx].seasonings && picked.dishInfos[idx].seasonings.length > 0}}">
+              <view class="result-expand-section" style="font-size: {{24 * fontScale}}rpx;">
+                <text class="result-expand-label">调料：</text>
+                <text class="result-expand-text">{{picked.dishInfos[idx].seasoningsStr}}</text>
+              </view>
+            </block>
+            <block wx:if="{{picked.dishInfos[idx].steps && picked.dishInfos[idx].steps.length > 0}}">
+              <view class="result-expand-title" style="font-size: {{24 * fontScale}}rpx;">做法</view>
+              <block wx:for="{{picked.dishInfos[idx].steps}}" wx:key="*this" wx:for-item="step" wx:for-index="sidx">
+                <view class="result-expand-step" style="font-size: {{24 * fontScale}}rpx;">
+                  <text class="result-step-num">{{sidx + 1}}.</text>
+                  <text>{{step}}</text>
+                </view>
+              </block>
+            </block>
+            <view wx:if="{{picked.dishInfos[idx].tip}}" class="result-tip" style="font-size: {{24 * fontScale}}rpx;">
+              💡 {{picked.dishInfos[idx].tip}}
             </view>
           </view>
 

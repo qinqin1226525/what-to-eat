@@ -115,8 +115,9 @@ Page({
     // 洗牌取前 3
     const shuffled = pool.slice().sort(() => Math.random() - 0.5)
     const dishes = shuffled.slice(0, Math.min(3, shuffled.length))
+    const expanded = dishes.map(() => false)
 
-    this.setData({ picked: { dishes, source: 'random' } })
+    this.setData({ picked: { dishes, source: 'random', expanded } })
     this.enrichDishes(dishes).then(infos => {
       const cur = this.data.picked
       if (cur && cur.dishes && cur.dishes.length === dishes.length) {
@@ -151,7 +152,8 @@ Page({
       })
       if (res && res.ok && res.picks && res.picks.length > 0) {
         const dishes = res.picks.map(p => p.dish)
-        this.setData({ picked: { dishes, reasons: res.picks, source: 'ai' } })
+        const expanded = dishes.map(() => false)
+        this.setData({ picked: { dishes, reasons: res.picks, source: 'ai', expanded } })
         this.enrichDishes(dishes).then(infos => {
           const cur = this.data.picked
           if (cur && cur.dishes && cur.dishes.length === dishes.length) {
@@ -179,7 +181,7 @@ Page({
     this.setData({ picked: null })
   },
 
-  // ----- enrich：把菜名 → {name, role, time, emoji}（极简版，不取食材/调料/步骤）-----
+  // ----- enrich：把菜名 → {name, role, time, emoji, ingredients, ...} -----
   async enrichDishes(names) {
     if (!names || names.length === 0) return []
     let dishes = app.globalData.dishes || []
@@ -196,15 +198,37 @@ Page({
     return names.map(name => {
       const d = byName.get(name)
       if (!d) {
-        return { name, role: '主菜', time: '?', emoji: ROLE_EMOJI['主菜'] }
+        return {
+          name, role: '主菜', time: '?', emoji: ROLE_EMOJI['主菜'],
+          ingredients: [], seasonings: [], steps: [], tip: '',
+          ingredientsStr: '', seasoningsStr: ''
+        }
       }
+      const ingredients = d.ingredients || []
+      const seasonings = d.seasonings || []
       return {
         name: d.name,
         role: d.role || '主菜',
         time: d.time_minutes || '?',
-        emoji: ROLE_EMOJI[d.role] || '🍽'
+        emoji: ROLE_EMOJI[d.role] || '🍽',
+        ingredients,
+        seasonings,
+        steps: d.steps || [],
+        tip: d.tip || '',
+        ingredientsStr: ingredients.join('、'),
+        seasoningsStr: seasonings.join('、')
       }
     })
+  },
+
+  // 点 › 展开/收起做法
+  onToggleExpand(e) {
+    const idx = Number(e.currentTarget.dataset.idx)
+    const picked = this.data.picked
+    if (!picked || isNaN(idx)) return
+    const expanded = picked.expanded ? [...picked.expanded] : picked.dishes.map(() => false)
+    expanded[idx] = !expanded[idx]
+    this.setData({ picked: { ...picked, expanded } })
   },
 
   // 换一道：用新随机菜替换 idx 那道
@@ -362,6 +386,8 @@ Page({
       }
     })
   },
+
+  // 内部 helper：把 picked.dishes 同步 enrich（用于换菜后）-----
 
   // ----- 「就做这个」一键记录 -----
   async onEat(e) {
