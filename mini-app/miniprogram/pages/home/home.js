@@ -207,6 +207,49 @@ Page({
     this.setData({ dishDetail: null })
   },
 
+  // 换一道：用新随机菜替换当前详情的那道
+  onSwapDish() {
+    const detail = this.data.dishDetail
+    if (!detail || !detail.name) return
+    const { picked, customDishes, recentPicks, fridgeItems } = this.data
+    if (!picked || !picked.dishes) return
+
+    // 候选 = 菜池 - 最近7天 - 当前3 道里其它2 道
+    const recentSet = new Set(recentPicks)
+    const othersInPicked = new Set(picked.dishes.filter(d => d !== detail.name))
+    const candidates = customDishes.filter(d =>
+      !recentSet.has(d) && !othersInPicked.has(d) && d !== detail.name
+    )
+    if (candidates.length === 0) {
+      wx.showToast({ title: '没菜可换了', icon: 'none' })
+      return
+    }
+    // 启发式：优先匹配冰箱
+    const fridgeKeys = fridgeItems.map(f =>
+      f.replace(/\s*\d+g?$/i, '').toLowerCase()
+    )
+    const matched = candidates.filter(d => {
+      const lc = d.toLowerCase()
+      return fridgeKeys.some(k => lc.includes(k))
+    })
+    const pool = matched.length > 0 ? matched : candidates
+    const newDish = pool[Math.floor(Math.random() * pool.length)]
+
+    // 替换 picked.dishes 里的那一道（保留 reason 如果有）
+    const newDishes = picked.dishes.map(d => d === detail.name ? newDish : d)
+    let newReasons = picked.reasons
+    if (picked.reasons) {
+      newReasons = picked.reasons.map(r =>
+        r && r.dish === detail.name ? { ...r, dish: newDish } : r
+      )
+    }
+    this.setData({
+      picked: { ...picked, dishes: newDishes, reasons: newReasons }
+    })
+    // 重新拉新菜的详情
+    this.onDishTap({ currentTarget: { dataset: { name: newDish } } })
+  },
+
   // ----- 「吃这个」一键记录（支持传 dish 名 + 自动关掉详情 modal） -----
   async onEat(e) {
     const dish = e.currentTarget.dataset.dish

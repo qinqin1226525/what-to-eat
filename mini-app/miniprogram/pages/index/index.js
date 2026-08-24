@@ -2,18 +2,8 @@
 const app = getApp()
 const algo = require('../../utils/algorithm.js')
 const cloud = require('../../utils/cloud.js')
-const SCENARIOS = require('../../utils/scenarios.js')
 
 const ROLE_EMOJI = { '主菜': '🍖', '主菜2': '🍖', '主菜3': '🍖', '主菜4': '🍖', '汤': '🍲', '汤2': '🍲', '主食': '🍚', '主食2': '🍚', '凉菜': '🥗', '早餐': '🥣' }
-
-// 预算时间档位（与 algorithm.js applyPrefs 的 prefs.maxTime 完全兼容）
-const BUDGET_OPTIONS = [
-  { value: 15, label: '15 分钟' },
-  { value: 30, label: '30 分钟' },
-  { value: 45, label: '45 分钟' },
-  { value: 60, label: '1 小时' },
-  { value: 0,  label: '不限' },
-]
 
 Page({
   data: {
@@ -32,15 +22,7 @@ Page({
     people: 1,                 // 用餐人数 stepper
     peopleOptions: Array.from({ length: 10 }, (_, i) => i + 1),
     showDetail: false,         // 菜谱详情弹窗
-    detailDish: null,          // 当前查看的菜
-    // —— 预算时间模式 ——
-    budgetOptions: BUDGET_OPTIONS,
-    selectedBudgetTime: 0,     // 0 = 不限
-    lastBudgetTime: 0,        // 上次选择的（持久化用）
-    // —— 场景模式 ——
-    scenarios: SCENARIOS,
-    selectedScenario: null,   // 当前选中的场景对象
-    lastScenario: null,       // 上次选中的 id
+    detailDish: null           // 当前查看的菜
   },
 
   onShow() {
@@ -90,10 +72,6 @@ Page({
       this.setData({ mode: 'fridge', ingredientsInput: '' })
     } else if (mode === 'search') {
       this.setData({ mode: 'search', searchInput: '', searchResults: [] })
-    } else if (mode === 'budget-time') {
-      this.enterBudgetTime()
-    } else if (mode === 'scenario') {
-      this.enterScenario()
     }
   },
 

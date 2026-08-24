@@ -289,10 +289,19 @@
 
 .detail-actions {
   margin-top: 28rpx;
+  display: flex;
+  gap: 16rpx;
+}
+
+.detail-swap-btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0;
 }
 
 .detail-eat-btn {
-  width: 100%;
+  flex: 2;
 }
 
 /* ===== Onboarding modal ===== */

@@ -121,6 +121,9 @@
       </block>
 
       <view class="detail-actions">
+        <view class="btn-secondary detail-swap-btn"
+              style="font-size: {{28 * fontScale}}rpx;"
+              bindtap="onSwapDish">换一换</view>
         <view class="btn-primary detail-eat-btn"
               style="font-size: {{30 * fontScale}}rpx;"
               data-dish="{{dishDetail.name}}"
