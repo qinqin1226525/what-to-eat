@@ -224,6 +224,9 @@
         <block wx:else>🎲 今日推荐</block>
       </view>
       <view wx:if="{{pickedHint}}" class="result-hint" style="font-size: {{22 * fontScale}}rpx;">{{pickedHint}}</view>
+      <view wx:if="{{picked && picked.source === 'ai' && preferenceNote}}" class="preference-hint" style="font-size: {{22 * fontScale}}rpx;">
+        💡 你的偏好：{{preferenceNote}}
+      </view>
       <view wx:if="{{pickedMeals.length > 0}}" class="picked-hint" style="font-size: {{22 * fontScale}}rpx;">✓ 已选 {{pickedMeals.length}} 道：{{pickedMeals.join('、')}}</view>
       <block wx:for="{{picked.dishes}}" wx:key="*this" wx:for-item="dish" wx:for-index="idx">
         <view wx:if="{{picked.dishInfos && picked.dishInfos[idx]}}">

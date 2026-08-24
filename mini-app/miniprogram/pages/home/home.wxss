@@ -246,9 +246,19 @@
 }
 
 .result-hint {
-  color: #999;
+  color: #ff9a3c;
+  margin-bottom: 12rpx;
+  font-weight: 500;
+}
+
+.preference-hint {
+  background: linear-gradient(135deg, #fff5e6, #ffe4c4);
+  color: #8a5a2b;
+  padding: 12rpx 18rpx;
+  border-radius: 10rpx;
   margin-bottom: 16rpx;
-  font-style: italic;
+  line-height: 1.5;
+  border-left: 6rpx solid #ff9a3c;
 }
 
 .result-row-main {

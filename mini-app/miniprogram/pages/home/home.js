@@ -29,6 +29,7 @@ Page({
     pickedMeals: [],   // 用户在 modal 里「选这道」的菜名列表，多次 addMeal 用
     picking: false,
     pickedHint: '',     // 结果 modal 的提示文字
+    preferenceNote: '', // 用户偏好（AI 过滤时显示）
     // onboarding
     showOnboarding: false,
     onboardingDishes: [],
@@ -149,19 +150,70 @@ Page({
       wx.showToast({ title: '7 天内都吃过了，加点新菜', icon: 'none', duration: 2500 })
       return
     }
-    // 优先选和冰箱食材匹配的菜（启发式：菜名或 ingredients 包含冰箱）
+    // 启发式：优先和冰箱食材匹配
     const fridgeSet = new Set(fridgeItems.map(f => f.replace(/\s*\d+g?$/i, '').toLowerCase()))
-    const matched = candidates.filter(d => {
+    const fridgeMatched = candidates.filter(d => {
       const lc = d.toLowerCase()
       return Array.from(fridgeSet).some(f => lc.includes(f))
     })
-    const pool = matched.length >= 3 ? matched : candidates
-    // 洗牌取前 3
+    const pool = fridgeMatched.length >= 3 ? fridgeMatched : candidates
+
+    // 检查用户偏好（customNote）
+    const prefs = app.globalData.prefs || {}
+    const customNote = (prefs.customNote || '').trim()
+    const hasPreference = customNote.length > 0
+
+    if (hasPreference) {
+      // 有偏好 → 调 AI 过滤（pickWithAI）
+      this.setData({
+        picking: true,
+        pickedHint: `🤖 AI 按你偏好筛选中…`,
+        preferenceNote: customNote
+      })
+      try {
+        const res = await cloud.call('aiAdvisor', {
+          mode: 'pickWithAI',
+          candidates: pool,
+          recentPicks,
+          fridge: fridgeItems,
+          hint: customNote
+        })
+        if (res && res.ok && res.picks && res.picks.length > 0) {
+          const dishes = res.picks.map(p => p.dish)
+          const expanded = dishes.map(() => false)
+          this.setData({
+            picked: { dishes, reasons: res.picks, source: 'ai', expanded },
+            pickedHint: `🎯 AI 按你偏好推荐`
+          })
+          this.enrichDishes(dishes).then(infos => {
+            const cur = this.data.picked
+            if (cur && cur.dishes && cur.dishes.length === dishes.length) {
+              this.setData({ picked: { ...cur, dishInfos: infos } })
+            }
+          })
+        } else {
+          // AI 失败 → 兜底本地随机
+          this._localRandomPick(pool, expanded)
+          this.setData({ pickedHint: '⚠️ AI 不可用，本地随机' })
+        }
+      } catch (err) {
+        this._localRandomPick(pool, expanded)
+        this.setData({ pickedHint: '⚠️ AI 失败，本地随机' })
+      } finally {
+        this.setData({ picking: false })
+      }
+    } else {
+      // 无偏好 → 本地随机
+      this._localRandomPick(pool, [])
+    }
+  },
+
+  // 本地随机（兜底或无偏好时）
+  _localRandomPick(pool, expanded) {
     const shuffled = pool.slice().sort(() => Math.random() - 0.5)
     const dishes = shuffled.slice(0, Math.min(3, shuffled.length))
-    const expanded = dishes.map(() => false)
-
-    this.setData({ picked: { dishes, source: 'random', expanded } })
+    const exp = expanded && expanded.length > 0 ? expanded : dishes.map(() => false)
+    this.setData({ picked: { dishes, source: 'random', expanded: exp } })
     this.enrichDishes(dishes).then(infos => {
       const cur = this.data.picked
       if (cur && cur.dishes && cur.dishes.length === dishes.length) {
@@ -472,7 +524,7 @@ Page({
 
   // ----- 关闭结果卡片 -----
   closePicked() {
-    this.setData({ picked: null, pickedMeals: [], pickedHint: '' })
+    this.setData({ picked: null, pickedMeals: [], pickedHint: '', preferenceNote: '' })
   },
 
   // 拦截冒泡的空 handler（给 result-card 用）
