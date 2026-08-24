@@ -72,12 +72,12 @@
           <view class="result-row-main">
             <view class="result-emoji" style="font-size: {{48 * fontScale}}rpx;">{{picked.dishInfos[idx].emoji}}</view>
             <view class="result-info">
-              <view class="result-dish-line" data-idx="{{idx}}" bindtap="onToggleExpand" hover-class="result-dish-line-hover">
+              <view class="result-dish-line" data-idx="{{idx}}" catchtap="onToggleExpand" hover-class="result-dish-line-hover">
                 <text class="result-dish" style="font-size: {{34 * fontScale}}rpx;">{{dish}}</text>
-                <text class="result-toggle" style="font-size: {{26 * fontScale}}rpx;">
-                  <block wx:if="{{picked.expanded && picked.expanded[idx]}}">▼</block>
-                  <block wx:else>›</block>
-                </text>
+                <view class="result-toggle">
+                  <text wx:if="{{picked.expanded && picked.expanded[idx]}}" style="font-size: {{28 * fontScale}}rpx;">▼</text>
+                  <text wx:else style="font-size: {{28 * fontScale}}rpx;">›</text>
+                </view>
               </view>
               <view class="result-meta" style="font-size: {{22 * fontScale}}rpx;">
                 {{picked.dishInfos[idx].role}} · 约 {{picked.dishInfos[idx].time}} 分钟

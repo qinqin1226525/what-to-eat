@@ -206,6 +206,7 @@
   color: #ff9a3c;
   font-weight: 600;
   flex-shrink: 0;
+  padding: 0 8rpx;
 }
 
 .result-meta {
