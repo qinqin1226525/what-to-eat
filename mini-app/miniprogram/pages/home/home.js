@@ -46,6 +46,14 @@ Page({
     searchResults: [],   // 过滤后的菜谱
     dishGroups: [],      // 没搜索时按 role 分组展示所有菜
     searchDetail: null, // 选中的菜详情
+    // 手动记录本（看历史 + 编辑 + 删除）
+    showLogbook: false,
+    logbookLoading: false,
+    logbookGroups: [],   // [{date, items: [{_id, dish, meal, status, ...}]}]
+    // 编辑单条记录
+    showEditRecord: false,
+    editForm: { _id: '', dish: '', meal: '午餐', date: '' },
+    editing: false,
     // 统计（计算自 meals 集合，1 页内 inline 显示）
     stats: { totalMeals: 0, activeDays: 0, avgPerDay: 0, topDishes: [], mealDist: [] },
     // 系统信息
@@ -321,6 +329,127 @@ Page({
     } catch (err) {
       util.showError('记录失败', err)
     }
+  },
+
+  // ----- 手动记录本（看历史 + 编辑 + 删除） -----
+  async onOpenLogbook() {
+    this.setData({ showLogbook: true, logbookLoading: true })
+    try {
+      const res = await cloud.getHistory(500)
+      const history = (res && res.ok) ? res.history : []
+      const MEAL_EMOJI = { '早餐': '☀️', '午餐': '🌞', '晚餐': '🌙' }
+      const STATUS = { confirmed: '✅', manual: '手动', skipped: '⏭' }
+      // 按日期分组
+      const map = new Map()
+      for (const h of history) {
+        const d = h.date || '未知'
+        if (!map.has(d)) map.set(d, [])
+        map.get(d).push({
+          ...h,
+          statusLabel: STATUS[h.status] || h.status,
+          mealEmoji: MEAL_EMOJI[h.meal] || '🍽'
+        })
+      }
+      const groups = Array.from(map.entries())
+        .map(([date, items]) => ({ date, items }))
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .slice(0, 60)
+      this.setData({ logbookGroups: groups, logbookLoading: false })
+    } catch (err) {
+      this.setData({ logbookLoading: false })
+      util.showError('加载失败', err)
+    }
+  },
+
+  closeLogbook() {
+    this.setData({ showLogbook: false })
+  },
+
+  // 点单条 → 打开编辑
+  onEditLogItem(e) {
+    const id = e.currentTarget.dataset.id
+    // 找到这条记录
+    const all = this.data.logbookGroups.flatMap(g => g.items)
+    const r = all.find(x => x._id === id)
+    if (!r) return
+    this.setData({
+      showEditRecord: true,
+      editForm: { _id: r._id, dish: r.dish, meal: r.meal || '午餐', date: r.date }
+    })
+  },
+
+  // 整行 tap 也打开编辑（更顺手）
+  onEditRecord(e) {
+    const id = e.currentTarget.dataset.id
+    const all = this.data.logbookGroups.flatMap(g => g.items)
+    const r = all.find(x => x._id === id)
+    if (!r) return
+    this.setData({
+      showEditRecord: true,
+      editForm: { _id: r._id, dish: r.dish, meal: r.meal || '午餐', date: r.date }
+    })
+  },
+
+  closeEditRecord() {
+    if (this.data.editing) return
+    this.setData({ showEditRecord: false })
+  },
+
+  onEditField(e) {
+    const field = e.currentTarget.dataset.field
+    this.setData({ [`editForm.${field}`]: e.detail.value })
+  },
+
+  onEditMeal(e) {
+    const meal = e.currentTarget.dataset.meal
+    this.setData({ 'editForm.meal': meal })
+  },
+
+  async onSaveEdit() {
+    const f = this.data.editForm
+    if (!f.dish || !f.dish.trim()) {
+      wx.showToast({ title: '菜名不能空', icon: 'none' })
+      return
+    }
+    this.setData({ editing: true })
+    try {
+      const res = await cloud.updateMeal(f._id, {
+        dish: f.dish.trim(),
+        meal: f.meal
+      })
+      if (res && res.ok) {
+        wx.showToast({ title: '已保存', icon: 'success' })
+        this.setData({ showEditRecord: false, editing: false })
+        // 重新加载记录本
+        this.onOpenLogbook()
+      } else {
+        util.showError('保存失败', new Error((res && res.error) || '未知错误'))
+        this.setData({ editing: false })
+      }
+    } catch (err) {
+      this.setData({ editing: false })
+      util.showError('保存失败', err)
+    }
+  },
+
+  // 删除某条
+  onDeleteLogItem(e) {
+    const id = e.currentTarget.dataset.id
+    const that = this
+    wx.showModal({
+      title: '删除这条？',
+      content: '删除后不可恢复',
+      success: async (res) => {
+        if (!res.confirm) return
+        try {
+          await cloud.deleteMeal(id)
+          wx.showToast({ title: '已删除', icon: 'success' })
+          that.onOpenLogbook()  // 重新加载
+        } catch (err) {
+          util.showError('删除失败', err)
+        }
+      }
+    })
   },
 
   // ----- AI 顾问（聊天入口）-----

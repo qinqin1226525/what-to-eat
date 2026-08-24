@@ -1283,3 +1283,269 @@
   padding: 0;
   font-size: 30rpx;
 }
+
+/* ===== 手动记录本 modal ===== */
+.logbook-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 180;
+  padding: 32rpx;
+  box-sizing: border-box;
+}
+
+.logbook-card {
+  background: #fafaf7;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  width: 100%;
+  max-width: 680rpx;
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+}
+
+.logbook-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+  position: relative;
+}
+
+.logbook-emoji {
+  font-size: 60rpx;
+  margin-right: 12rpx;
+  line-height: 1;
+}
+
+.logbook-title-block { flex: 1; min-width: 0; }
+
+.logbook-title {
+  font-weight: 700;
+  color: #2a2a2a;
+  margin-bottom: 4rpx;
+}
+
+.logbook-sub {
+  color: #888;
+}
+
+.logbook-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 36rpx;
+}
+
+.logbook-scroll {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 65vh;
+}
+
+.logbook-loading,
+.logbook-empty {
+  text-align: center;
+  color: #999;
+  padding: 60rpx 0;
+}
+
+.logbook-date {
+  color: #5a5a5a;
+  font-weight: 600;
+  padding: 20rpx 0 12rpx;
+  border-bottom: 2rpx solid #f0ebe0;
+  margin-bottom: 8rpx;
+}
+
+.logbook-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 10rpx;
+  box-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.03);
+}
+
+.logbook-row-hover {
+  background: #fafaf7;
+}
+
+.logbook-row-left {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.logbook-row-badge {
+  font-size: 22rpx;
+  color: #2da44e;
+  background: #e8f7ed;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  flex-shrink: 0;
+}
+
+.logbook-row-meal {
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+
+.logbook-row-dish {
+  color: #2a2a2a;
+  font-size: 28rpx;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.logbook-row-actions {
+  display: flex;
+  gap: 6rpx;
+  flex-shrink: 0;
+  margin-left: 10rpx;
+}
+
+.logbook-row-action {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  border-radius: 12rpx;
+  background: #fafaf7;
+}
+
+.logbook-row-action:active {
+  background: #fff5e6;
+}
+
+/* ===== 编辑记录 modal ===== */
+.edit-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 32rpx;
+  box-sizing: border-box;
+}
+
+.edit-card {
+  background: #fafaf7;
+  border-radius: 20rpx;
+  padding: 28rpx 24rpx;
+  width: 100%;
+  max-width: 640rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+}
+
+.edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.edit-title {
+  font-weight: 700;
+  color: #2a2a2a;
+}
+
+.edit-close {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 36rpx;
+}
+
+.edit-section {
+  margin-bottom: 20rpx;
+}
+
+.edit-label {
+  color: #5a5a5a;
+  font-weight: 500;
+  margin-bottom: 10rpx;
+}
+
+.edit-input {
+  background: #fff;
+  border: 2rpx solid #f0ebe0;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  font-size: 28rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.edit-input:focus {
+  border-color: #ff9a3c;
+}
+
+.edit-meal-row {
+  display: flex;
+  gap: 12rpx;
+}
+
+.edit-meal-chip {
+  flex: 1;
+  background: #fff;
+  border: 2rpx solid #f0ebe0;
+  border-radius: 12rpx;
+  padding: 16rpx 8rpx;
+  text-align: center;
+  color: #5a5a5a;
+  font-size: 26rpx;
+}
+
+.edit-meal-chip.on {
+  background: linear-gradient(135deg, #fff5e6, #ffe4c4);
+  border-color: #ff9a3c;
+  color: #2a2a2a;
+  font-weight: 600;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.edit-actions .btn-secondary { flex: 1; height: 88rpx; line-height: 88rpx; padding: 0; }
+.edit-actions .btn-primary { flex: 2; height: 88rpx; line-height: 88rpx; padding: 0; font-size: 30rpx; }
+
+/* 手动记录 modal 里的「查看记录本」按钮 */
+.manual-logbook {
+  flex: 1.4;
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0;
+  font-size: 28rpx;
+}
+
+.manual-cancel { flex: 1; }
