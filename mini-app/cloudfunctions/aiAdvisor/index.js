@@ -15,6 +15,11 @@ exports.main = async (event) => {
     return pickWithAI(event, { API_KEY, API_URL, MODEL })
   }
 
+  // 从聊天记录里提取偏好
+  if (event.mode === 'setPreferencesFromChat') {
+    return setPreferencesFromChat(event, { API_KEY, API_URL, MODEL })
+  }
+
   const { question, profile, todayMeals, todayTotals, targets } = event
 
   if (!API_KEY) {
@@ -198,6 +203,108 @@ async function pickWithAI(event, { API_KEY, API_URL, MODEL }) {
   } catch (err) {
     return { ok: false, error: `AI 调用失败：${err.message || String(err)}` }
   }
+}
+
+// 从用户聊天消息里提取结构化偏好
+async function setPreferencesFromChat(event, { API_KEY, API_URL, MODEL }) {
+  const { message, currentPrefs = {}, history = [] } = event
+  if (!API_KEY) {
+    return { ok: false, error: 'API_KEY 未配置' }
+  }
+  if (!message || !message.trim()) {
+    return { ok: false, error: '消息不能为空' }
+  }
+
+  // 偏好字段定义（按这个 schema 让 AI 输出）
+  const schema = {
+    cuisines: '菜系数组，如 ["川菜","粤菜","家常"]，空数组表示不限',
+    spicy: '"any" | "none" | "mild"，辣的偏好',
+    noNumb: 'true/false，是否不要麻辣',
+    avoid: 'object: {seafood, offal, cilantro, beef, lamb, centuryEgg} 都 true/false',
+    maxTime: '0=不限，30=30分钟内，60=60分钟内',
+    vegetarian: 'true/false，是否素食',
+    noCold: 'true/false，是否不吃凉菜',
+    skipBreakfast: 'true/false，是否跳过早餐',
+    customNote: 'string，free text 补充说明（如"老婆怀孕要低钠"）'
+  }
+
+  const systemPrompt = `你是用户的私人饮食顾问「三餐肆计」。
+用户会用自然语言告诉你他们的口味偏好，你需要从中提取并更新结构化偏好。
+
+偏好字段 schema：
+${JSON.stringify(schema, null, 2)}
+
+## 规则
+- **只提取用户明确说的偏好**，没说就保持 currentPrefs 不变
+- 不要编用户没说的东西
+- \"少吃\" / \"少做\" ≠ 完全不吃（保留默认 false）
+- \"最近要 X\" 表示临时偏好，可以放在 customNote 里
+- 用户说\"不\"否定时设 true/false
+- 输出严格 JSON（不要 markdown 代码块）：
+{
+  "prefs": { /* 合并后的完整 prefs */ },
+  "explanation": "我记下了：xxx（不超过 60 字，口语化）"
+}
+
+## 当前 prefs
+${JSON.stringify(currentPrefs, null, 2)}`
+
+  // 拼对话历史
+  const messages = [{ role: 'system', content: systemPrompt }]
+  for (const h of history.slice(-10)) {  // 最近 10 条对话
+    messages.push({ role: h.role, content: h.text || h.content })
+  }
+  messages.push({ role: 'user', content: message })
+
+  try {
+    const data = await httpsPostJson(API_URL, API_KEY, {
+      model: MODEL,
+      messages,
+      max_tokens: 600,
+      temperature: 0.5,
+      stream: false,
+      response_format: { type: 'json_object' }
+    })
+
+    const reply = data.choices?.[0]?.message?.content?.trim()
+    if (!reply) return { ok: false, error: 'AI 返回为空' }
+
+    let parsed
+    try {
+      parsed = JSON.parse(reply)
+    } catch (e) {
+      return { ok: false, error: 'AI 返回不是 JSON: ' + reply.slice(0, 100) }
+    }
+
+    const mergedPrefs = mergePrefs(currentPrefs, parsed.prefs || {})
+    return {
+      ok: true,
+      prefs: mergedPrefs,
+      explanation: String(parsed.explanation || '已记录').slice(0, 100),
+      reply
+    }
+  } catch (err) {
+    return { ok: false, error: `AI 调用失败：${err.message || String(err)}` }
+  }
+}
+
+// 合并 prefs：AI 返回的字段覆盖现有的，没返回的保持
+function mergePrefs(current, updated) {
+  const merged = { ...current }
+  for (const key of Object.keys(updated || {})) {
+    const v = updated[key]
+    if (v === null || v === undefined) continue
+    if (key === 'avoid' && typeof v === 'object') {
+      merged.avoid = { ...(current.avoid || {}), ...v }
+    } else if (key === 'cuisines' && Array.isArray(v)) {
+      // 菜系去重
+      const set = new Set([...(current.cuisines || []), ...v])
+      merged.cuisines = Array.from(set)
+    } else {
+      merged[key] = v
+    }
+  }
+  return merged
 }
 
 function buildContext(profile, todayMeals, todayTotals, targets) {

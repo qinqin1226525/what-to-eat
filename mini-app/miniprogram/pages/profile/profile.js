@@ -34,6 +34,11 @@ Page({
     newDish: { name: '', time_minutes: 15, role: '0', tags: [], ingredients: '', seasonings: '', steps: '', tips: '' },
     // AI 配额
     aiRemaining: 10,
+    // AI 聊口味 modal
+    showAiChat: false,
+    aiChatInput: '',
+    aiChatHistory: [],   // [{role: 'user'|'ai', text, explanation?}]
+    aiChatSending: false,
     aiLimit: 10
   },
 
@@ -318,6 +323,81 @@ Page({
     } catch (err) {
       util.showError('添加失败', err)
       this.setData({ addingDish: false })
+    }
+  },
+
+  // ----- AI 聊口味 -----
+  onOpenAiChat() {
+    this.setData({
+      showAiChat: true,
+      aiChatInput: '',
+      // 首次打开时种一条欢迎语
+      aiChatHistory: this.data.aiChatHistory.length > 0
+        ? this.data.aiChatHistory
+        : [{ role: 'ai', text: '你好！告诉我你的口味偏好吧，比如「最近在增肌高蛋白」或「老婆怀孕要低钠」。' }]
+    })
+  },
+
+  closeAiChat() {
+    if (this.data.aiChatSending) return
+    this.setData({ showAiChat: false })
+  },
+
+  onAiChatInput(e) {
+    this.setData({ aiChatInput: e.detail.value })
+  },
+
+  async onAiChatSend() {
+    const text = (this.data.aiChatInput || '').trim()
+    if (!text || this.data.aiChatSending) return
+
+    // 追加用户消息
+    const history = [...this.data.aiChatHistory, { role: 'user', text }]
+    this.setData({ aiChatHistory: history, aiChatInput: '', aiChatSending: true })
+
+    try {
+      // 拼发给 AI 的 history（只发 role + text，不带 explanation）
+      const aiHistory = history
+        .filter(m => m.role === 'user' || m.role === 'ai')
+        .map(m => ({ role: m.role, text: m.text }))
+
+      const res = await cloud.call('aiAdvisor', {
+        mode: 'setPreferencesFromChat',
+        message: text,
+        currentPrefs: this.data.prefs,
+        history: aiHistory.slice(0, -1)  // 最后一条是当前 message，不用塞 history
+      })
+
+      if (res && res.ok) {
+        // 追加 AI 回复（带 explanation）
+        const newHistory = [...history, {
+          role: 'ai',
+          text: res.explanation || '已记录',
+          explanation: res.explanation
+        }]
+        this.setData({ aiChatHistory: newHistory })
+        // 自动保存 prefs 到云
+        if (res.prefs) {
+          await cloud.savePrefs({ prefs: res.prefs, profile: this.data.profile })
+          this.setData({ prefs: res.prefs })
+          // 同步 globalData
+          app.globalData.prefs = res.prefs
+        }
+      } else {
+        // AI 失败兜底
+        const errMsg = (res && res.error) || 'AI 调用失败'
+        this.setData({
+          aiChatHistory: [...history, { role: 'ai', text: '⚠️ ' + errMsg }]
+        })
+        util.showError('AI 失败', new Error(errMsg))
+      }
+    } catch (err) {
+      this.setData({
+        aiChatHistory: [...history, { role: 'ai', text: '⚠️ 网络异常' }]
+      })
+      util.showError('发送失败', err)
+    } finally {
+      this.setData({ aiChatSending: false })
     }
   }
 })
