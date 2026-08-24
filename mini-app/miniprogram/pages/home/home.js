@@ -350,54 +350,12 @@ Page({
     })
   },
 
-  // ----- AI 灵感 -----
-  async onAiInspire() {
-    if (this.data.picking) return
-    const { customDishes, recentPicks, fridgeItems } = this.data
-    if (customDishes.length === 0) {
-      wx.showToast({ title: '菜池为空，先加几道', icon: 'none' })
-      this.openOnboarding()
-      return
-    }
-    const recentSet = new Set(recentPicks)
-    const candidates = customDishes.filter(d => !recentSet.has(d))
-    if (candidates.length === 0) {
-      wx.showToast({ title: '7 天内都吃过了，加点新菜', icon: 'none', duration: 2500 })
-      return
-    }
-
-    this.setData({ picking: true })
-    try {
-      const res = await cloud.call('aiAdvisor', {
-        mode: 'pickWithAI',
-        candidates,
-        recentPicks,
-        fridge: fridgeItems
-      })
-      if (res && res.ok && res.picks && res.picks.length > 0) {
-        const dishes = res.picks.map(p => p.dish)
-        const expanded = dishes.map(() => false)
-        this.setData({ picked: { dishes, reasons: res.picks, source: 'ai', expanded } })
-        this.enrichDishes(dishes).then(infos => {
-          const cur = this.data.picked
-          if (cur && cur.dishes && cur.dishes.length === dishes.length) {
-            this.setData({ picked: { ...cur, dishInfos: infos } })
-          }
-        })
-      } else {
-        // AI 失败兜底：走本地随机
-        wx.showToast({ title: 'AI 暂不可用，本地随机', icon: 'none' })
-        this.setData({ picking: false })
-        this.onRandomPick()
-        return
-      }
-    } catch (err) {
-      wx.showToast({ title: 'AI 调用失败，本地随机', icon: 'none' })
-      this.setData({ picking: false })
-      this.onRandomPick()
-      return
-    }
-    this.setData({ picking: false })
+  // ----- AI 顾问（聊天入口）-----
+  // 跳转到 chat 页面，与 aiAdvisor 云函数的默认 mode（无 mode = 聊天）对接
+  // 注意：之前 v2 PRD 写的是「AI 给点灵感」+ pickWithAI 选菜，但用户实际期望
+  // 是聊天（不是 AI 选菜）。所以这个按钮直接跳 chat 页，不调云函数。
+  onAiInspire() {
+    wx.navigateTo({ url: '/pages/chat/chat' })
   },
 
   // ----- 关闭结果卡片 -----

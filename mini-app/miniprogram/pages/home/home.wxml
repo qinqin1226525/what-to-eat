@@ -1,6 +1,6 @@
 <!-- pages/home/home.wxml —— 1 页式主页
-     UI 纪律：低饱和、无动画、单屏不滚动（带孩子场景）
-     整体结构：顶 4 按钮 → 主操作 → 二级操作 → 冰箱+菜池 → 最近 → 统计
+     风格：温暖人性化（多色 + 渐变 + 大 emoji + 平滑过渡）
+     整体结构：顶 4 按钮 → 冰箱+菜池 → 二级操作 → 最近 → 统计
 -->
 <view class="home">
 
@@ -96,16 +96,16 @@
 
     <view wx:if="{{stats.totalMeals > 0}}" class="stats-cards">
       <view class="stats-card">
-        <view class="stats-num" style="font-size: {{48 * fontScale}}rpx;">{{stats.totalMeals}}</view>
-        <view class="stats-label" style="font-size: {{20 * fontScale}}rpx;">本月吃了（道）</view>
+        <view class="stats-num">{{stats.totalMeals}}</view>
+        <view class="stats-label">本月吃了（道）</view>
       </view>
       <view class="stats-card">
-        <view class="stats-num stats-num-green" style="font-size: {{48 * fontScale}}rpx;">{{stats.activeDays}}</view>
-        <view class="stats-label" style="font-size: {{20 * fontScale}}rpx;">有记录天数</view>
+        <view class="stats-num stats-num-green">{{stats.activeDays}}</view>
+        <view class="stats-label">有记录天数</view>
       </view>
       <view class="stats-card">
-        <view class="stats-num" style="font-size: {{48 * fontScale}}rpx;">{{stats.avgPerDay}}</view>
-        <view class="stats-label" style="font-size: {{20 * fontScale}}rpx;">平均每天（餐）</view>
+        <view class="stats-num stats-num-purple">{{stats.avgPerDay}}</view>
+        <view class="stats-label">平均每天（餐）</view>
       </view>
     </view>
 
