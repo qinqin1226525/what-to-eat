@@ -169,6 +169,12 @@
   margin-bottom: 24rpx;
 }
 
+.result-hint {
+  color: #999;
+  margin-bottom: 16rpx;
+  font-style: italic;
+}
+
 .result-row-main {
   display: flex;
   align-items: center;

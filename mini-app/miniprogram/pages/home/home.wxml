@@ -41,11 +41,17 @@
 
   <!-- 操作区 -->
   <view class="actions">
-    <view class="btn-primary big-btn" bindtap="onRandomPick" hover-class="btn-primary-hover">
+    <view class="btn-primary big-btn" catchtap="onRandomPick" hover-class="btn-primary-hover">
       <text wx:if="{{picking}}">选菜中…</text>
       <text wx:else>🎲 帮我选 3 道</text>
     </view>
-    <view class="btn-secondary small-btn" bindtap="onAiInspire" hover-class="btn-primary-hover">
+    <view class="btn-primary big-btn" catchtap="onFridgeRecommend" hover-class="btn-primary-hover">
+      🥬 冰箱有什么 → 做啥菜
+    </view>
+    <view class="btn-primary big-btn" catchtap="onManualRecord" hover-class="btn-primary-hover">
+      📝 手动记录今天吃了啥
+    </view>
+    <view class="btn-secondary small-btn" catchtap="onAiInspire" hover-class="btn-primary-hover">
       💡 AI 给点灵感
     </view>
   </view>
@@ -63,9 +69,11 @@
     <view class="result-card" catchtap="_noop">
       <view class="result-close" bindtap="closePicked">✕</view>
       <view class="result-title" style="font-size: {{32 * fontScale}}rpx;">
-        <text wx:if="{{picked.source === 'ai'}}">💡 AI 灵感</text>
-        <text wx:else>🎲 今日推荐</text>
+        <block wx:if="{{picked.source === 'ai'}}">💡 AI 灵感</block>
+        <block wx:elif="{{picked.source === 'fridge'}}">🥬 冰箱有什么</block>
+        <block wx:else>🎲 今日推荐</block>
       </view>
+      <view wx:if="{{pickedHint}}" class="result-hint" style="font-size: {{22 * fontScale}}rpx;">{{pickedHint}}</view>
       <block wx:for="{{picked.dishes}}" wx:key="*this" wx:for-item="dish" wx:for-index="idx">
         <view wx:if="{{picked.dishInfos && picked.dishInfos[idx]}}">
           <!-- 左侧：emoji + 菜名（带 › 展开符号）+ role·时间 -->

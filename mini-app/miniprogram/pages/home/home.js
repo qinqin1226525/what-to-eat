@@ -28,6 +28,7 @@ Page({
     loading: true,
     picked: null,        // {dishes, dishInfos, reasons, source}
     picking: false,
+    pickedHint: '',     // 结果 modal 的提示文字（如「冰箱没匹配到菜池」）
     // onboarding
     showOnboarding: false,
     onboardingDishes: [],
@@ -126,6 +127,84 @@ Page({
     })
   },
 
+  // ----- 冰箱有什么 → 做啥菜 -----
+  async onFridgeRecommend() {
+    if (this.data.picking) return
+    const { customDishes, recentPicks, fridgeItems } = this.data
+    if (customDishes.length === 0) {
+      wx.showToast({ title: '菜池为空，先加几道', icon: 'none' })
+      this.openOnboarding()
+      return
+    }
+    if (fridgeItems.length === 0) {
+      wx.showToast({ title: '冰箱是空的，去加点食材', icon: 'none' })
+      return
+    }
+
+    // 从 125 道菜里找：食材里有冰箱关键字的
+    let allDishes = app.globalData.dishes || []
+    if (allDishes.length === 0) {
+      try {
+        const res = await cloud.getDishes()
+        allDishes = (res && res.ok && res.dishes) || []
+        app.globalData.dishes = allDishes
+      } catch (e) {
+        allDishes = []
+      }
+    }
+
+    // 冰箱食材 key（小写、去掉 500g 之类的数字）
+    const fridgeKeys = fridgeItems.map(f =>
+      f.replace(/\s*\d+g?$/i, '').toLowerCase()
+    ).filter(Boolean)
+
+    // 匹配：菜名含冰箱 key，或 ingredients 含冰箱 key
+    const matched = allDishes.filter(d => {
+      const name = (d.name || '').toLowerCase()
+      if (fridgeKeys.some(k => name.includes(k))) return true
+      const ings = (d.ingredients || []).map(i => i.toLowerCase())
+      return ings.some(ing => fridgeKeys.some(k => ing.includes(k)))
+    })
+
+    // 只保留菜池里的
+    const customSet = new Set(customDishes)
+    let candidates = matched.filter(d => customSet.has(d.name))
+
+    // 没匹配 → 兜底用菜池全部
+    let fallback = false
+    if (candidates.length === 0) {
+      candidates = customDishes.slice()
+      fallback = true
+    }
+
+    // 去重最近 7 天
+    const recentSet = new Set(recentPicks)
+    let pool = candidates.filter(d => !recentSet.has(d))
+    if (pool.length === 0) pool = candidates.slice()
+
+    // 洗牌取前 3
+    const shuffled = pool.slice().sort(() => Math.random() - 0.5)
+    const dishes = shuffled.slice(0, Math.min(3, shuffled.length))
+    const expanded = dishes.map(() => false)
+
+    this.setData({
+      picked: { dishes, source: 'fridge', expanded },
+      pickedHint: fallback ? '冰箱食材没匹配到菜池里的菜，从菜池随机选' : null
+    })
+    this.enrichDishes(dishes).then(infos => {
+      const cur = this.data.picked
+      if (cur && cur.dishes && cur.dishes.length === dishes.length) {
+        this.setData({ picked: { ...cur, dishInfos: infos } })
+      }
+    })
+  },
+
+  // ----- 手动记录今天吃了啥（跳清单 tab 并自动开 modal）-----
+  onManualRecord() {
+    app.globalData.__openManualOnHistory = true
+    wx.switchTab({ url: '/pages/history/history' })
+  },
+
   // ----- AI 灵感 -----
   async onAiInspire() {
     if (this.data.picking) return
@@ -178,7 +257,7 @@ Page({
 
   // ----- 关闭结果卡片 -----
   closePicked() {
-    this.setData({ picked: null })
+    this.setData({ picked: null, pickedHint: '' })
   },
 
   // 拦截冒泡的空 handler（给 result-card 用）
