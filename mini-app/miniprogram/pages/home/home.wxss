@@ -831,6 +831,19 @@
   padding: 60rpx 0;
 }
 
+.logbook-clear-link {
+  text-align: center;
+  color: #d14545;
+  font-size: 24rpx;
+  padding: 20rpx 0 8rpx;
+  border-top: 2rpx solid #fafaf7;
+  margin-top: 12rpx;
+}
+
+.logbook-clear-link:active {
+  opacity: 0.6;
+}
+
 .logbook-date {
   color: #5a5a5a;
   font-weight: 600;

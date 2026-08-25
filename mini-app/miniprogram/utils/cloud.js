@@ -28,6 +28,7 @@ const api = {
   addMeal: (payload) => call('addMeal', payload),
   getHistory: (limit) => call('getHistory', { limit: limit || 100 }),
   deleteMeal: (id) => call('deleteMeal', { id }),
+  clearMeals: () => call('clearMeals'),
   updateMeal: (id, payload) => call('updateMeal', { _id: id, ...payload }),
 
   // 冰箱

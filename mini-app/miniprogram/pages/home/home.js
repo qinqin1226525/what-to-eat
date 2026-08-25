@@ -573,6 +573,30 @@ Page({
     })
   },
 
+  // 清空所有历史
+  onClearAllHistory() {
+    const that = this
+    wx.showModal({
+      title: '清空所有历史？',
+      content: '删除全部记录，此操作不可恢复',
+      success: async (res) => {
+        if (!res.confirm) return
+        try {
+          const r = await cloud.clearMeals()
+          if (r && r.ok) {
+            wx.showToast({ title: `已清空 ${r.deleted || 0} 条`, icon: 'success' })
+            that.onOpenLogbook()  // 重新加载（会显示空状态）
+            that.refresh()
+          } else {
+            util.showError('清空失败', new Error((r && r.error) || '未知错误'))
+          }
+        } catch (err) {
+          util.showError('清空失败', err)
+        }
+      }
+    })
+  },
+
   async onManualSave() {
     const f = this.data.manualForm
     if (!f.breakfast.trim() && !f.lunch.trim() && !f.dinner.trim()) {
