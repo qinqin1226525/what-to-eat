@@ -94,6 +94,9 @@ Page({
   },
 
   // ===== 顶部 4 按钮 =====
+  // 拦截冒泡的空 handler（给 modal-card 用）
+  _noop() {},
+
   onOpenManualLog() {
     this.setData({
       showManualLog: true,

@@ -149,7 +149,7 @@
 
   <!-- ========== 菜谱详情 modal ========== -->
   <view wx:if="{{recipeDish}}" class="recipe-mask" catchtap="closeRecipe">
-    <view class="recipe-card" catchtap="">
+    <view class="recipe-card" catchtap="_noop">
       <view class="modal-close" catchtap="closeRecipe">✕</view>
       <view class="recipe-header">
         <text class="recipe-emoji" style="font-size: {{60 * fontScale}}rpx;">{{recipeDish.emoji}}</text>
@@ -183,7 +183,7 @@
 
   <!-- ========== 手动记录 modal ========== -->
   <view wx:if="{{showManualLog}}" class="manual-mask" catchtap="closeManualLog">
-    <view class="manual-card" catchtap="">
+    <view class="manual-card" catchtap="_noop">
       <view class="modal-close" catchtap="closeManualLog">✕</view>
       <view class="manual-title" style="font-size: {{32 * fontScale}}rpx;">📝 手动记录今天吃了啥</view>
       <view class="manual-meta" style="font-size: {{22 * fontScale}}rpx;">纯自由文本 · 多个菜用逗号分隔</view>
@@ -223,7 +223,7 @@
 
   <!-- ========== 月度报告 modal ========== -->
   <view wx:if="{{showMonthlyReport}}" class="report-mask" catchtap="closeMonthlyReport">
-    <view class="report-card" catchtap="">
+    <view class="report-card" catchtap="_noop">
       <view class="modal-close" catchtap="closeMonthlyReport">✕</view>
       <view class="report-icon">📊</view>
       <view class="report-title" style="font-size: {{34 * fontScale}}rpx;">{{monthlyReport.monthLabel}} · 饮食报告</view>
@@ -272,7 +272,7 @@
 
   <!-- ========== AI 顾问 modal（选 chat 或 preference） ========== -->
   <view wx:if="{{showAIPanel}}" class="ai-mask" catchtap="closeAIPanel">
-    <view class="ai-card" catchtap="">
+    <view class="ai-card" catchtap="_noop">
       <view class="modal-close" catchtap="closeAIPanel">✕</view>
       <view class="ai-title" style="font-size: {{32 * fontScale}}rpx;">🤖 AI 顾问</view>
       <view class="ai-sub" style="font-size: {{22 * fontScale}}rpx;">2 个入口，按需选</view>
