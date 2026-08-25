@@ -143,7 +143,7 @@ Page({
   // ----- 随机选 3 道 -----
   async onRandomPick() {
     if (this.data.picking) return
-    const { customDishes, recentPicks, fridgeItems } = this.data
+    const { customDishes, recentPicks } = this.data
     if (customDishes.length === 0) {
       // 菜池空 → 自动展开批量输入区 + 滚动 + 提示
       if (!this.data.expanded.pool) {
@@ -162,13 +162,7 @@ Page({
       wx.showToast({ title: '7 天内都吃过了，加点新菜', icon: 'none', duration: 2500 })
       return
     }
-    // 启发式：优先和冰箱食材匹配
-    const fridgeSet = new Set(fridgeItems.map(f => f.replace(/\s*\d+g?$/i, '').toLowerCase()))
-    const fridgeMatched = candidates.filter(d => {
-      const lc = d.toLowerCase()
-      return Array.from(fridgeSet).some(f => lc.includes(f))
-    })
-    const pool = fridgeMatched.length >= 3 ? fridgeMatched : candidates
+    const pool = candidates
 
     // 检查用户偏好（customNote）
     const prefs = app.globalData.prefs || {}
@@ -187,7 +181,7 @@ Page({
           mode: 'pickWithAI',
           candidates: pool,
           recentPicks,
-          fridge: fridgeItems,
+          fridge: [],
           hint: customNote
         })
         if (res && res.ok && res.picks && res.picks.length > 0) {
@@ -595,7 +589,7 @@ Page({
   // 换一道：用新随机菜替换 idx 那道
   onSwapDish(e) {
     const idx = Number(e.currentTarget.dataset.idx)
-    const { picked, customDishes, recentPicks, fridgeItems } = this.data
+    const { picked, customDishes, recentPicks } = this.data
     if (!picked || !picked.dishes || isNaN(idx)) return
     const targetName = picked.dishes[idx]
 
@@ -608,16 +602,7 @@ Page({
       wx.showToast({ title: '没菜可换了', icon: 'none' })
       return
     }
-    const fridgeKeys = fridgeItems.map(f =>
-      f.replace(/\s*\d+g?$/i, '').toLowerCase()
-    )
-    const matched = candidates.filter(d => {
-      const lc = d.toLowerCase()
-      return fridgeKeys.some(k => lc.includes(k))
-    })
-    const pool = matched.length > 0 ? matched : candidates
-    const newDish = pool[Math.floor(Math.random() * pool.length)]
-
+    const newDish = candidates[Math.floor(Math.random() * candidates.length)]
     this._replaceDishAt(idx, newDish)
   },
 
@@ -805,13 +790,6 @@ Page({
       wx.showToast({ title: `${role} 没菜可加`, icon: 'none' })
       return
     }
-    // 启发式：菜名包含冰箱食材的优先
-    const { fridgeItems } = this.data
-    const fridgeKeys = fridgeItems.map(f => f.replace(/\s*\d+g?$/i, '').toLowerCase())
-    const matched = candidates.filter(d => {
-      const lc = d.toLowerCase()
-      return fridgeKeys.some(k => lc.includes(k))
-    })
     const pool = matched.length > 0 ? matched : candidates
     const newDish = pool[Math.floor(Math.random() * pool.length)]
     // 追加到 picked.dishes + expanded
