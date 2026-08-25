@@ -9,7 +9,7 @@
     "navigationBarBackgroundColor": "#ff9a3c",
     "navigationBarTitleText": "今天吃什么",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#f7f7f7"
+    "backgroundColor": "#fafaf7"
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
