@@ -844,6 +844,7 @@ Page({
   async onPickMeals() {
     const { customDishes, recentPicks } = this.data
     if (customDishes.length === 0) {
+      // 菜池空 → 跳到 onboarding 加菜
       wx.showToast({ title: '菜池为空，先加几道', icon: 'none' })
       this.openOnboarding()
       return
@@ -867,14 +868,58 @@ Page({
       })
       if (res && res.ok && res.meals) {
         this.setData({ dayMeals: res.meals, dayMealNote: res.note || '', dayMealsLoading: false })
-      } else {
-        util.showError('AI 推荐失败', new Error((res && res.error) || '未知错误'))
-        this.setData({ dayMealsLoading: false })
+        return
       }
+      // 云端失败（可能是旧版）→ 本地按 role 分配
+      console.warn('[onPickMeals] AI 失败，本地 fallback:', res && res.error)
+      this._localDayMeals(candidates)
     } catch (err) {
-      this.setData({ dayMealsLoading: false })
-      util.showError('AI 推荐失败', err)
+      console.warn('[onPickMeals] 云端异常，本地 fallback:', err)
+      this._localDayMeals(candidates)
     }
+  },
+
+  // 本地一日三餐：按 role 分配
+  // 早：主食 / 早餐；午：主菜 + 主食；晚：主菜 + 可选汤
+  _localDayMeals(candidates) {
+    const ROLE_EMOJI_LOCAL = { '主菜': '🥢', '汤': '🥣', '主食': '🥯', '凉菜': '🥗', '早餐': '🍳' }
+    const byRole = { '早餐': [], '主菜': [], '汤': [], '主食': [], '凉菜': [] }
+    for (const name of candidates) {
+      const meta = this._lookupDishMeta(name)
+      const role = meta.role || '主菜'
+      if (byRole[role]) byRole[role].push({ name, role, emoji: ROLE_EMOJI_LOCAL[role] || '🍽' })
+    }
+    // 打乱 + 取
+    const pickFrom = (arr, n) => {
+      const sh = arr.slice().sort(() => Math.random() - 0.5)
+      return sh.slice(0, n)
+    }
+    const meals = {
+      '早餐': pickFrom(byRole['早餐'].concat(byRole['主食']), 1),
+      '午餐': [...pickFrom(byRole['主菜'], 1), ...pickFrom(byRole['主食'], 1)],
+      '晚餐': [...pickFrom(byRole['主菜'], 1), ...pickFrom(byRole['汤'], 1)]
+    }
+    // 兜底：某餐为空 → 从 candidates 随机补
+    for (const slot of ['早餐', '午餐', '晚餐']) {
+      if (meals[slot].length === 0) {
+        const remain = candidates.filter(n => !Object.values(meals).flat().some(x => x.name === n))
+        if (remain.length > 0) {
+          meals[slot].push({ name: remain[0], role: '主菜', emoji: '🍽' })
+        }
+      }
+    }
+    this.setData({
+      dayMeals: meals,
+      dayMealNote: '本地分配（云端 AI 暂不可用）',
+      dayMealsLoading: false
+    })
+  },
+
+  // 从 globalData 查一道菜的角色
+  _lookupDishMeta(name) {
+    const all = app.globalData.dishes || []
+    const d = all.find(x => x.name === name)
+    return d ? { role: d.role || '主菜' } : { role: '主菜' }
   },
 
   closeDayMeals() {
