@@ -58,12 +58,13 @@
         <view wx:if="{{comboResult.length === 0}}" class="empty-hint">点击上面的按钮开始 ✨</view>
         <block wx:for="{{comboResult}}" wx:key="role" wx:for-item="dish" wx:for-index="idx">
           <view class="dish-card">
-            <view class="dish-card-main">
+            <view class="dish-card-main" data-name="{{dish.name}}" catchtap="onShowRecipe">
               <text class="dish-emoji" style="font-size: {{40 * fontScale}}rpx;">{{dish.emoji}}</text>
               <view class="dish-info">
                 <view class="dish-name" style="font-size: {{30 * fontScale}}rpx;">{{dish.name}}</view>
                 <view class="dish-meta" style="font-size: {{20 * fontScale}}rpx;">{{dish.role}} · 约 {{dish.time}} 分钟</view>
               </view>
+              <text class="dish-toggle" style="font-size: {{32 * fontScale}}rpx;">›</text>
             </view>
             <view class="dish-actions">
               <view class="dish-act dish-act-eat" data-name="{{dish.name}}" catchtap="onEatOne">✓ 就做</view>
@@ -109,12 +110,13 @@
         <view wx:if="{{fridgeResults.length === 0}}" class="empty-hint">输入你冰箱里有的食材</view>
         <block wx:for="{{fridgeResults}}" wx:key="name" wx:for-item="d">
           <view class="dish-card">
-            <view class="dish-card-main">
+            <view class="dish-card-main" data-name="{{d.name}}" catchtap="onShowRecipe">
               <text class="dish-emoji" style="font-size: {{36 * fontScale}}rpx;">{{d.emoji}}</text>
               <view class="dish-info">
                 <view class="dish-name" style="font-size: {{28 * fontScale}}rpx;">{{d.name}}</view>
                 <view class="dish-meta" style="font-size: {{20 * fontScale}}rpx;">{{d.role}}</view>
               </view>
+              <text class="dish-toggle" style="font-size: {{32 * fontScale}}rpx;">›</text>
             </view>
             <view class="dish-actions">
               <view class="dish-act dish-act-eat" data-name="{{d.name}}" catchtap="onEatOne">✓ 就做</view>
@@ -131,12 +133,13 @@
         <view wx:if="{{kidsResult.length === 0}}" class="empty-hint">点上面的按钮，给娃挑一顿 ✨</view>
         <block wx:for="{{kidsResult}}" wx:key="name" wx:for-item="dish">
           <view class="dish-card">
-            <view class="dish-card-main">
+            <view class="dish-card-main" data-name="{{dish.name}}" catchtap="onShowRecipe">
               <text class="dish-emoji" style="font-size: {{36 * fontScale}}rpx;">{{dish.emoji}}</text>
               <view class="dish-info">
                 <view class="dish-name" style="font-size: {{28 * fontScale}}rpx;">{{dish.name}}</view>
                 <view class="dish-meta" style="font-size: {{20 * fontScale}}rpx;">{{dish.role}}</view>
               </view>
+              <text class="dish-toggle" style="font-size: {{32 * fontScale}}rpx;">›</text>
             </view>
             <view class="dish-actions">
               <view class="dish-act dish-act-eat" data-name="{{dish.name}}" catchtap="onEatOne">✓ 就做</view>
