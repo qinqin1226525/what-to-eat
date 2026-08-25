@@ -1,0 +1,5148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#e85d04">
+<meta name="apple-mobile-web-app-title" content="今天吃什么">
+<meta name="description" content="帮你每天决定吃啥的私人小助手 · 越用越懂你口味">
+<meta name="format-detection" content="telephone=no">
+<link rel="icon" href="data:,">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,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">
+<script type="application/manifest+json">{"name":"今天吃什么","short_name":"吃什么","description":"帮你每天决定吃啥的私人小助手 · 越用越懂你口味","start_url":"./app.html","scope":"./","display":"standalone","background_color":"#fdf6ec","theme_color":"#e85d04","icons":[{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAAAXNSR0IArs4c6QAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAtKADAAQAAAABAAAAtAAAAAB1HbRDAAAPpElEQVR4Ae2dCZAU1RnHv+npnd2ZvQBR0KhEkUiMRiy1vEoFrXgnLFFjoSGCB5poYhJiDu/EKlOJR6KiBrSU0mjE0hiMWuURIUaDEU20VDw41EQLRIG9mJ2dM+9r3GWXmXndM/u6Xx//VzXFbr/X3/ve7/vT29P93vdiJVFohKXYvYGyK5dRbvVLlF/3LhU+WUPF9GYq9fUQFXIjtB6w0+MNFEu2kpEaTfFxE8ncZTI1TDyEEvtMJaNtp4ANJnjuxuoVdLF3E2WW/4n6Xryf8mtXBG/kGjw29zyYkkecRU2HzSSjZYwGD8LfZc2CLnSuo/QTN1J66UKibF/4CbkxwkSSUtPmUurkeRQftbMbPUTWpmNBl/I5Sj91M/U+eq0QcjqywJQOPJGilhlXUur4SyhmNig1HVVjjgSdX7+Kum47k/IfvhZVTq6O25wwhdoveoDM8ZNc7ScKxm0FnXl1CXUvmE2lTG8UeGgbY6yphdouWERNB07X5kMYOpYKOr30TupZdDFRqRiGsfp/DDGDWmfPF/fX5/vfV596aFbzyxLzPd+rVo3jbhAQF46ez5lD1PUBrniF5tuMrlu+hStzfUxHfpa4Urf/4CHcftRB0tj+HP4CyPfMuM3YnoyHv4srNceAY4FSG4FhguZHc/w0A18Aa4PoRmuOgRULERMU5wSGCZqfM+PRnHN4brfkWHBMUJwTGLyH5jeAn/1kMl6aOGfnTUvx8mXsDe/gjaJD2oNXaH6djTeADql52Uy8lbVi42WfAe7LEjRPNLLmZgR4IGF2nWPDMUKxJ2AJmmfNYaKRPSxtLcQkMCtG2hwITseWoHkKaNhKrKmV+HVyWEoYY+RGbEyenB/G+czt372PEvufSPmP36LcquWDn8KGNW5wdN0mx4hjhUUCctQmrzQJW4nvuIcl5phhUMNu+1kfOmauNUxrdY0QePfdF1Kp57NADZ1j1XSoeIOLUpWAwcumwlaSx15ILOZKha9wib2PDOTLozDGqlKMRnLM4DWAoSpiNUjy6DnSIfU9v4gol5G28WNl6GLlAmSDF7SGqSQPP5OM5tFVh8RrgvueW1C13s8VYYuVG6xNXp3tRomL1c5t5y6kmFgFrbJkXn6E0k/eUNVk6jgxf1tSsm88TYUNayUt/FvlVqz8O+LaPTOtVAO1n2d7Bt+nJiYdZtuu1ga5tS9XPaXxkNPJ3HXfqvVckX72Dmm9nyvdipWfx1yrb0Zo8maIOcQtM66Sjr/w2YeUff1JaRtfV0Ytx0kdwai6YqUOW1pPaRL5Ljipi6zkxfeFxD7TZE2U1HE/RfGfB8V7AuEQdNyk5o4rbOk1fuUY4o/bpeehKyj9+G/c7gb2KxCo/LC2QkM/H0qKpC3mTnv62UX45hGBwAvaGL0LtZwukt+ggIAgoO2Wo7ilU0yJ3FgWBH7MFx+7e9nxagdav3MLGcm2atU4HjEC2gTdt+wu6l38izLc8XF70djr3y47XulA40EdWBldCUyEjwX2liOWGkWts7DeLsLarTj0YAo6FiOeHhoX989+LDHhH4oeAtpuOUYy3OZTf0mN+59ga4InxRc3f2zbTnWD7Orlqk3CnkMCgRN040EzyGgfbzu87MqlWxPm2LZEgzARCJygnSQIL/Vvoa67tk7oD1OwMBZ7AsG8h7YZV8/iy8Sr5w9sWqE6jARCJ+jsu/+gvmdvD2OsMCYHBAIn6L4X7qP8R29WHFpxy2bqXnhuxTocjAaBwAm6lOmhzTd1iBXQnw6LUKlYpK7bv02FT98fdhy/RItA4ATN4eGpmZ03n0alfHYwWr0PX0W8GgUl2gQC95RjIFy5Vf+0UhG0z72bMisetaZrxnhOh5jo71kpFsTqcbG5KIpvCARW0EwwI+6nS+K+mZ85c+qCtrNv9RQsT+TfeKl8UYGnDqEzfbPtVLHv/8/jlilO/YUCAh7+fQZsEHCfAATtPmP04CEBCNpD2OjKfQIQtPuM0YOHBCBoD2GjK/cJBPqx3VA8nAO6d8l1Qw/V/DNnLG3++s8dncc58tJPe/uY0JFjEW8UHkG/9wLlxGckpXWOszRh/Jqd80tnnr9nJN3hXBcIhEbQI2XTMvO3YtP482zNlAp5a+FA5qXFtm3RwHsCELRg3txxJTWf+CNb+jx3pGv+TOr/92O2bdFAD4HICzp1/CXU8k15kkcOTSmbEROiTsUEKD06ddxrpAWdPPocaj2req7pAYqWmH8/g7JvPjtwCP/6lEBkBZ2YchK1zrFf2VISewR2/q6Dsm8959MQwq2hBCIpaHPCATTqogfETNP4UBZlP5f602IxwTco9/bfy+pwwJ8EIvdixRizK42at4Rijc3SiPBtxuabpkPMUkr+q4yUoHmK6ah5j5FdKoRSrt/6Aph7e5n/IgaPpASiI2hxe9F+8YNbN+GUICnlc9R56xl4miFh5OeqyAiaEzs2fvU4aSyshbZ/mEXZ156QtkOlfwlEQtDJqedS6tgLbKPQs+gi6hfbxqEEl0DoBd2w16HESdHtCu+LwjmrUYJNINSP7Yz2cdT+/cUUMxPSKKWfnl/XJj/Np/2KYokU8byO/NoV0j5Q6Q2B8AqavwSKZ812OaQzr/yFeu7/cV20E5MOp8SXj6bmEy4hXgHOwuZP4eOVddnDSSMnoE3QySPPFtmPNpSNwGgdW3asngMtZ/yaEpOPkp6aXf0Sdd0xS0zUKEnbVauMpdoHq8xxE6ll+mXWJ/e/NyizfHFdV/1Bg/ihLgLaBG207UitYsqmG6XxwOm2s+fyn6ymTpFSjHKZul0wxLYYlUrDbvuRKfaKwV6Flei4eyx0XwqNHXantvPulFLjpI6d159CpQq7cElP3K4y1jJmuyPbfi1o2DlgW+/R/Slcgrb2XrmXjObR0oh2LzyHChvWSNvYVoovg7Lt5IqbvN8Kw9bnCDQIlaBTJ/yQEl86Qhq2LU/eSAPZlqQNbSrjY74gbVHY9JG0HpXuEAiNoI22ncRE/aullHJr/kW9D10ubeO0Mr7DbtKmRQhaysetytAIurnjcukMOl6l3X2fWGYlMoaqKOau+0nN4AotxeNaZSgEzVNCk1PPl0Lqf/lhpS8/zC8eIO0vj2fRUj5uVWp7bNf3wh8p/cz8snGZ4ydZm2qWVUgO8MuNmNkgaSFS7674s7S+psqGRmqccnLVU/ivQf7D16rWo8I9AtoEXexaT/n3Xy0bWSndVXbM7oA5YYpdE4qLq7iSIhKqt52zQDxJqfwMmvvgbTFKfd1KuoOR2ghoE3Rtbspbx3fcQ95A1DafcikZo8ZbawNLfXVk3Rd/ARrEfxx+aWP3BhJXZ9twuNbAd4Iu9nxK+XXvCvFV3sebl0ZtX4pdn2x/qOx3fgrSfNI861NWqfhA9o1nFFuEOacEfCdovuXY+LN9nfpvtSuIiUF+KZxZKfOKwvt1vwwsIH64Jmi+j+TNfKqVansNVmsvO57/7+uyak/rsm/9TbxS3+Rpn+hsGwHXBM1JWbxKzMIi4pcmDRMP2TYyDT/x1bn3kWs09IwuBwiE4jk0D6bngZ9a6boGBqbj395HrhZPbl7R0TX6/JxAaATN+xZuuvYo8cjsA8+Dm33nedp4zeFiuqg702E9H1CAO4ytn2XWN7vdp4Pm3BuNB80Qnw5q3PdrYolUk3JPC+KpSmH9e+JpzHsiE+lfPV0lPu7enPLxhMlg6AQ9LDhiOmlMTCU1WsbS1l1mY8Oqa/6lkBPTTtdqfWkCQcujZlJcvDIWgQplEa+g+YlDISxPHThWKFICRiyJHVilhHxUiVjZB8MwUqPtW6GFLwggVvZhMOJitTJKMAggVvZxMsyd97ZvhRa+IGDuMtkXfvjZCYNTZaEEg4DuN6FBoGQk9pkaBD/hoyCAWNnLwOBpleaeB9u3RAutBDhGHCsUOQHr1XfyiLPkrVCrnQBi5CwElqCbDpsp/p4lnZ2BVt4TELGxYuR9z4Hr0RK0IVJapabNDZzzUXGYY8MxQrEnMDjbLnXyPHGVTtmfgRbeEhAxsWLjba+B7W1Q0LwzVMuMKwM7kLA6zjGx27UrrGOvZ1yDguaTed9rJykB6ukI59ROgGPBMUFxTmCYoDlZC2e9jzW1OLeAlq4Q4BhYsbBJoONK5wE2OkzQPA7OXNR2wSIS+wYHeFgBd52T2YgYcCxQaiNQUbVNIplK6+zyNF21mUbregkwe44BSu0EKgqazaSmnU+tc27Hlbp2pvWfIa7MzJzZo9RHICYSC0rXFGZeXULdC2ZTKdNbXw84yxEBvmfm2wxcmR3hqtrIVtB8Zn79Kuq67Uxk1KyKcWQV/DSDvwDinnlkHPlsR4Lmhrype/qpm6n30WuJsmk+hDJSAuKlCT9n5kdzdumAR9pVVM53LOgBIIXOdZR+4kZKL10ohN03cBj/1kJAzM3g19n8BhAvTWoBZ9+2ZkEPmCz2bBS7pj5IfS/erzQz/oD9MP7LU0B51hxPNMLcDHciXLegh7rDO8JmVy6jnNiZlVPhcjbQYnqzyF8h8jCHNUXCUABDfxapBnh1Ni9o5TWAvMSNVwXx5HzMZx4Kyp2flQjaHddgFQRqJ1D1OXTtpnAGCOgnAEHrjwE8UEgAglYIE6b0E4Cg9ccAHigkAEErhAlT+glA0PpjAA8UEoCgFcKEKf0EIGj9MYAHCglA0AphwpR+AhC0/hjAA4UEIGiFMGFKPwEIWn8M4IFCAhC0QpgwpZ8ABK0/BvBAIQEIWiFMmNJPAILWHwN4oJAABK0QJkzpJwBB648BPFBIAIJWCBOm9BOAoPXHAB4oJABBK4QJU/oJQND6YwAPFBKAoBXChCn9BCBo/TGABwoJQNAKYcKUfgIQtP4YwAOFBCBohTBhSj8BCFp/DOCBQgIQtEKYMKWfAAStPwbwQCEBCFohTJjSTwCC1h8DeKCQAAStECZM6ScAQeuPATxQSACCVggTpvQTgKD1xwAeKCQAQSuECVP6CUDQ+mMADxQSgKAVwoQp/QQgaP0xgAcKCUDQCmHClH4CELT+GMADhQQgaIUwYUo/AQhafwzggUICELRCmDClnwAErT8G8EAhAQhaIUyY0k8AgtYfA3igkAAErRAmTOknAEHrjwE8UEgAglYIE6b0E4Cg9ccAHigkAEErhAlT+glA0PpjAA8UEoCgFcKEKf0EIGj9MYAHCglA0AphwpR+AhC0/hjAA4UEIGiFMGFKPwEIWn8M4IFCAhC0QpgwpZ8ABK0/BvBAIQEIWiFMmNJPAILWHwN4oJAABK0QJkzpJwBB648BPFBIAIJWCBOm9BOAoPXHAB4oJABBK4QJU/oJQND6YwAPFBKAoBXChCn9BP4PxQbsIeveVIUAAAAASUVORK5CYII=","sizes":"180x180","type":"image/png","purpose":"any maskable"}]}</script>
+<title>今天吃什么</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: #fdf6ec;
+    color: #2c2c2c;
+    line-height: 1.4;
+    padding: 10px 12px 12px;
+    max-width: 600px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+
+  h1 { font-size: 22px; color: #e85d04; display: flex; align-items: center; gap: 6px; }
+  .date { color: #888; font-size: 12px; }
+
+  .header-top {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 8px; margin-bottom: 8px;
+  }
+  .header-top-left { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid #e0d5c0; }
+  .tab {
+    flex: 1; padding: 8px 4px; background: transparent; border: none;
+    border-bottom: 3px solid transparent; margin-bottom: -1px;
+    font-size: 14px; color: #888; cursor: pointer; transition: all 0.2s;
+    font-family: inherit;
+  }
+  .tab.active { color: #e85d04; border-bottom-color: #e85d04; font-weight: 600; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  button.primary {
+    width: 100%; padding: 12px; background: #e85d04; color: white;
+    border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+    cursor: pointer; margin-bottom: 10px; font-family: inherit;
+    box-shadow: 0 3px 10px rgba(232, 93, 4, 0.25);
+  }
+  button.primary:active { transform: scale(0.98); }
+  button.primary:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+
+  input[type="text"] {
+    width: 100%; padding: 12px 14px; border: 2px solid #e0d5c0;
+    border-radius: 10px; font-size: 16px; margin-bottom: 10px;
+    background: white; font-family: inherit; outline: none;
+  }
+  input[type="text"]:focus { border-color: #e85d04; }
+
+  .result {
+    background: white; border-radius: 14px; padding: 4px 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06); min-height: 80px;
+  }
+
+  .dish-row {
+    display: flex; align-items: center; padding: 10px 0;
+    border-bottom: 1px solid #f5efe0; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .dish-row:last-child { border-bottom: none; }
+  .dish-row:hover, .dish-row:active { background: #fdf6ec; margin: 0 -14px; padding: 10px 14px; }
+
+  .dish-emoji { font-size: 24px; margin-right: 12px; width: 32px; text-align: center; }
+  .dish-info { flex: 1; min-width: 0; }
+  .dish-name { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .dish-name::after { content: "›"; color: #ccc; font-weight: 300; font-size: 18px; }
+  .dish-meta { font-size: 12px; color: #888; margin-top: 2px; }
+  .dish-missing {
+    font-size: 11px; color: #c9302c; margin-top: 4px;
+    background: #fff3f3; padding: 2px 6px; border-radius: 6px; display: inline-block;
+  }
+
+  .empty { color: #aaa; text-align: center; padding: 24px 14px; font-size: 14px; }
+
+  /* ============ 偏好设置 chips ============ */
+  .chip-row {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0 8px 0;
+  }
+  .chip {
+    display: inline-flex; align-items: center;
+    padding: 8px 14px; border-radius: 20px;
+    background: #fff5e6; color: #8b6914;
+    border: 1.5px solid #f3d9a8;
+    font-size: 14px; cursor: pointer; user-select: none;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .chip:active { transform: scale(0.96); }
+  .chip.active {
+    background: #e85d04; color: white; border-color: #e85d04;
+  }
+
+  /* ============ Stepper（用餐人数） ============ */
+  .stepper-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 0 8px 0;
+  }
+  .stepper-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1.5px solid #f3d9a8;
+    background: #fff5e6;
+    color: #e85d04;
+    font-size: 24px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+  }
+  .stepper-btn:active { transform: scale(0.94); }
+  .stepper-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .stepper-value {
+    min-width: 48px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: #e85d04;
+  }
+  .stepper-hint {
+    flex: 1;
+    font-size: 13px;
+    color: #888;
+    padding-left: 8px;
+  }
+  .chip-group-label {
+    font-size: 13px; color: #888; margin: 12px 0 6px 0;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .chip-group-label .hint {
+    font-size: 11px; color: #aaa; font-weight: normal;
+  }
+
+  /* ============ 自定义菜卡片（Day 19） ============ */
+  .custom-dish-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: #fff8e8;
+    border: 1.5px solid #f3d9a8;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .custom-dish-card .emoji { font-size: 22px; flex-shrink: 0; }
+  .custom-dish-card .info { flex: 1; min-width: 0; }
+  .custom-dish-card .name {
+    font-weight: 600; color: #2c2c2c;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .custom-dish-card .meta {
+    font-size: 11px; color: #888; margin-top: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .custom-dish-card .del-btn {
+    background: transparent; border: none;
+    color: #d36b00; font-size: 18px; cursor: pointer;
+    width: 32px; height: 32px; border-radius: 50%;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+  }
+  .custom-dish-card .del-btn:active { background: #f0d9a8; }
+  .custom-empty {
+    padding: 20px; text-align: center; color: #aaa; font-size: 13px;
+    background: #faf6ec; border-radius: 10px;
+  }
+
+  /* ============ 反馈按钮 ============ */
+  .dish-feedback {
+    display: flex; gap: 4px; align-items: center; flex-shrink: 0;
+  }
+  .feedback-btn {
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; font-size: 16px;
+    background: #f5efe0; color: #888;
+    border: 1.5px solid #e0d5c0;
+    cursor: pointer; user-select: none;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .feedback-btn:active { transform: scale(0.92); }
+  .feedback-btn.liked    { background: #4caf50; color: white; border-color: #4caf50; }
+  .feedback-btn.disliked { background: #ef5350; color: white; border-color: #ef5350; }
+  .feedback-btn.cooked   { background: #ff9800; color: white; border-color: #ff9800; }
+
+  /* ============ 我学到了面板 ============ */
+  .stats-panel {
+    background: #fff8e8; border-radius: 10px; padding: 14px;
+    border-left: 3px solid #ffc107;
+  }
+  .stats-panel .stats-row {
+    margin: 6px 0; font-size: 13px; line-height: 1.6;
+  }
+  .stats-panel .stats-row b { color: #8b6914; }
+  .stats-panel .reset-scores {
+    margin-top: 12px; background: transparent; border: 1px solid #e0d5c0;
+    color: #c9302c; padding: 6px 12px; border-radius: 6px;
+    font-size: 12px; cursor: pointer; font-family: inherit;
+  }
+  .insight-bubble {
+    margin-bottom: 12px; padding: 10px 14px; border-radius: 10px;
+    background: linear-gradient(135deg, #fff8e8 0%, #fde4cf 100%);
+    border-left: 3px solid #ff9800;
+    font-size: 13px; color: #5d4500;
+  }
+
+  .header-banner {
+    background: linear-gradient(135deg, #e85d04, #f48c06);
+    color: white; padding: 10px 14px; border-radius: 14px; margin-bottom: 10px;
+    box-shadow: 0 3px 10px rgba(232, 93, 4, 0.2);
+  }
+  .banner-actions {
+    display: flex; gap: 6px; margin-top: 6px;
+  }
+  .banner-btn {
+    flex: 1;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    min-width: 0;
+    white-space: nowrap;
+  }
+  .banner-btn:active { background: rgba(255,255,255,0.3); }
+  .header-banner h1 { color: white; margin: 0; font-size: 20px; }
+  .header-banner .date { color: rgba(255,255,255,0.85); font-size: 12px; }
+
+  /* ============ Banner 右上角 ⋯ 菜单 ============ */
+  .header-top {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px;
+  }
+  .header-top-left { display: flex; align-items: baseline; gap: 8px; min-width: 0; flex: 1; }
+  .more-menu-wrap { position: relative; }
+  .more-btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0;
+  }
+  .more-menu {
+    position: absolute; top: 34px; right: 0;
+    background: white; border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    min-width: 160px; z-index: 200;
+    overflow: hidden;
+  }
+  .more-menu[hidden] { display: none; }
+  .more-menu-item {
+    display: block; width: 100%; text-align: left;
+    background: white; border: none; padding: 10px 14px;
+    font-size: 14px; color: #2c2c2c; cursor: pointer;
+    font-family: inherit;
+    border-bottom: 1px solid #f5efe0;
+  }
+  .more-menu-item:last-child { border-bottom: none; }
+  .more-menu-item:active { background: #fdf6ec; }
+  .more-menu-item.danger { color: #c9302c; }
+  .header-banner .date { color: rgba(255,255,255,0.9); margin-bottom: 0; }
+
+  .reset-btn {
+    background: transparent; border: none; color: #888; font-size: 13px;
+    cursor: pointer; text-decoration: underline; margin-top: 12px;
+    display: block; text-align: center; width: 100%; font-family: inherit;
+  }
+
+  .history-hint { font-size: 12px; color: #888; margin-top: 12px; text-align: center; }
+
+  /* ============ 全局搜索 ============ */
+  .search-bar {
+    background: white;
+    border-radius: 14px;
+    padding: 4px 14px;
+    margin: 0 0 16px 0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search-bar input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 12px 0;
+    font-size: 15px;
+    font-family: inherit;
+    background: transparent;
+    color: #2c2c2c;
+  }
+  .search-bar .search-icon {
+    font-size: 18px;
+    opacity: 0.5;
+  }
+  .search-bar .search-clear {
+    background: #f5efe0;
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+    color: #888;
+    cursor: pointer;
+    display: none;
+    padding: 0;
+    line-height: 22px;
+  }
+  .search-bar.has-query .search-clear {
+    display: block;
+  }
+  .search-results {
+    background: white;
+    border-radius: 14px;
+    padding: 4px 16px;
+    margin: -8px 0 16px 0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+  .search-results .result-meta {
+    font-size: 12px;
+    color: #888;
+    padding: 8px 0 4px 0;
+  }
+  .search-empty {
+    color: #aaa;
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+  }
+
+  /* ============ 菜谱 Modal ============ */
+  .modal {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: flex-end; justify-content: center;
+    animation: fadeIn 0.2s;
+  }
+  .modal[hidden] { display: none; }
+  .modal-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .modal-card {
+    position: relative; background: white;
+    width: 100%; max-width: 600px;
+    max-height: 90vh; overflow-y: auto;
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px 32px;
+    animation: slideUp 0.25s ease-out;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @media (min-width: 700px) {
+    .modal { align-items: center; }
+    .modal-card {
+      border-radius: 20px;
+      max-height: 80vh;
+      animation: scaleIn 0.2s ease-out;
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  }
+
+  .modal-close {
+    position: absolute; top: 12px; right: 16px;
+    background: #f0ebe0; border: none;
+    width: 32px; height: 32px; border-radius: 50%;
+    font-size: 20px; line-height: 1; color: #666;
+    cursor: pointer; font-family: inherit;
+  }
+  .modal-close:active { background: #e0d5c0; }
+
+  .modal-header {
+    text-align: center; margin-bottom: 24px;
+    padding-bottom: 20px; border-bottom: 1px solid #f0ebe0;
+  }
+  .modal-emoji { font-size: 48px; display: block; margin-bottom: 8px; }
+  .modal-title { font-size: 24px; color: #2c2c2c; margin-bottom: 4px; font-weight: 700; }
+  .modal-meta { font-size: 13px; color: #888; }
+
+  .modal-body section { margin-bottom: 20px; }
+  .modal-body h3 {
+    font-size: 13px; color: #888; margin-bottom: 10px;
+    font-weight: 600; letter-spacing: 0.5px;
+  }
+  .tag-list {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .tag {
+    background: #fdf6ec; border: 1px solid #f0ebe0;
+    padding: 4px 12px; border-radius: 12px;
+    font-size: 13px; color: #555;
+  }
+  .step-list {
+    padding-left: 0; list-style: none; counter-reset: step;
+  }
+  .step-list li {
+    counter-increment: step;
+    position: relative;
+    padding: 10px 12px 10px 44px;
+    margin-bottom: 8px;
+    background: #fdf6ec;
+    border-radius: 10px;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+  .step-list li::before {
+    content: counter(step);
+    position: absolute; left: 12px; top: 50%;
+    transform: translateY(-50%);
+    width: 24px; height: 24px;
+    background: #e85d04; color: white;
+    border-radius: 50%;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tip {
+    background: #fff8e8;
+    border-left: 3px solid #ffc107;
+    padding: 12px 16px; border-radius: 8px;
+    font-size: 14px; line-height: 1.6; color: #5d4500;
+  }
+
+  /* ============ 反馈 Modal ============ */
+  .feedback-wechat {
+    background: #fdf6ec;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .feedback-wechat code {
+    background: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #e85d04;
+  }
+  #feedback-input {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border: 2px solid #e0d5c0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    box-sizing: border-box;
+  }
+  #feedback-input:focus { border-color: #e85d04; }
+
+  /* ============ Day 14：月度报告 Modal ============ */
+  .report-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .report-stat-card {
+    background: #fff5e8;
+    border-radius: 12px;
+    padding: 14px 8px;
+    text-align: center;
+  }
+  .report-stat-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: #e85d04;
+    line-height: 1.1;
+  }
+  .report-stat-label {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+  }
+  .report-top-list { list-style: none; padding: 0; margin: 0; }
+  .report-top-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0ebe0;
+    font-size: 15px;
+  }
+  .report-top-list li:last-child { border-bottom: none; }
+  .report-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #e0d5c0;
+    color: #5d4500;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .report-rank.top1 { background: #e85d04; color: #fff; }
+  .report-rank.top2 { background: #f4a261; color: #fff; }
+  .report-rank.top3 { background: #e9c46a; color: #fff; }
+  .report-dish-name { flex: 1; }
+  .report-dish-count {
+    background: #f0ebe0;
+    color: #5d4500;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .report-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+    font-size: 14px;
+  }
+  .report-bar-label { width: 50px; color: #5d4500; }
+  .report-bar-track {
+    flex: 1;
+    height: 10px;
+    background: #f0ebe0;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .report-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #e85d04, #f4a261);
+    border-radius: 5px;
+    transition: width 0.3s;
+  }
+  .report-bar-num {
+    width: 40px;
+    text-align: right;
+    color: #888;
+    font-size: 13px;
+  }
+  .report-source-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    font-size: 14px;
+  }
+  .report-source-badge {
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    color: white;
+  }
+  .report-source-badge.confirmed { background: #a8a8a8; }
+  .report-source-badge.manual { background: #e85d04; }
+  .report-source-badge.skipped { background: #ccc; }
+  .report-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+    font-size: 15px;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="header-banner">
+  <div class="header-top">
+    <div class="header-top-left">
+      <h1>🥢 今天吃什么</h1>
+      <span class="date" id="today"></span>
+    </div>
+    <div class="more-menu-wrap">
+      <button class="more-btn" onclick="toggleMoreMenu(event)" aria-label="更多">⋯</button>
+      <div class="more-menu" id="more-menu" hidden>
+        <button class="more-menu-item" onclick="openManualLog(); closeMoreMenu();">📝 手动记录</button>
+        <button class="more-menu-item" onclick="openCustomDish(); closeMoreMenu();">➕ 自加菜名</button>
+        <button class="more-menu-item" onclick="openMonthlyReport(); closeMoreMenu();">📊 月度报告</button>
+        <button class="more-menu-item" onclick="shareApp(); closeMoreMenu();">📤 分享给朋友</button>
+        <button class="more-menu-item" onclick="openFeedback(); closeMoreMenu();">💬 反馈</button>
+        <button class="more-menu-item danger" onclick="if(confirm('清空所有历史？30 天不重复会重置。')){storeDel(HISTORY_KEY); updateHistoryHint(); document.getElementById('combo-result').innerHTML='<div class=\'empty\'>历史已清空 ✨</div>';} closeMoreMenu();">🗑️ 清空历史</button>
+      </div>
+    </div>
+  </div>
+  <div class="banner-actions">
+    <button class="banner-btn" onclick="openManualLog()">📝 记录</button>
+    <button class="banner-btn" onclick="drawCombo()">🎲 抽一套</button>
+    <button class="banner-btn" onclick="openPrefs()">⚙️ 偏好</button>
+    <button class="banner-btn" onclick="shareApp()">📤 分享</button>
+  </div>
+</div>
+
+<div class="search-bar" id="search-bar">
+  <span class="search-icon">🔍</span>
+  <input type="text" id="global-search" placeholder="搜菜名、食材、标签... 空格分多词" autocomplete="off">
+  <button class="search-clear" id="search-clear" onclick="clearGlobalSearch()">×</button>
+</div>
+<div id="search-results" class="search-results" hidden></div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="combo">🎲 随机套餐</button>
+  <button class="tab" data-tab="three">🍱 三餐</button>
+  <button class="tab" data-tab="ingredients">🥬 冰箱有什么</button>
+  <button class="tab" data-tab="kids">🍭 儿童餐</button>
+</div>
+
+<div class="panel active" id="combo">
+  <button class="primary" id="draw-btn">抽一套！</button>
+  <div class="result" id="combo-result">
+    <div class="empty">点击上面的按钮开始 ✨</div>
+  </div>
+  <div class="history-hint" id="history-hint"></div>
+  <button class="reset-btn" id="reset-btn" style="display:none;">🗑️ 清空历史（让 30 天不重复重置）</button>
+</div>
+
+<div class="panel" id="three">
+  <button class="primary" id="three-btn">抽一天三餐</button>
+  <div class="result" id="three-result">
+    <div class="empty">点上面的按钮，抽出早中晚三顿 + 营养均衡检查 ✨</div>
+  </div>
+</div>
+
+<div class="panel" id="ingredients">
+  <input type="text" id="ingredient-input" placeholder="鸡蛋 西红柿 黄瓜">
+  <button class="primary" id="check-btn">看能做啥</button>
+  <div class="result" id="ingredients-result">
+    <div class="empty">输入你冰箱里有的食材（空格分隔）</div>
+  </div>
+</div>
+
+<div class="panel" id="kids">
+  <button class="primary" id="kids-btn">给娃抽一套！</button>
+  <div class="result" id="kids-result">
+    <div class="empty">点上面的按钮，给娃挑一顿 ✨</div>
+  </div>
+</div>
+
+<!-- ============ 菜谱 Modal ============ -->
+<div id="recipe-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closeRecipe()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeRecipe()">×</button>
+    <div class="modal-header">
+      <span class="modal-emoji" id="modal-emoji">🍖</span>
+      <h2 class="modal-title" id="modal-title"></h2>
+      <div class="modal-meta" id="modal-meta"></div>
+    </div>
+    <div class="modal-body">
+      <section>
+        <h3>🥕 食材</h3>
+        <div id="modal-ingredients" class="tag-list"></div>
+      </section>
+      <section id="modal-seasonings-section">
+        <h3>🧂 调料</h3>
+        <div id="modal-seasonings" class="tag-list"></div>
+      </section>
+      <section>
+        <h3>📝 做法</h3>
+        <ol id="modal-steps" class="step-list"></ol>
+      </section>
+      <section id="modal-tip-section">
+        <h3>💡 小贴士</h3>
+        <p id="modal-tip" class="tip"></p>
+      </section>
+      <section id="modal-tags-section">
+        <h3>🏷️ 标签</h3>
+        <div id="modal-tags" class="tag-list"></div>
+      </section>
+
+      <!-- 双向链接：菜谱 → 手动记录 -->
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button class="primary" style="flex:1;margin:0;font-size:15px;padding:12px;background:#fff;color:#e85d04;border:1.5px solid #e85d04;" onclick="quickRecordDish()">📝 记录这道菜</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 反馈 Modal ============ -->
+<div id="feedback-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closeFeedback()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeFeedback()">×</button>
+    <div class="modal-header">
+      <span style="font-size:48px;display:block;margin-bottom:8px;">💬</span>
+      <h2 class="modal-title">提意见 / 反馈</h2>
+      <div class="modal-meta">每一条建议都会让我做得更好</div>
+    </div>
+    <div class="modal-body">
+      <section>
+        <h3>📱 加我微信直接聊</h3>
+        <div id="feedback-wechat-wrap" class="feedback-wechat">
+          <p style="font-size:13px;color:#888;">（开发者微信号 · 长按可复制 或 点右侧按钮一键复制）</p>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+            <span id="wechat-id-text" style="font-size:20px;font-weight:700;color:#e85d04;flex:1;font-family:ui-monospace,Menlo,Consolas,monospace;">yilixiaotu0</span>
+            <button id="wechat-copy-btn" class="banner-btn" style="border-color:#e85d04;color:#e85d04;margin:0;font-size:13px;padding:8px 14px;flex-shrink:0;" onclick="copyWechat()">📋 复制</button>
+          </div>
+          <p id="wechat-copied-tip" style="font-size:13px;color:#2e7d32;margin-top:10px;display:none;font-weight:600;">✓ 已复制到剪贴板</p>
+        </div>
+      </section>
+      <section>
+        <h3>✍️ 留个言（保存在你手机）</h3>
+        <textarea id="feedback-input" placeholder="说点什么吧... 例如：希望加一个'按辣度筛'功能 / 红烧肉做法跟我想的不一样 / 推荐得太辣了..."></textarea>
+        <button class="primary" style="margin-top:8px;font-size:15px;padding:12px;" onclick="submitFeedback()">提交反馈（本地）</button>
+        <button class="banner-btn" style="margin-top:8px;color:#e85d04;border-color:#e85d04;font-weight:600;" onclick="submitFeedbackToGitHub()">🚀 提交到 GitHub Issues（开发者能看到）</button>
+        <button class="banner-btn" style="margin-top:8px;color:#888;border-color:#e0d5c0;" onclick="toggleFeedbackList()">📋 查看已收到的反馈</button>
+        <div id="feedback-list-wrap" hidden style="margin-top:14px;"></div>
+        <p style="font-size:11px;color:#aaa;margin-top:10px;">💡 "提交到 GitHub Issues" 会打开 GitHub 创建 issue 页面（你登录后点提交即可）。无需任何 token，安全。</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============ 手动记录 Modal（Day 12） ============ -->
+<div id="manual-log-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closeManualLog()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeManualLog()">×</button>
+    <div class="modal-header">
+      <span style="font-size:48px;display:block;margin-bottom:8px;">📝</span>
+      <h2 class="modal-title">手动记录今天吃了啥</h2>
+      <div class="modal-meta">纯自由文本 · 多个菜用逗号分隔 · Safari/桌面App 自动同步</div>
+    </div>
+    <div class="modal-body">
+      <section>
+        <div class="chip-group-label">📅 日期</div>
+        <input type="date" id="manual-log-date" style="width:100%;padding:12px;border:2px solid #e0d5c0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
+      </section>
+
+      <section>
+        <div class="chip-group-label">☀️ 早餐 <span class="hint">（可空）</span></div>
+        <input type="text" id="manual-log-breakfast" placeholder="" style="width:100%;padding:12px;border:2px solid #e0d5c0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
+      </section>
+
+      <section>
+        <div class="chip-group-label">🌞 午餐 <span class="hint">（可空）</span></div>
+        <input type="text" id="manual-log-lunch" placeholder="" style="width:100%;padding:12px;border:2px solid #e0d5c0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
+      </section>
+
+      <section>
+        <div class="chip-group-label">🌙 晚餐 <span class="hint">（可空）</span></div>
+        <input type="text" id="manual-log-dinner" placeholder="" style="width:100%;padding:12px;border:2px solid #e0d5c0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
+      </section>
+
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button class="banner-btn" style="flex:1;border-color:#e0d5c0;color:#888;" onclick="viewLog()">📋 查看记录本</button>
+        <button class="primary" style="flex:2;margin:0;font-size:16px;padding:14px;" onclick="saveManualLog()">保存记录</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 自加菜名 Modal（Day 19） ============ -->
+<div id="custom-dish-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closeCustomDish()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeCustomDish()">×</button>
+    <div class="modal-header">
+      <span style="font-size:48px;display:block;margin-bottom:8px;">➕</span>
+      <h2 class="modal-title">自加菜名</h2>
+      <div class="modal-meta">写下你会做的菜 · 抽签时自动加进候选池 · 数据存在本机</div>
+    </div>
+    <div class="modal-body">
+      <section>
+        <div class="chip-group-label">🍽️ 菜名 <span class="hint">（必填）</span></div>
+        <input type="text" id="custom-dish-name" placeholder="例如：妈妈的糖醋排骨" style="width:100%;padding:12px;border:2px solid #e0d5c0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
+      </section>
+
+      <section>
+        <div class="chip-group-label">🥢 角色 <span class="hint">（必选）</span></div>
+        <div class="chip-row" id="custom-dish-role-row">
+          <div class="chip" data-role="主菜" onclick="selectCustomRole(this)">🍖 主菜</div>
+          <div class="chip" data-role="汤" onclick="selectCustomRole(this)">🍲 汤</div>
+          <div class="chip" data-role="主食" onclick="selectCustomRole(this)">🍚 主食</div>
+          <div class="chip" data-role="凉菜" onclick="selectCustomRole(this)">🥗 凉菜</div>
+          <div class="chip" data-role="早餐" onclick="selectCustomRole(this)">🥣 早餐</div>
+        </div>
+      </section>
+
+      <section>
+        <div class="chip-group-label">🏷️ 标签 <span class="hint">（可多选，不选也能抽）</span></div>
+        <div class="chip-row" id="custom-dish-tag-row">
+          <div class="chip" data-tag="川菜" onclick="toggleCustomTag(this)">川菜</div>
+          <div class="chip" data-tag="家常" onclick="toggleCustomTag(this)">家常</div>
+          <div class="chip" data-tag="简单" onclick="toggleCustomTag(this)">简单</div>
+          <div class="chip" data-tag="快手" onclick="toggleCustomTag(this)">快手</div>
+          <div class="chip" data-tag="下饭" onclick="toggleCustomTag(this)">下饭</div>
+          <div class="chip" data-tag="硬菜" onclick="toggleCustomTag(this)">硬菜</div>
+          <div class="chip" data-tag="清淡" onclick="toggleCustomTag(this)">清淡</div>
+          <div class="chip" data-tag="小孩爱" onclick="toggleCustomTag(this)">小孩爱</div>
+          <div class="chip" data-tag="素食" onclick="toggleCustomTag(this)">素食</div>
+          <div class="chip" data-tag="开胃" onclick="toggleCustomTag(this)">开胃</div>
+        </div>
+      </section>
+
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button class="primary" style="flex:1;margin:0;font-size:16px;padding:14px;" onclick="addCustomDish()">➕ 加一道菜</button>
+      </div>
+
+      <section style="margin-top:24px;">
+        <div class="chip-group-label">📋 我加过的菜 <span class="hint" id="custom-dish-count">（0 道）</span></div>
+        <div id="custom-dish-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 偏好设置 Modal（Day 16） ============ -->
+<div id="prefs-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closePrefs()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="closePrefs()">×</button>
+    <div class="modal-header">
+      <span style="font-size:48px;display:block;margin-bottom:8px;">⚙️</span>
+      <h2 class="modal-title">我的偏好</h2>
+      <div class="modal-meta">点击切换 · 实时保存 · 抽签时立即生效</div>
+    </div>
+    <div class="modal-body">
+      <section>
+        <div class="chip-group-label">🌶️ 辣度</div>
+        <div class="chip-row" data-prefs-key="spicy">
+          <span class="chip" data-prefs-value="any">不限制</span>
+          <span class="chip" data-prefs-value="mild">只吃微辣</span>
+          <span class="chip" data-prefs-value="none">一点辣都不吃</span>
+        </div>
+      </section>
+
+      <section>
+        <div class="chip-group-label">🚫 忌口 <span class="hint">（可多选）</span></div>
+        <div class="chip-row" data-prefs-key="avoid">
+          <span class="chip" data-prefs-key-sub="offal">不吃内脏</span>
+          <span class="chip" data-prefs-key-sub="lamb">不吃羊肉</span>
+        </div>
+      </section>
+
+      <section>
+        <div class="chip-group-label">🥬 饮食类型</div>
+        <div class="chip-row" data-prefs-key="vegetarian">
+          <span class="chip" data-prefs-yes>不吃荤（只吃素）</span>
+        </div>
+      </section>
+
+      <section>
+        <div class="chip-group-label">👥 用餐人数 <span class="hint">（决定菜数）</span></div>
+        <div class="stepper-row">
+          <button class="stepper-btn" onclick="stepNPeople(-1)">−</button>
+          <div class="stepper-value" id="n-people-value">1</div>
+          <button class="stepper-btn" onclick="stepNPeople(1)">+</button>
+          <div class="stepper-hint" id="n-people-hint">1人 · 1菜 + 1汤 + 1主食</div>
+        </div>
+      </section>
+
+      <section>
+        <div class="chip-group-label">🍱 套餐份量 <span class="hint">（手动选择，优先级低于人数）</span></div>
+        <div class="chip-row" data-prefs-key="comboSize">
+          <span class="chip" data-prefs-value="1-1-1">默认（1菜+1汤+1主食）</span>
+          <span class="chip" data-prefs-value="2-1">两菜一汤</span>
+          <span class="chip" data-prefs-value="3-1">三菜一汤</span>
+          <span class="chip" data-prefs-value="4-1">四菜一汤</span>
+        </div>
+      </section>
+
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button class="banner-btn" style="flex:1;border-color:#e0d5c0;color:#888;" onclick="resetPrefs()">🔄 重置</button>
+        <button class="primary" style="flex:2;margin:0;font-size:16px;padding:14px;" onclick="closePrefs()">完成</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 记录本 Modal（Day 12） ============ -->
+<div id="logbook-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closeLogbook()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeLogbook()">×</button>
+    <div class="modal-header">
+      <span style="font-size:48px;display:block;margin-bottom:8px;">📋</span>
+      <h2 class="modal-title">手动记录本</h2>
+      <div class="modal-meta">最近的吃食记录（手动记录 + 抽签记录）</div>
+    </div>
+    <div class="modal-body">
+      <div id="logbook-content"></div>
+      <!-- 底部固定入口：随时可加新记录（不退出 logbook）-->
+      <div style="border-top:1px dashed #f0ebe0;margin-top:16px;padding-top:14px;display:flex;gap:10px;">
+        <button class="primary" style="flex:1;margin:0;font-size:15px;padding:12px;" onclick="addAnotherDish()">➕ 再加一道</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 编辑单条记录 Modal（Day 16.2） ============ -->
+<div id="edit-log-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closeEditLog()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeEditLog()">×</button>
+    <div class="modal-header">
+      <span style="font-size:48px;display:block;margin-bottom:8px;">✏️</span>
+      <h2 class="modal-title">编辑这条记录</h2>
+      <div class="modal-meta">改日期 / 餐次 / 菜名 · status 保持不变</div>
+    </div>
+    <div class="modal-body">
+      <section>
+        <div class="chip-group-label">📅 日期</div>
+        <input type="date" id="edit-log-date" style="width:100%;padding:12px;border:2px solid #e0d5c0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
+      </section>
+      <section>
+        <div class="chip-group-label">🍽️ 餐次</div>
+        <div class="chip-row" data-edit-meal>
+          <span class="chip" data-meal="早餐">☀️ 早餐</span>
+          <span class="chip" data-meal="午餐">🌞 午餐</span>
+          <span class="chip" data-meal="晚餐">🌙 晚餐</span>
+        </div>
+      </section>
+      <section>
+        <div class="chip-group-label">🥘 菜名</div>
+        <input type="text" id="edit-log-dish" placeholder="菜名" style="width:100%;padding:12px;border:2px solid #e0d5c0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
+      </section>
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button class="primary" style="flex:1;margin:0;font-size:16px;padding:14px;" onclick="saveEditLog()">保存修改</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============ Day 14：月度报告 Modal ============ -->
+<div id="monthly-report-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closeMonthlyReport()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeMonthlyReport()">×</button>
+    <div class="modal-header">
+      <span style="font-size:48px;display:block;margin-bottom:8px;">📊</span>
+      <h2 class="modal-title" id="monthly-report-title">本月报告</h2>
+      <div class="modal-meta" id="monthly-report-meta"></div>
+    </div>
+    <div class="modal-body">
+      <div id="monthly-report-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Day 10.2：每道菜的内联选择器（在主面板里渲染，不需要单独 modal） ============ -->
+
+<script>
+// ============ 菜品数据（与 Python dishes.json 一致） ============
+const DISHES_DATA = [
+  // -------- 主菜 --------
+  {
+    name: "西红柿炒蛋", time_minutes: 15, role: "主菜",
+    tags: ["家常", "简单", "快手"],
+    ingredients: ["鸡蛋 3 个", "西红柿 2 个", "葱花"],
+    seasonings: ["盐", "糖", "油"],
+    steps: [
+      "西红柿切块；鸡蛋打散，加少许盐",
+      "热锅凉油，油热后倒入蛋液，炒至凝固后盛出",
+      "锅中再加少许油，下西红柿中火炒出汁",
+      "加少许糖（提鲜），倒回鸡蛋翻炒均匀",
+      "撒葱花，出锅"
+    ],
+    tip: "加一点点糖能提鲜；鸡蛋要炒嫩，不要炒老。"
+  },
+  {
+    name: "宫保鸡丁", time_minutes: 25, role: "主菜",
+    tags: ["川菜", "微辣", "下饭"],
+    ingredients: ["鸡腿肉", "花生米", "干辣椒", "葱白", "蒜"],
+    seasonings: ["醋", "生抽", "糖", "料酒", "淀粉", "盐", "油"],
+    steps: [
+      "鸡腿肉切丁，用料酒 + 淀粉腌 15 分钟",
+      "调汁：醋 + 生抽 + 糖 + 少量水，搅匀备用",
+      "热油爆香干辣椒、蒜片、葱白",
+      "下鸡丁大火炒至变色",
+      "倒入调好的汁翻炒均匀",
+      "关火前撒花生米拌匀"
+    ],
+    tip: "用鸡腿肉比鸡胸肉嫩；最后下花生米保持脆。"
+  },
+  {
+    name: "红烧肉", time_minutes: 60, role: "主菜",
+    tags: ["家常", "硬菜", "待客"],
+    ingredients: ["五花肉 500g"],
+    seasonings: ["冰糖", "生抽", "老抽", "料酒", "八角", "姜", "盐", "油"],
+    steps: [
+      "五花肉切 3cm 方块，冷水下锅焯水，捞出沥干",
+      "锅中少许油 + 冰糖，小火炒至焦黄（糖色）",
+      "下肉块翻炒上色",
+      "加料酒、生抽、老抽、八角、姜片",
+      "加热水没过肉，大火烧开转小火炖 40-50 分钟",
+      "开盖大火收汁至浓稠"
+    ],
+    tip: "冰糖比白糖颜色亮；炒糖色要小火，否则发苦。"
+  },
+  {
+    name: "麻婆豆腐", time_minutes: 20, role: "主菜",
+    tags: ["川菜", "辣", "下饭"],
+    ingredients: ["嫩豆腐 1 盒", "牛肉末", "蒜苗"],
+    seasonings: ["豆瓣酱", "花椒粉", "生抽", "盐", "油", "水淀粉"],
+    steps: [
+      "豆腐切丁，沸水加盐焯 1 分钟捞出（不易碎）",
+      "热油下牛肉末炒散",
+      "加豆瓣酱炒出红油",
+      "加适量水煮开，下豆腐",
+      "中火炖 5 分钟入味，淋水淀粉勾芡",
+      "关火撒蒜苗段和花椒粉"
+    ],
+    tip: "嫩豆腐焯水加盐更紧实；豆瓣酱是灵魂。"
+  },
+  {
+    name: "鱼香肉丝", time_minutes: 25, role: "主菜",
+    tags: ["川菜", "酸甜", "下饭"],
+    ingredients: ["里脊肉", "木耳", "胡萝卜", "葱", "蒜", "姜"],
+    seasonings: ["泡椒", "醋", "糖", "生抽", "料酒", "淀粉", "盐", "油"],
+    steps: [
+      "里脊切丝，用料酒 + 淀粉腌 10 分钟",
+      "调汁：醋 + 糖 + 生抽 + 少量淀粉水",
+      "木耳、胡萝卜切丝，焯水备用",
+      "热油爆葱姜蒜泡椒",
+      "下肉丝炒散，加配菜丝",
+      "倒入调汁快速翻炒均匀"
+    ],
+    tip: "泡椒是灵魂，没有可用豆瓣酱 + 醋代替。"
+  },
+  {
+    name: "清炒时蔬", time_minutes: 10, role: "主菜",
+    tags: ["素食", "简单", "快手"],
+    ingredients: ["时令青菜"],
+    seasonings: ["蒜", "盐", "油"],
+    steps: [
+      "青菜洗净掰段，沥干",
+      "蒜切片",
+      "热油爆香蒜片",
+      "下青菜大火快炒",
+      "加盐翻匀出锅"
+    ],
+    tip: "大火快炒是翠绿的关键，不要盖锅盖。"
+  },
+  {
+    name: "蒜蓉西兰花", time_minutes: 12, role: "主菜",
+    tags: ["素食", "简单", "清淡"],
+    ingredients: ["西兰花 1 颗", "蒜"],
+    seasonings: ["盐", "蚝油", "油"],
+    steps: [
+      "西兰花切小朵，盐水浸泡 10 分钟后洗净",
+      "沸水加几滴油，焯 1 分钟捞出过凉水",
+      "蒜切末",
+      "热油爆蒜末",
+      "下西兰花，加盐、蚝油翻匀"
+    ],
+    tip: "焯水加油保持翠绿；时间不要长。"
+  },
+  {
+    name: "番茄牛腩", time_minutes: 90, role: "主菜",
+    tags: ["慢炖", "硬菜", "待客"],
+    ingredients: ["牛腩 500g", "番茄 3 个", "洋葱半个"],
+    seasonings: ["番茄酱", "生抽", "老抽", "料酒", "姜", "八角", "盐", "油"],
+    steps: [
+      "牛腩切块焯水；番茄顶部划十字烫去皮切块",
+      "热油炒番茄出汁，加番茄酱",
+      "下牛腩翻炒上色",
+      "加生抽、老抽、料酒、姜片、八角",
+      "加热水没过，小火炖 1.5 小时",
+      "加洋葱、盐再炖 15 分钟"
+    ],
+    tip: "选熟透的番茄更出味；高压锅 40 分钟搞定。"
+  },
+  {
+    name: "糖醋里脊", time_minutes: 30, role: "主菜",
+    tags: ["酸甜", "下饭", "待客"],
+    ingredients: ["里脊肉"],
+    seasonings: ["醋", "糖", "番茄酱", "生抽", "料酒", "淀粉", "鸡蛋", "盐", "油"],
+    steps: [
+      "里脊切条，用盐 + 料酒腌 10 分钟",
+      "裹蛋液再裹淀粉",
+      "五成油温炸至金黄捞出",
+      "油温升高复炸 30 秒（更酥脆）",
+      "调汁：番茄酱 + 醋 + 糖 + 生抽 + 少量水",
+      "锅中倒汁煮开，下里脊快速裹匀"
+    ],
+    tip: "复炸是关键，能让外壳酥脆不油腻。"
+  },
+  {
+    name: "青椒肉丝", time_minutes: 15, role: "主菜",
+    tags: ["川菜", "微辣", "快手"],
+    ingredients: ["青椒", "里脊肉"],
+    seasonings: ["葱", "姜", "蒜", "生抽", "料酒", "淀粉", "盐", "油"],
+    steps: [
+      "里脊切丝，用料酒 + 淀粉腌 10 分钟",
+      "青椒切丝",
+      "热油爆葱姜蒜",
+      "下肉丝炒散",
+      "下青椒丝，加生抽、盐翻匀"
+    ],
+    tip: "选薄皮青椒更香更入味。"
+  },
+  {
+    name: "可乐鸡翅", time_minutes: 35, role: "主菜",
+    tags: ["简单", "甜口", "小孩爱"],
+    ingredients: ["鸡翅中 10 个"],
+    seasonings: ["可乐 1 罐", "生抽", "老抽", "姜", "料酒", "盐", "油"],
+    steps: [
+      "鸡翅两面划两刀",
+      "冷水下锅 + 姜片 + 料酒焯水",
+      "锅中少许油，鸡翅煎至两面金黄",
+      "加生抽、老抽翻炒上色",
+      "倒入可乐没过鸡翅",
+      "大火烧开转小火收汁至浓稠"
+    ],
+    tip: "不要用零度可乐；收汁时盯着别糊。"
+  },
+  {
+    name: "地三鲜", time_minutes: 20, role: "主菜",
+    tags: ["素食", "东北菜", "下饭"],
+    ingredients: ["茄子", "土豆", "青椒"],
+    seasonings: ["葱", "蒜", "生抽", "糖", "淀粉", "盐", "油"],
+    steps: [
+      "茄子切块裹淀粉（土豆切块、青椒切块）",
+      "油热分别炸土豆、茄子、青椒至金黄",
+      "留底油爆葱蒜",
+      "加生抽、糖、盐调匀",
+      "下三样翻匀出锅"
+    ],
+    tip: "茄子裹淀粉炸时不吸油，更香不腻。"
+  },
+  {
+    name: "回锅肉", time_minutes: 25, role: "主菜",
+    tags: ["川菜", "辣", "下饭"],
+    ingredients: ["五花肉", "青蒜"],
+    seasonings: ["豆瓣酱", "甜面酱", "生抽", "糖", "姜", "蒜", "油"],
+    steps: [
+      "五花肉整块冷水下锅，加姜片煮 20 分钟至七成熟",
+      "捞出放凉切薄片",
+      "青蒜切段（蒜白蒜叶分开）",
+      "锅中少许油，下肉片煸至出油、边缘微卷",
+      "加豆瓣酱、甜面酱炒香",
+      "下蒜白段炒香，最后下蒜叶翻匀"
+    ],
+    tip: "七成熟的肉才能煸出『灯盏窝』（卷边），是回锅肉的标志。"
+  },
+  {
+    name: "蚝油生菜", time_minutes: 8, role: "主菜",
+    tags: ["素食", "简单", "快手", "清淡"],
+    ingredients: ["生菜"],
+    seasonings: ["蚝油", "蒜", "盐", "油"],
+    steps: [
+      "生菜掰开洗净",
+      "沸水加少许盐和油，焯 10 秒捞出沥干摆盘",
+      "蒜切末，热油爆香",
+      "加蚝油 + 少量水煮开",
+      "浇在生菜上"
+    ],
+    tip: "焯水时间要短，保持脆嫩。"
+  },
+  {
+    name: "猪肉炖粉条", time_minutes: 45, role: "主菜",
+    tags: ["东北菜", "下饭", "家常", "暖身"],
+    ingredients: ["五花肉 300g", "粉条 1 把", "白菜 半颗", "葱 1 段", "姜 3 片", "蒜 3 瓣"],
+    seasonings: ["生抽", "老抽", "料酒", "盐", "八角 1 个", "油"],
+    steps: [
+      "五花肉切厚片；粉条温水泡软；白菜切块",
+      "冷水下锅，五花肉焯水去血沫，捞出沥干",
+      "热油爆香葱姜蒜、八角",
+      "下五花肉煸炒出油，加生抽、老抽、料酒上色",
+      "加热水没过肉，中火炖 20 分钟",
+      "下白菜和粉条，再炖 10 分钟至粉条软糯，加盐"
+    ],
+    tip: "用东北酸菜更地道；粉条不要提前泡太久，下锅后吸汤汁才好吃。"
+  },
+  {
+    name: "家庭火锅", time_minutes: 30, role: "主菜",
+    tags: ["火锅", "聚餐", "暖身", "冬季", "节日"],
+    ingredients: ["火锅底料 1 块", "羊肉片/牛肉片 各 300g", "白菜", "土豆", "豆腐", "粉条", "金针菇", "各种丸子", "蘸料"],
+    seasonings: ["芝麻酱", "韭菜花", "腐乳", "蒜泥", "香油"],
+    steps: [
+      "电磁炉 + 锅备好，火锅底料加水烧开",
+      "蔬菜洗净沥干（土豆切薄片、白菜掰段、金针菇撕小朵）",
+      "豆腐切厚片，粉条温水泡软",
+      "肉类、豆腐、丸子分别摆盘",
+      "蘸料按口味调（麻酱 + 韭菜花 + 腐乳 + 蒜泥 + 香油）",
+      "一边涮一边吃，先下肉再下菜，肉片变色就捞"
+    ],
+    tip: "食材可去超市买火锅拼盘省事；蘸料是灵魂，提前调好；人多更划算。"
+  },
+  {
+    name: "干煸四季豆", time_minutes: 15, role: "主菜",
+    tags: ["川菜", "素食", "下饭", "家常"],
+    ingredients: ["四季豆 300g", "肉末 50g", "干辣椒"],
+    seasonings: ["葱", "姜", "蒜", "生抽", "盐", "油"],
+    steps: [
+      "四季豆择筋掰段，洗净沥干",
+      "锅中多油，烧至七成热炸四季豆至皮皱（约 3 分钟），捞出沥油",
+      "留底油，下肉末炒散至变色",
+      "加干辣椒、葱姜蒜爆香",
+      "倒回四季豆，加生抽、盐大火翻匀"
+    ],
+    tip: "四季豆一定要炸透，半生会中毒。"
+  },
+  {
+    name: "红烧肥肠", time_minutes: 60, role: "主菜",
+    tags: ["硬菜", "下饭", "待客", "川菜"],
+    ingredients: ["肥肠 500g"],
+    seasonings: ["葱", "姜", "蒜", "八角", "桂皮", "生抽", "老抽", "料酒", "冰糖", "盐", "面粉"],
+    steps: [
+      "肥肠加面粉+盐反复搓洗去黏液，洗净",
+      "冷水下锅+料酒+姜片焯水 5 分钟，捞出切段",
+      "锅中少许油+冰糖小火炒至焦黄",
+      "下肥肠翻炒上色",
+      "加葱姜蒜、八角、桂皮、料酒、生抽、老抽",
+      "加热水没过，小火炖 40-50 分钟",
+      "大火收汁，加盐"
+    ],
+    tip: "清洗肥肠很关键，用面粉搓洗比盐更彻底。"
+  },
+  {
+    name: "清蒸金针菇", time_minutes: 10, role: "主菜",
+    tags: ["素食", "简单", "清淡", "快手"],
+    ingredients: ["金针菇 1 把"],
+    seasonings: ["蒜", "生抽", "蚝油", "葱", "油"],
+    steps: [
+      "金针菇撕小朵洗净，摆盘",
+      "蒜切末，加生抽、蚝油调成汁",
+      "浇在金针菇上",
+      "蒸锅大火蒸 8 分钟",
+      "撒葱花，浇一勺热油激香"
+    ],
+    tip: "蒸的时间不要长，保持脆嫩。"
+  },
+  {
+    name: "芹菜炒肉", time_minutes: 15, role: "主菜",
+    tags: ["家常", "快手", "简单"],
+    ingredients: ["芹菜 300g", "里脊肉 100g"],
+    seasonings: ["葱", "姜", "生抽", "料酒", "淀粉", "盐", "油"],
+    steps: [
+      "芹菜斜切段；肉切丝用料酒+淀粉腌 10 分钟",
+      "油热爆葱姜",
+      "下肉丝炒散至变色",
+      "下芹菜大火快炒",
+      "加生抽、盐翻匀出锅"
+    ],
+    tip: "芹菜叶子不要扔，营养比茎还高。"
+  },
+  {
+    name: "黄瓜炒蛋", time_minutes: 10, role: "主菜",
+    tags: ["家常", "简单", "快手", "清淡"],
+    ingredients: ["黄瓜 1 根", "鸡蛋 2 个"],
+    seasonings: ["盐", "葱", "油"],
+    steps: [
+      "黄瓜切薄片",
+      "鸡蛋打散加少许盐",
+      "油热炒蛋至凝固盛出",
+      "锅中再加少许油，爆葱花下黄瓜炒",
+      "倒回鸡蛋翻匀，加盐"
+    ],
+    tip: "黄瓜切薄片易熟；可加蒜末更香。"
+  },
+  {
+    name: "猪肚", time_minutes: 45, role: "主菜",
+    tags: ["硬菜", "下饭", "家常"],
+    ingredients: ["猪肚 1 个"],
+    seasonings: ["葱", "姜", "蒜", "八角", "生抽", "老抽", "料酒", "盐", "面粉", "胡椒粉"],
+    steps: [
+      "猪肚加面粉+盐反复搓洗去黏液，洗净",
+      "冷水下锅+料酒+姜片焯水 5 分钟",
+      "锅中油+葱姜蒜八角爆香",
+      "下猪肚翻炒，加生抽、老抽、料酒上色",
+      "加热水炖 30 分钟",
+      "捞出切条装盘，撒胡椒粉"
+    ],
+    tip: "也可改做爆炒猪肚、猪肚汤、猪肚鸡。"
+  },
+  {
+    name: "辣子鸡", time_minutes: 30, role: "主菜",
+    tags: ["川菜", "辣", "下饭"],
+    ingredients: ["鸡腿肉 400g", "干辣椒 1 大把", "花椒 1 把", "葱", "姜", "蒜"],
+    seasonings: ["生抽", "料酒", "淀粉", "盐", "糖", "油"],
+    steps: [
+      "鸡腿肉切丁，用料酒+淀粉+盐腌 15 分钟",
+      "油温七成热，炸鸡丁至金黄捞出",
+      "油温升高复炸 30 秒（更酥脆）",
+      "留底油爆干辣椒、花椒、葱姜蒜",
+      "倒回鸡丁，加生抽、糖大火翻匀"
+    ],
+    tip: "干辣椒花椒要足量，辣子鸡的灵魂；鸡丁炸两遍才酥。"
+  },
+  {
+    name: "蒸菠菜鸡蛋羹", time_minutes: 15, role: "主菜",
+    tags: ["简单", "清淡", "营养", "快手"],
+    ingredients: ["菠菜 1 把", "鸡蛋 2 个"],
+    seasonings: ["盐", "香油", "生抽", "温水"],
+    steps: [
+      "菠菜洗净焯水 1 分钟，捞出过凉切碎",
+      "鸡蛋打散加 1.5 倍温水+盐搅匀",
+      "加入菠菜拌匀",
+      "盖保鲜膜，中火蒸 10 分钟",
+      "出锅淋香油、生抽"
+    ],
+    tip: "蛋液过筛口感更嫩；保鲜膜防止水汽滴入。"
+  },
+  {
+    name: "韭菜香干", time_minutes: 10, role: "主菜",
+    tags: ["素食", "快手", "简单"],
+    ingredients: ["韭菜 1 把", "香干 3 块"],
+    seasonings: ["盐", "生抽", "油"],
+    steps: [
+      "韭菜切段（梗和叶分开）",
+      "香干切丝",
+      "油热下香干丝略煎",
+      "先下韭菜梗，再下韭菜叶",
+      "加盐、生抽大火翻匀"
+    ],
+    tip: "火大快炒，韭菜不能炒老。"
+  },
+  {
+    name: "白水菜", time_minutes: 5, role: "主菜",
+    tags: ["素食", "简单", "清淡"],
+    ingredients: ["时令青菜（小油菜/小白菜）"],
+    seasonings: ["盐", "生抽", "香油"],
+    steps: [
+      "青菜洗净掰段",
+      "沸水加少许盐和油，焯 1 分钟",
+      "捞出沥干摆盘",
+      "淋生抽、香油"
+    ],
+    tip: "焯水时间短保持翠绿；这种吃法最保留原味。"
+  },
+  {
+    name: "酸菜肉片", time_minutes: 20, role: "主菜",
+    tags: ["川菜", "酸", "下饭"],
+    ingredients: ["酸菜 200g", "里脊肉 150g"],
+    seasonings: ["葱", "姜", "蒜", "干辣椒", "花椒", "生抽", "料酒", "淀粉", "盐", "油"],
+    steps: [
+      "酸菜切段挤干水分",
+      "里脊切薄片用料酒+淀粉腌 10 分钟",
+      "油热爆干辣椒、花椒、葱姜蒜",
+      "下肉片炒散至变色",
+      "下酸菜大火翻匀",
+      "加生抽、少许盐（酸菜已有咸味）"
+    ],
+    tip: "酸菜本身咸，少放盐；可加泡椒更香。"
+  },
+  {
+    name: "荷包蛋", time_minutes: 5, role: "主菜",
+    tags: ["简单", "快手", "基础"],
+    ingredients: ["鸡蛋"],
+    seasonings: ["盐", "油"],
+    steps: [
+      "锅烧热，倒少许油",
+      "打入鸡蛋",
+      "小火煎至底部凝固",
+      "轻轻翻面煎另一面",
+      "撒少许盐出锅"
+    ],
+    tip: "油温别太高，蛋黄才不会破；可盖锅盖让蛋黄全熟。"
+  },
+  {
+    name: "白水茄子", time_minutes: 12, role: "主菜",
+    tags: ["素食", "简单", "清淡"],
+    ingredients: ["茄子 2 根"],
+    seasonings: ["蒜", "生抽", "香油", "盐"],
+    steps: [
+      "茄子洗净切段",
+      "蒸锅大火蒸 10 分钟至软",
+      "取出放凉撕成条",
+      "摆盘",
+      "蒜末+生抽+香油+盐调汁浇上"
+    ],
+    tip: "蒸比煮更好吃，原汁原味。"
+  },
+  {
+    name: "肉末茄子", time_minutes: 25, role: "主菜",
+    tags: ["川菜", "家常", "下饭"],
+    ingredients: ["茄子 2 根", "猪肉末 150g"],
+    seasonings: ["葱", "姜", "蒜", "豆瓣酱", "生抽", "料酒", "糖", "淀粉", "盐", "油"],
+    steps: [
+      "茄子切滚刀块，撒少许盐腌 10 分钟出水",
+      "挤干水分，裹一层薄淀粉",
+      "锅中多油，烧至七成热下茄子炸至金黄软烂，捞出沥油",
+      "留底油，下肉末炒散至变色",
+      "加葱姜蒜末、豆瓣酱炒香出红油",
+      "加料酒、生抽、糖调味",
+      "倒回茄子翻匀，加少量水焖 2 分钟",
+      "大火收汁，加盐"
+    ],
+    tip: "茄子先腌出水再炸就不吸油；豆瓣酱是灵魂，用郫县豆瓣最香；最后留点汤汁拌饭超下饭。"
+  },
+  {
+    name: "红烧排骨", time_minutes: 50, role: "主菜",
+    tags: ["硬菜", "下饭", "待客"],
+    ingredients: ["排骨 500g"],
+    seasonings: ["冰糖", "生抽", "老抽", "料酒", "八角", "姜", "盐", "油"],
+    steps: [
+      "排骨冷水下锅焯水去血沫",
+      "锅中少许油+冰糖小火炒至焦黄",
+      "下排骨翻炒上色",
+      "加葱姜八角、生抽、老抽、料酒",
+      "加热水没过，大火烧开转小火炖 40 分钟",
+      "开盖大火收汁，加盐"
+    ],
+    tip: "糖色不要炒糊否则发苦；选肋排更嫩。"
+  },
+  {
+    name: "手撕包菜", time_minutes: 15, role: "主菜",
+    tags: ["川菜", "酸辣", "下饭"],
+    ingredients: ["包菜 半颗"],
+    seasonings: ["干辣椒", "蒜", "醋", "生抽", "盐", "油"],
+    steps: [
+      "包菜手撕成块（比刀切更入味）",
+      "油热爆干辣椒、蒜片",
+      "下包菜大火快炒",
+      "沿锅边淋醋",
+      "加生抽、盐翻匀出锅"
+    ],
+    tip: "火大快炒是脆嫩关键；陈醋比白醋更香。"
+  },
+  {
+    name: "醋溜白菜", time_minutes: 15, role: "主菜",
+    tags: ["家常", "简单", "下饭", "酸"],
+    ingredients: ["白菜"],
+    seasonings: ["醋", "生抽", "糖", "淀粉", "干辣椒", "葱", "蒜", "盐", "油"],
+    steps: [
+      "白菜帮切片，白菜叶撕段",
+      "调汁（醋+生抽+糖+淀粉水）",
+      "油热爆干辣椒、葱、蒜",
+      "先下白菜帮炒至断生",
+      "再下白菜叶",
+      "倒入调汁大火翻匀"
+    ],
+    tip: "糖醋比例 1:1 是基础，按口味微调。"
+  },
+  {
+    name: "五彩豆", time_minutes: 15, role: "主菜",
+    tags: ["素食", "清淡", "简单", "营养"],
+    ingredients: ["青豆", "玉米粒", "胡萝卜丁", "香菇丁", "虾仁（可选）"],
+    seasonings: ["盐", "油"],
+    steps: [
+      "所有丁粒切好",
+      "沸水焯 1 分钟过凉水",
+      "油热下所有丁粒",
+      "加盐大火快炒 2 分钟"
+    ],
+    tip: "焯水保持颜色鲜艳；色彩丰富孩子也喜欢。"
+  },
+  {
+    name: "香菇肉丝", time_minutes: 15, role: "主菜",
+    tags: ["家常", "下饭", "快手"],
+    ingredients: ["鲜香菇 200g", "里脊肉 100g"],
+    seasonings: ["葱", "姜", "生抽", "料酒", "淀粉", "盐", "油"],
+    steps: [
+      "香菇切片",
+      "肉切丝用料酒+淀粉腌 10 分钟",
+      "油热爆葱姜",
+      "下肉丝炒散",
+      "下香菇片翻炒",
+      "加生抽、盐翻匀"
+    ],
+    tip: "鲜香菇比干香菇更嫩更香。"
+  },
+  {
+    name: "清蒸鱼", time_minutes: 15, role: "主菜",
+    tags: ["清淡", "营养", "待客"],
+    ingredients: ["鲈鱼 1 条（或其它鲜鱼）"],
+    seasonings: ["葱", "姜", "蒸鱼豉油", "料酒", "油"],
+    steps: [
+      "鱼处理干净，两面划几刀",
+      "鱼身铺姜片、葱段，淋料酒",
+      "蒸锅水开上汽后大火蒸 8-10 分钟",
+      "倒掉盘内汁水（去腥）",
+      "铺新葱丝，淋蒸鱼豉油",
+      "浇一勺滚油激香"
+    ],
+    tip: "蒸的时间看鱼大小，1 斤左右 8 分钟刚好，过头就老。"
+  },
+  {
+    name: "木耳炒肉", time_minutes: 15, role: "主菜",
+    tags: ["家常", "下饭", "快手"],
+    ingredients: ["黑木耳 100g", "里脊肉 100g"],
+    seasonings: ["葱", "姜", "蒜", "生抽", "料酒", "淀粉", "盐", "油"],
+    steps: [
+      "木耳泡发（冷水 2 小时），沸水焯 2 分钟过凉水",
+      "肉切丝用料酒+淀粉腌 10 分钟",
+      "油热爆葱姜蒜",
+      "下肉丝炒散",
+      "下木耳大火快炒",
+      "加生抽、盐翻匀"
+    ],
+    tip: "木耳焯水时间要短，保持脆感。"
+  },
+  {
+    name: "虾米油麦菜", time_minutes: 10, role: "主菜",
+    tags: ["清淡", "简单", "快手"],
+    ingredients: ["油麦菜", "虾米"],
+    seasonings: ["蒜", "盐", "油"],
+    steps: [
+      "油麦菜切段",
+      "虾米温水泡软",
+      "油热爆蒜、虾米炒香",
+      "下油麦菜大火快炒",
+      "加盐翻匀"
+    ],
+    tip: "虾米是提鲜的关键；大火快炒保持翠绿。"
+  },
+  {
+    name: "白水四季豆", time_minutes: 12, role: "主菜",
+    tags: ["素食", "简单", "清淡"],
+    ingredients: ["四季豆 300g"],
+    seasonings: ["蒜", "生抽", "香油", "盐"],
+    steps: [
+      "四季豆择筋掰段",
+      "沸水加盐和油，焯 3-4 分钟（务必焯透）",
+      "捞出过凉水沥干",
+      "摆盘",
+      "蒜末+生抽+香油+盐调汁浇上"
+    ],
+    tip: "焯水时间要够，半生的四季豆会中毒。"
+  },
+
+  // -------- 汤 --------
+  {
+    name: "紫菜蛋花汤", time_minutes: 10, role: "汤",
+    tags: ["简单", "快手", "清淡"],
+    ingredients: ["紫菜", "鸡蛋", "虾皮"],
+    seasonings: ["盐", "香油", "葱花"],
+    steps: [
+      "水烧开",
+      "下紫菜、虾皮煮 30 秒",
+      "鸡蛋打散，淋入锅中成蛋花",
+      "加盐，关火",
+      "淋香油、撒葱花"
+    ],
+    tip: "蛋液要画圈淋入，才会有漂亮的蛋花。"
+  },
+  {
+    name: "番茄蛋汤", time_minutes: 10, role: "汤",
+    tags: ["简单", "快手", "家常"],
+    ingredients: ["番茄", "鸡蛋"],
+    seasonings: ["葱", "盐", "香油", "油"],
+    steps: [
+      "番茄切块",
+      "热油炒番茄出汁",
+      "加水煮开",
+      "鸡蛋打散淋入成蛋花",
+      "加盐、葱花、香油"
+    ],
+    tip: "番茄要炒到出汁再加水，汤才浓郁。"
+  },
+  {
+    name: "冬瓜排骨汤", time_minutes: 45, role: "汤",
+    tags: ["慢炖", "清淡"],
+    ingredients: ["冬瓜", "排骨"],
+    seasonings: ["姜", "盐", "料酒"],
+    steps: [
+      "排骨冷水下锅焯水去血沫",
+      "砂锅加水，放排骨、姜片、料酒",
+      "大火烧开转小火炖 40 分钟",
+      "冬瓜去皮切块，下锅再炖 15 分钟",
+      "加盐调味"
+    ],
+    tip: "冬瓜最后下锅，久煮会化。"
+  },
+  {
+    name: "西红柿牛腩汤", time_minutes: 60, role: "汤",
+    tags: ["慢炖", "硬菜"],
+    ingredients: ["牛腩", "番茄"],
+    seasonings: ["姜", "盐", "料酒", "葱"],
+    steps: [
+      "牛腩切块焯水",
+      "番茄去皮切块",
+      "砂锅加水，放牛腩、姜片、料酒",
+      "大火烧开转小火炖 1 小时",
+      "加番茄再炖 20 分钟",
+      "加盐、葱花"
+    ],
+    tip: "番茄去皮用开水烫 30 秒最方便。"
+  },
+  {
+    name: "酸辣汤", time_minutes: 15, role: "汤",
+    tags: ["酸辣", "开胃"],
+    ingredients: ["嫩豆腐", "木耳", "鸡蛋"],
+    seasonings: ["醋", "生抽", "胡椒粉", "淀粉", "盐", "香油", "葱"],
+    steps: [
+      "豆腐切丝，木耳切丝",
+      "调汁：醋 + 生抽 + 胡椒粉 + 淀粉水",
+      "水烧开，下豆腐丝、木耳丝",
+      "倒入调汁搅匀",
+      "鸡蛋打散淋入成蛋花",
+      "加盐、葱花、香油"
+    ],
+    tip: "胡椒粉是酸辣汤的灵魂，多放才够味。"
+  },
+  {
+    name: "丝瓜蛋汤", time_minutes: 10, role: "汤",
+    tags: ["简单", "清淡"],
+    ingredients: ["丝瓜", "鸡蛋"],
+    seasonings: ["盐", "葱", "姜", "油"],
+    steps: [
+      "丝瓜去皮切片",
+      "热油爆姜片",
+      "下丝瓜略炒",
+      "加水煮开",
+      "鸡蛋打散淋入成蛋花",
+      "加盐、葱花"
+    ],
+    tip: "丝瓜易出水，不用加太多水。"
+  },
+  {
+    name: "银耳莲子汤", time_minutes: 40, role: "汤",
+    tags: ["甜汤", "慢炖", "养颜"],
+    ingredients: ["银耳", "莲子", "红枣（可选）"],
+    seasonings: ["冰糖"],
+    steps: [
+      "银耳冷水泡发 2 小时，撕成小朵",
+      "莲子去芯（芯是苦的）",
+      "砂锅加水放银耳、莲子、红枣",
+      "大火烧开转小火炖 1 小时",
+      "加冰糖再炖 10 分钟"
+    ],
+    tip: "银耳要炖到胶质出来才养颜，至少 1 小时。"
+  },
+  {
+    name: "玉米排骨汤", time_minutes: 60, role: "汤",
+    tags: ["慢炖", "家常"],
+    ingredients: ["甜玉米", "排骨"],
+    seasonings: ["姜", "盐", "料酒"],
+    steps: [
+      "排骨焯水",
+      "玉米切段",
+      "砂锅加水，放排骨、玉米、姜片",
+      "大火烧开转小火炖 50 分钟",
+      "加盐"
+    ],
+    tip: "甜玉米比糯玉米更适合煲汤。"
+  },
+  {
+    name: "黄瓜皮蛋汤", time_minutes: 10, role: "汤",
+    tags: ["简单", "清淡", "快手", "家常"],
+    ingredients: ["黄瓜 1 根", "皮蛋 1 个"],
+    seasonings: ["葱", "姜", "盐", "香油"],
+    steps: [
+      "皮蛋剥壳切瓣",
+      "黄瓜切薄片",
+      "油热爆姜片",
+      "下皮蛋略煎",
+      "加水煮开",
+      "下黄瓜煮 1 分钟",
+      "加盐、葱花、香油"
+    ],
+    tip: "皮蛋煎一下汤更白；黄瓜最后下保持脆感。"
+  },
+  {
+    name: "猪脚海带", time_minutes: 90, role: "汤",
+    tags: ["慢炖", "营养", "下奶"],
+    ingredients: ["猪脚 1 只", "海带结"],
+    seasonings: ["葱", "姜", "料酒", "盐", "胡椒粉"],
+    steps: [
+      "猪脚剁块，冷水下锅+料酒+姜片焯水 5 分钟",
+      "砂锅加水放猪脚、葱姜、料酒",
+      "大火烧开转小火炖 60 分钟",
+      "加入海带结再炖 20 分钟",
+      "加盐、胡椒粉"
+    ],
+    tip: "炖够时间胶原蛋白才出来；汤色奶白的关键是大火烧开再转小火。"
+  },
+
+  // -------- 主食 --------
+  {
+    name: "米饭", time_minutes: 20, role: "主食",
+    tags: ["基础"],
+    ingredients: ["大米"],
+    seasonings: ["水"],
+    steps: [
+      "米淘洗 2-3 次",
+      "按米水比 1:1.2 加水",
+      "电饭煲煮饭模式"
+    ],
+    tip: "新米水少一点，陈米水多一点。"
+  },
+  {
+    name: "馒头", time_minutes: 15, role: "主食",
+    tags: ["基础", "简单"],
+    ingredients: ["面粉", "酵母", "温水"],
+    seasonings: ["糖"],
+    steps: [
+      "温水化开酵母 + 少许糖",
+      "面粉加酵母水揉成光滑面团",
+      "盖湿布发酵至 2 倍大（约 1 小时）",
+      "揉成长条切段",
+      "二次醒发 15 分钟",
+      "蒸锅冷水上锅蒸 15 分钟，关火焖 3 分钟"
+    ],
+    tip: "关火后焖 3 分钟再揭盖，馒头不会塌。"
+  },
+  {
+    name: "炒面", time_minutes: 15, role: "主食",
+    tags: ["快手", "面食"],
+    ingredients: ["面条", "鸡蛋", "青菜"],
+    seasonings: ["生抽", "老抽", "盐", "油", "葱"],
+    steps: [
+      "面条煮至八成熟，过凉水沥干",
+      "鸡蛋炒熟盛出",
+      "热油爆葱花",
+      "下青菜翻炒",
+      "下面条，加生抽、老抽、盐",
+      "倒回鸡蛋翻匀"
+    ],
+    tip: "面条过凉水加油防粘。"
+  },
+  {
+    name: "炒饭", time_minutes: 15, role: "主食",
+    tags: ["快手", "剩饭妙用"],
+    ingredients: ["剩米饭", "鸡蛋"],
+    seasonings: ["葱", "盐", "生抽", "油"],
+    steps: [
+      "鸡蛋打散",
+      "热油炒蛋至凝固，用铲子切碎",
+      "下剩米饭大火炒散",
+      "加生抽、盐翻匀",
+      "撒葱花出锅"
+    ],
+    tip: "用隔夜饭最好，水分少易炒散。"
+  },
+  {
+    name: "饺子", time_minutes: 45, role: "主食",
+    tags: ["面食", "待客"],
+    ingredients: ["面粉", "猪肉馅", "白菜"],
+    seasonings: ["葱", "姜", "生抽", "老抽", "料酒", "香油", "盐"],
+    steps: [
+      "面粉加水和成光滑面团，醒 30 分钟",
+      "白菜焯水切碎挤干",
+      "肉馅加葱姜末 + 调料拌匀",
+      "加白菜拌匀",
+      "面团搓长条切小剂子，擀成中间厚边上薄的皮",
+      "包馅捏褶，水开下饺子点 3 次水至全部浮起"
+    ],
+    tip: "点水 = 加少量凉水，饺子皮会更筋道。"
+  },
+  {
+    name: "葱油饼", time_minutes: 20, role: "主食",
+    tags: ["面食", "香"],
+    ingredients: ["面粉", "葱"],
+    seasonings: ["盐", "油"],
+    steps: [
+      "面粉加温水揉成面团，醒 20 分钟",
+      "擀成薄片，刷油、撒葱花、盐",
+      "卷起再盘成圆形，压扁",
+      "平底锅油热，小火慢煎两面金黄"
+    ],
+    tip: "小火慢煎才能外酥里嫩。"
+  },
+  {
+    name: "包子", time_minutes: 40, role: "主食",
+    tags: ["面食", "待客"],
+    ingredients: ["面粉", "猪肉馅"],
+    seasonings: ["酵母", "葱", "姜", "生抽", "老抽", "料酒", "香油", "盐", "糖"],
+    steps: [
+      "温水化开酵母 + 糖",
+      "面粉加酵母水揉成面团发酵至 2 倍大",
+      "肉馅加葱姜末 + 调料拌匀",
+      "面团揉长切剂子，擀皮",
+      "包馅捏褶",
+      "二次醒发 15 分钟，蒸锅冷水上锅蒸 15 分钟焖 3 分钟"
+    ],
+    tip: "二次醒发很重要，蒸出来才蓬松。"
+  },
+  {
+    name: "泡面", time_minutes: 5, role: "主食",
+    tags: ["快手", "简单"],
+    ingredients: ["方便面 1 包"],
+    seasonings: ["调料包"],
+    steps: [
+      "水烧开",
+      "下面饼",
+      "加调料包搅匀",
+      "煮 3 分钟"
+    ],
+    tip: "可加个蛋或几片青菜，营养会好一点。"
+  },
+  {
+    name: "拉面", time_minutes: 15, role: "主食",
+    tags: ["面食", "快手", "简单"],
+    ingredients: ["拉面 1 把", "油菜", "葱"],
+    seasonings: ["生抽", "香油", "盐"],
+    steps: [
+      "水烧开",
+      "下面煮 3 分钟",
+      "加油菜烫 30 秒",
+      "捞出装碗",
+      "加葱花、生抽、香油、盐调味"
+    ],
+    tip: "自己加料比外面便宜；汤底用鸡汤更香。"
+  },
+  {
+    name: "猪脚面", time_minutes: 30, role: "主食",
+    tags: ["面食", "营养", "下饭"],
+    ingredients: ["拉面 1 把", "猪脚 1 只"],
+    seasonings: ["葱", "姜", "八角", "生抽", "老抽", "料酒", "盐"],
+    steps: [
+      "猪脚剁块焯水",
+      "锅中加水+猪脚+葱姜八角+料酒",
+      "大火烧开转小火炖 25 分钟",
+      "加生抽、老抽调色，加盐调味",
+      "另起锅煮面，捞出装碗",
+      "浇猪脚汤+猪脚块"
+    ],
+    tip: "汤底是灵魂，炖够时间。"
+  },
+  {
+    name: "韭菜豆干面", time_minutes: 15, role: "主食",
+    tags: ["面食", "快手", "简单"],
+    ingredients: ["拉面 1 把", "韭菜", "香干 2 块"],
+    seasonings: ["生抽", "老抽", "盐", "油"],
+    steps: [
+      "香干切丝，韭菜切段",
+      "面煮熟捞出",
+      "油热下香干丝略煎",
+      "下韭菜大火快炒",
+      "加生抽、老抽、盐",
+      "浇在面上拌匀"
+    ],
+    tip: "干拌面要趁热拌匀；香干煎一下更香。"
+  },
+  {
+    name: "肉丝炒面", time_minutes: 15, role: "主食",
+    tags: ["面食", "快手", "下饭"],
+    ingredients: ["面条", "里脊肉 100g", "青菜"],
+    seasonings: ["生抽", "老抽", "盐", "葱", "料酒", "淀粉", "油"],
+    steps: [
+      "肉切丝用料酒+淀粉腌 10 分钟",
+      "面条煮至八成熟过凉水沥干",
+      "油热爆葱花",
+      "下肉丝炒散",
+      "下青菜翻炒",
+      "下面条，加生抽、老抽、盐大火翻匀"
+    ],
+    tip: "比普通炒面更香，肉丝是亮点。"
+  },
+  {
+    name: "炒年糕", time_minutes: 15, role: "主食",
+    tags: ["面食", "快手", "家常"],
+    ingredients: ["年糕", "白菜", "鸡蛋"],
+    seasonings: ["生抽", "老抽", "盐", "葱", "油"],
+    steps: [
+      "年糕切片，提前用温水泡软",
+      "鸡蛋打散炒熟盛出",
+      "油热下白菜翻炒",
+      "下年糕片",
+      "加生抽、老抽、盐",
+      "倒回鸡蛋翻匀"
+    ],
+    tip: "年糕要提前泡软，否则中间有硬芯。"
+  },
+  {
+    name: "烧麦", time_minutes: 30, role: "主食",
+    tags: ["面食", "早茶", "点心"],
+    ingredients: ["面粉", "糯米 200g", "猪肉馅 100g", "香菇"],
+    seasonings: ["葱", "姜", "生抽", "老抽", "料酒", "香油", "盐", "糖"],
+    steps: [
+      "糯米浸泡 4 小时，蒸熟",
+      "肉馅加葱姜末+调料拌匀",
+      "香菇切丁炒香",
+      "将肉馅、香菇、糯米饭拌匀成馅",
+      "面团擀成中间厚边缘薄的皮",
+      "包馅捏成花瓶状（顶部露馅）",
+      "蒸锅大火蒸 10 分钟"
+    ],
+    tip: "皮要擀薄，边缘有褶皱才好看；馅要调够味。"
+  },
+  {
+    name: "玉米萝卜清汤面", time_minutes: 15, role: "主食",
+    tags: ["面食", "清淡", "快手"],
+    ingredients: ["拉面 1 把", "玉米", "胡萝卜"],
+    seasonings: ["盐", "香油", "葱"],
+    steps: [
+      "玉米剥粒，胡萝卜切丁",
+      "水烧开煮玉米胡萝卜 5 分钟",
+      "下面煮 3 分钟",
+      "加盐",
+      "撒葱花、淋香油"
+    ],
+    tip: "清汤少油更养胃；可加个蛋更营养。"
+  },
+  {
+    name: "番茄面", time_minutes: 15, role: "主食",
+    tags: ["面食", "家常", "简单"],
+    ingredients: ["拉面 1 把", "番茄 1 个", "鸡蛋 1 个"],
+    seasonings: ["葱", "盐", "生抽", "油"],
+    steps: [
+      "番茄切块",
+      "油热炒番茄出汁",
+      "加水煮开",
+      "打蛋成蛋花",
+      "下面煮熟",
+      "加盐、葱花、生抽"
+    ],
+    tip: "番茄要炒到出汁，汤才浓郁。"
+  },
+  {
+    name: "煮方便面", time_minutes: 5, role: "主食",
+    tags: ["快手", "简单"],
+    ingredients: ["方便面 1 包"],
+    seasonings: ["调料包"],
+    steps: [
+      "水烧开",
+      "下面煮 3 分钟",
+      "加调料包搅匀出锅"
+    ],
+    tip: "可加蛋、火腿、青菜；调料包只用一半更健康。"
+  },
+  {
+    name: "香菇青菜面", time_minutes: 15, role: "主食",
+    tags: ["面食", "清淡", "家常"],
+    ingredients: ["拉面 1 把", "香菇", "青菜"],
+    seasonings: ["生抽", "香油", "盐", "葱"],
+    steps: [
+      "香菇切片",
+      "水烧开下香菇煮 3 分钟",
+      "下面煮 3 分钟",
+      "加青菜烫 30 秒",
+      "捞出装碗",
+      "加葱花、生抽、香油、盐"
+    ],
+    tip: "自己做的比外面健康；菌菇汤底鲜。"
+  },
+  {
+    name: "辣子鸡面", time_minutes: 30, role: "主食",
+    tags: ["面食", "辣", "川菜"],
+    ingredients: ["拉面 1 把", "鸡腿肉 200g", "干辣椒"],
+    seasonings: ["生抽", "料酒", "淀粉", "葱", "姜", "蒜", "盐", "油"],
+    steps: [
+      "鸡腿切丁用料酒+淀粉腌 10 分钟",
+      "油热炸鸡丁至金黄",
+      "留底油爆干辣椒、葱姜蒜",
+      "加生抽、盐",
+      "另起锅煮面捞出",
+      "浇上辣子鸡"
+    ],
+    tip: "辣度由干辣椒量决定；可加花生米更香。"
+  },
+  {
+    name: "鸡汤面", time_minutes: 20, role: "主食",
+    tags: ["面食", "清淡", "营养"],
+    ingredients: ["拉面 1 把", "鸡汤"],
+    seasonings: ["葱", "盐", "香油"],
+    steps: [
+      "提前炖好鸡汤（鸡架或鸡腿炖 1 小时）",
+      "鸡汤烧开",
+      "下面煮 3 分钟",
+      "加盐",
+      "撒葱花、淋香油"
+    ],
+    tip: "用鸡架炖汤最划算；一次炖多点冻起来随用随取。"
+  },
+  {
+    name: "牛肉面", time_minutes: 40, role: "主食",
+    tags: ["面食", "营养", "硬菜"],
+    ingredients: ["拉面 1 把", "牛腩 300g"],
+    seasonings: ["八角", "花椒", "葱", "姜", "蒜", "生抽", "老抽", "料酒", "盐", "辣椒油"],
+    steps: [
+      "牛腩切块焯水",
+      "锅中加水+牛腩+八角花椒葱姜蒜",
+      "大火烧开转小火炖 1 小时",
+      "加生抽、老抽、盐调味",
+      "另起锅煮面",
+      "面捞出浇牛肉汤+牛肉",
+      "加辣椒油"
+    ],
+    tip: "牛肉要炖够时间才软烂；提前炖好冻起来更方便。"
+  },
+  {
+    name: "三鲜面", time_minutes: 15, role: "主食",
+    tags: ["面食", "清淡", "家常"],
+    ingredients: ["拉面 1 把", "香菇", "青菜", "虾仁"],
+    seasonings: ["盐", "香油", "葱", "生抽"],
+    steps: [
+      "香菇切片，虾仁处理",
+      "水烧开下香菇煮 2 分钟",
+      "下虾仁烫熟",
+      "下面煮 3 分钟",
+      "加青菜烫 30 秒",
+      "加盐、葱花、生抽、香油"
+    ],
+    tip: "三鲜指三种鲜味（菌菇+海鲜+青菜），可换不同组合。"
+  },
+  {
+    name: "芹菜肉丝面", time_minutes: 15, role: "主食",
+    tags: ["面食", "家常", "快手"],
+    ingredients: ["拉面 1 把", "芹菜", "里脊肉 100g"],
+    seasonings: ["生抽", "老抽", "料酒", "淀粉", "盐", "葱", "油"],
+    steps: [
+      "肉切丝用料酒+淀粉腌 10 分钟",
+      "芹菜切段",
+      "面煮熟捞出",
+      "油热爆葱花",
+      "下肉丝炒散",
+      "下芹菜，加生抽、老抽、盐炒匀",
+      "浇在面上拌匀"
+    ],
+    tip: "干拌菜要炒干一些，汤少才入味。"
+  },
+
+  // -------- 凉菜 --------
+  {
+    name: "凉拌黄瓜", time_minutes: 5, role: "凉菜",
+    tags: ["简单", "快手", "开胃"],
+    ingredients: ["黄瓜", "蒜"],
+    seasonings: ["醋", "生抽", "香油", "盐", "糖", "辣椒油（可选）"],
+    steps: [
+      "黄瓜用刀背拍碎切段",
+      "蒜切末",
+      "调汁：醋 + 生抽 + 香油 + 盐 + 糖 + 蒜末 + 辣椒油",
+      "浇在黄瓜上拌匀",
+      "腌 5-10 分钟更入味"
+    ],
+    tip: "用刀背拍黄瓜更入味，也更脆。"
+  },
+  {
+    name: "拍黄瓜", time_minutes: 8, role: "凉菜",
+    tags: ["简单", "快手", "开胃"],
+    ingredients: ["黄瓜"],
+    seasonings: ["蒜", "醋", "生抽", "香油", "盐", "糖", "辣椒油"],
+    steps: [
+      "黄瓜洗净，用刀背拍碎掰段",
+      "蒜切末",
+      "调汁：蒜末 + 醋 + 生抽 + 香油 + 盐 + 糖 + 辣椒油",
+      "浇在黄瓜上拌匀腌 10 分钟"
+    ],
+    tip: "蒜多放，酸辣味足才是灵魂。"
+  },
+  {
+    name: "凉拌木耳", time_minutes: 10, role: "凉菜",
+    tags: ["素食", "开胃"],
+    ingredients: ["黑木耳"],
+    seasonings: ["蒜", "醋", "生抽", "香油", "盐", "糖", "辣椒油", "香菜"],
+    steps: [
+      "木耳泡发（冷水 2 小时或温水 30 分钟）",
+      "沸水焯 2 分钟捞出过凉水",
+      "蒜切末，调汁：蒜末 + 醋 + 生抽 + 香油 + 盐 + 糖 + 辣椒油",
+      "浇在木耳上，撒香菜拌匀"
+    ],
+    tip: "木耳焯水时间不要长，保持脆感。"
+  },
+  {
+    name: "凉拌花生米", time_minutes: 10, role: "凉菜",
+    tags: ["下酒", "香"],
+    ingredients: ["花生米", "芹菜"],
+    seasonings: ["盐", "八角", "花椒", "香油", "醋", "生抽"],
+    steps: [
+      "花生米冷水下锅，加八角、花椒、盐",
+      "煮 10 分钟捞出沥干",
+      "芹菜切丁，焯水 30 秒过凉水",
+      "花生和芹菜混合",
+      "加生抽、醋、香油拌匀"
+    ],
+    tip: "花生要带皮煮才香，营养也更好。"
+  },
+
+  // -------- 早餐 --------
+  {
+    name: "白粥", time_minutes: 15, role: "早餐",
+    tags: ["简单", "清淡", "基础"],
+    ingredients: ["大米", "水"],
+    nutrition: ["碳水"],
+    steps: [
+      "大米淘洗干净，加 6-8 倍水",
+      "大火烧开转小火慢熬 15 分钟",
+      "中途搅拌防止粘锅，至米粒开花、汤汁浓稠"
+    ],
+    tip: "水多一点更稀，水少一点更稠；可加几颗红枣或桂圆。"
+  },
+  {
+    name: "小米粥", time_minutes: 25, role: "早餐",
+    tags: ["简单", "清淡", "养胃"],
+    ingredients: ["小米", "水"],
+    nutrition: ["碳水"],
+    steps: [
+      "小米淘洗一遍（不要搓洗，保留营养）",
+      "锅中水烧开，下小米",
+      "大火烧开转小火熬 20 分钟",
+      "中途搅拌，至米汤金黄浓稠"
+    ],
+    tip: "开水下锅不糊底；熬久一点更香更养胃。"
+  },
+  {
+    name: "牛奶燕麦", time_minutes: 5, role: "早餐",
+    tags: ["简单", "快手", "营养"],
+    ingredients: ["牛奶", "燕麦"],
+    nutrition: ["蛋白", "碳水"],
+    steps: [
+      "燕麦片放入碗中",
+      "牛奶加热至微沸（微波炉 1 分钟）",
+      "倒入燕麦中拌匀即可"
+    ],
+    tip: "即食燕麦直接泡；生燕麦需要煮 5 分钟。"
+  },
+  {
+    name: "蒸蛋羹", time_minutes: 10, role: "早餐",
+    tags: ["简单", "快手", "小孩爱", "清淡"],
+    ingredients: ["鸡蛋", "温水"],
+    nutrition: ["蛋白"],
+    seasonings: ["盐", "香油", "生抽"],
+    steps: [
+      "鸡蛋打散加少许盐",
+      "加 1.5 倍温水搅匀（过筛口感更嫩）",
+      "盖保鲜膜，中火蒸 8-10 分钟",
+      "出锅淋香油、生抽"
+    ],
+    tip: "温水是关键；过筛去气泡表面才光滑；保鲜膜防滴水。"
+  },
+  {
+    name: "茶叶蛋", time_minutes: 20, role: "早餐",
+    tags: ["简单", "快手"],
+    ingredients: ["鸡蛋", "茶叶", "酱油"],
+    nutrition: ["蛋白"],
+    seasonings: ["八角", "桂皮", "盐"],
+    steps: [
+      "鸡蛋冷水下锅煮 8 分钟至全熟",
+      "捞出过凉水，用勺背轻敲蛋壳至裂纹",
+      "锅中加水+茶叶+酱油+八角+桂皮+盐煮开",
+      "下鸡蛋小火煮 10 分钟",
+      "关火浸泡 2 小时更入味"
+    ],
+    tip: "敲裂纹是关键，茶叶和酱油的量决定上色深浅。"
+  },
+  {
+    name: "煎蛋", time_minutes: 5, role: "早餐",
+    tags: ["简单", "快手", "小孩爱", "基础"],
+    ingredients: ["鸡蛋", "油", "盐"],
+    nutrition: ["蛋白"],
+    steps: [
+      "锅烧热，倒少许油",
+      "打入鸡蛋",
+      "小火煎至底部凝固",
+      "轻轻翻面煎另一面",
+      "撒少许盐出锅"
+    ],
+    tip: "油温别太高，蛋黄才不会破；可盖锅盖让蛋黄全熟。"
+  },
+  {
+    name: "豆浆", time_minutes: 15, role: "早餐",
+    tags: ["简单", "快手", "家常"],
+    ingredients: ["黄豆", "水"],
+    nutrition: ["蛋白"],
+    seasonings: ["糖"],
+    steps: [
+      "黄豆提前浸泡 8 小时（过夜）",
+      "沥干加 8 倍水用豆浆机/破壁机打成浆",
+      "过滤豆渣（不介意口感可省）",
+      "煮沸 5 分钟（豆浆必须煮开！）",
+      "加糖调味"
+    ],
+    tip: "豆浆必须煮开否则有毒性；泡过的黄豆出浆率更高。"
+  },
+  {
+    name: "杂粮粥", time_minutes: 30, role: "早餐",
+    tags: ["简单", "慢炖", "营养", "养颜"],
+    ingredients: ["大米", "小米", "红豆", "燕麦"],
+    nutrition: ["碳水"],
+    steps: [
+      "红豆提前浸泡 4 小时",
+      "所有材料淘洗入锅",
+      "加 8 倍水大火烧开",
+      "转小火熬 25 分钟",
+      "中途搅拌，至所有食材软糯"
+    ],
+    tip: "杂粮种类可自由搭配（黑米/紫米/薏米/莲子）；红豆一定要泡。"
+  },
+  {
+    name: "花卷", time_minutes: 40, role: "早餐",
+    tags: ["面食", "香", "待客"],
+    ingredients: ["面粉", "葱", "酵母"],
+    nutrition: ["碳水"],
+    seasonings: ["盐", "油"],
+    steps: [
+      "温水化开酵母，面粉+酵母水揉成光滑面团",
+      "盖保鲜膜发酵 1 小时至 2 倍大",
+      "擀成薄片，刷油撒葱花和盐",
+      "卷起切段，每段拧成花卷状",
+      "二次醒发 15 分钟",
+      "蒸锅大火蒸 15 分钟，关火焖 3 分钟"
+    ],
+    tip: "葱花要切细；关火焖 3 分钟防止回缩。"
+  },
+  {
+    name: "鸡蛋三明治", time_minutes: 10, role: "早餐",
+    tags: ["简单", "快手", "小孩爱"],
+    ingredients: ["鸡蛋", "面包", "生菜", "番茄"],
+    nutrition: ["蛋白", "碳水"],
+    seasonings: ["沙拉酱", "盐"],
+    steps: [
+      "鸡蛋打散加少许盐煎成蛋饼",
+      "番茄切薄片",
+      "生菜洗净沥干",
+      "面包片上抹沙拉酱",
+      "铺生菜、番茄、蛋饼，盖上另一片面包",
+      "对角切开"
+    ],
+    tip: "可换成火腿/黄瓜/芝士；用吐司刀切面更整齐。"
+  },
+  {
+    name: "水煮肉片", time_minutes: 35, role: "主菜",
+    tags: ["川菜", "麻辣", "硬菜"],
+    ingredients: ["里脊肉 300g", "豆芽", "白菜"],
+    seasonings: ["豆瓣酱", "花椒", "干辣椒", "葱", "蒜", "姜", "生抽", "料酒", "淀粉", "盐", "油"],
+    steps: [
+      "里脊切薄片，用料酒+淀粉+盐腌 15 分钟",
+      "豆芽、白菜焯水铺碗底",
+      "热油爆葱姜蒜、豆瓣酱炒出红油",
+      "加适量水煮开，加生抽、盐调底味",
+      "下肉片滑散煮 2 分钟，连汤倒入碗中",
+      "撒花椒粉、干辣椒段、蒜末，浇滚油激香"
+    ],
+    tip: "肉片裹淀粉更嫩；最后浇热油是灵魂，『嗞啦』一声才地道。"
+  },
+  {
+    name: "夫妻肺片", time_minutes: 30, role: "凉菜",
+    tags: ["川菜", "麻辣", "凉菜", "下酒"],
+    ingredients: ["牛肉 100g", "牛肚 100g", "牛舌 100g", "牛百叶 100g", "芹菜"],
+    seasonings: ["红油", "花椒粉", "生抽", "醋", "糖", "蒜末", "葱花", "盐", "花生碎"],
+    steps: [
+      "所有牛杂冷水下锅焯水，再加水煮 30 分钟至熟",
+      "捞出放凉切薄片",
+      "芹菜切段垫底",
+      "调汁：红油+花椒粉+生抽+醋+糖+蒜末+盐",
+      "牛肉片摆芹菜上，浇汁",
+      "撒花生碎、葱花"
+    ],
+    tip: "正宗用牛肉+牛杂四种；红油要够多才地道。"
+  },
+  {
+    name: "口水鸡", time_minutes: 40, role: "凉菜",
+    tags: ["川菜", "麻辣", "凉菜", "下饭"],
+    ingredients: ["鸡腿 2 个", "花生碎", "葱"],
+    seasonings: ["红油", "花椒粉", "生抽", "醋", "糖", "蒜末", "姜", "料酒", "盐"],
+    steps: [
+      "鸡腿冷水下锅+姜片+料酒煮 15 分钟",
+      "关火焖 10 分钟（保证嫩），捞出过冰水",
+      "斩件装盘",
+      "调汁：红油+花椒粉+生抽+醋+糖+蒜末+盐",
+      "浇在鸡块上，撒花生碎、葱花"
+    ],
+    tip: "过冰水是关键，肉质紧实不柴；红油量要够。"
+  },
+  {
+    name: "水煮鱼", time_minutes: 30, role: "主菜",
+    tags: ["川菜", "麻辣", "硬菜", "待客"],
+    ingredients: ["草鱼 1 条", "豆芽", "白菜", "鸡蛋清"],
+    seasonings: ["豆瓣酱", "花椒", "干辣椒", "葱", "蒜", "姜", "生抽", "料酒", "淀粉", "盐", "油"],
+    steps: [
+      "草鱼片成薄片，鱼骨切块（分开）",
+      "鱼片用料酒+蛋清+淀粉+盐腌 15 分钟",
+      "豆芽、白菜焯水铺碗底",
+      "热油爆葱姜蒜+豆瓣酱炒出红油",
+      "下鱼骨煎一下，加水煮 10 分钟成汤底",
+      "捞出鱼骨，下鱼片滑散煮 2 分钟",
+      "连汤倒入铺菜的碗中",
+      "撒花椒粉、干辣椒段、蒜末，浇滚油激香"
+    ],
+    tip: "鱼片裹蛋清淀粉更嫩；浇热油是灵魂，『嗞啦』一声才地道。"
+  },
+  {
+    name: "蒜泥白肉", time_minutes: 25, role: "凉菜",
+    tags: ["川菜", "微辣", "凉菜", "下饭"],
+    ingredients: ["五花肉 300g", "黄瓜"],
+    seasonings: ["蒜", "生抽", "醋", "糖", "红油", "盐"],
+    steps: [
+      "五花肉整块冷水下锅+葱姜煮 20 分钟至熟",
+      "捞出放凉，切大薄片",
+      "黄瓜切丝垫底",
+      "调汁：蒜末+生抽+醋+糖+红油+盐",
+      "肉片铺黄瓜上，浇汁"
+    ],
+    tip: "肉要煮到筷子能轻松插入；蒜末量要大，蒜泥白肉的精髓。"
+  },
+  {
+    name: "蚂蚁上树", time_minutes: 20, role: "主菜",
+    tags: ["川菜", "微辣", "下饭"],
+    ingredients: ["猪肉末 150g", "粉丝 1 把"],
+    seasonings: ["豆瓣酱", "生抽", "料酒", "葱", "姜", "蒜", "糖", "盐", "油"],
+    steps: [
+      "粉丝温水泡软",
+      "热油爆葱姜蒜末",
+      "下肉末炒散至变色",
+      "加豆瓣酱炒出红油",
+      "加生抽、料酒、糖",
+      "下粉丝翻炒吸汁",
+      "加少量水焖 2 分钟，加盐翻匀"
+    ],
+    tip: "肉末要细碎才像『蚂蚁』；粉丝吸饱汤汁最香。"
+  },
+  {
+    name: "粉蒸肉", time_minutes: 60, role: "主菜",
+    tags: ["川菜", "下饭", "硬菜"],
+    ingredients: ["五花肉 400g", "蒸肉米粉", "红薯"],
+    seasonings: ["豆瓣酱", "生抽", "老抽", "料酒", "葱", "姜", "糖", "腐乳"],
+    steps: [
+      "五花肉切厚片",
+      "用豆瓣酱+生抽+老抽+料酒+葱姜末+糖+腐乳腌 30 分钟",
+      "肉片裹一层蒸肉米粉",
+      "红薯切块垫碗底",
+      "肉片码在红薯上",
+      "蒸锅大火蒸 50 分钟至肉软烂"
+    ],
+    tip: "蒸肉米粉是关键，可用现成或自己用米+花椒+八角炒香磨粉；红薯垫底吸油。"
+  },
+  {
+    name: "钵钵鸡", time_minutes: 40, role: "凉菜",
+    tags: ["川菜", "微辣", "凉菜", "下饭"],
+    ingredients: ["鸡腿", "藕片", "木耳", "土豆", "莴笋", "鹌鹑蛋"],
+    seasonings: ["藤椒油", "红油", "生抽", "醋", "蒜", "姜", "盐", "糖", "熟芝麻"],
+    steps: [
+      "鸡腿冷水下锅+葱姜煮 15 分钟，关火焖 10 分钟",
+      "捞出过冰水切块",
+      "藕片、土豆、莴笋切块，木耳撕小朵，分别焯水",
+      "鹌鹑蛋煮熟剥壳",
+      "所有食材摆盘",
+      "调汁：藤椒油+红油+生抽+醋+蒜末+姜末+糖+盐",
+      "浇在食材上，撒熟芝麻"
+    ],
+    tip: "藤椒油是灵魂，比花椒油更清香；食材可任意搭配。"
+  },
+  {
+    name: "西葫芦炒蛋", time_minutes: 10, role: "主菜",
+    tags: ["家常", "简单", "快手", "清淡", "小孩爱"],
+    ingredients: ["西葫芦 1 根", "鸡蛋 2 个", "葱"],
+    seasonings: ["盐", "油"],
+    steps: [
+      "西葫芦洗净切薄片",
+      "鸡蛋打散加少许盐",
+      "热油炒蛋至凝固盛出",
+      "锅中再加少许油，爆葱花下西葫芦炒",
+      "西葫芦炒软倒回鸡蛋翻匀，加盐"
+    ],
+    tip: "西葫芦切薄片易熟但也易出水，大火快炒能减少出水；可加蒜末更香。"
+  },
+  {
+    name: "蒜蓉西葫芦", time_minutes: 12, role: "主菜",
+    tags: ["素食", "简单", "清淡", "快手"],
+    ingredients: ["西葫芦 1 根"],
+    seasonings: ["蒜", "盐", "生抽", "油"],
+    steps: [
+      "蒜切末（多放更香）",
+      "西葫芦洗净切薄片",
+      "热油爆香蒜末",
+      "下西葫芦大火快炒",
+      "炒软加盐、生抽翻匀出锅"
+    ],
+    tip: "蒜末量要大，蒜蓉西葫芦的精髓；大火快炒保持脆嫩。"
+  },
+  {
+    name: "西葫芦鸡蛋饼", time_minutes: 15, role: "主菜",
+    tags: ["家常", "简单", "小孩爱"],
+    ingredients: ["西葫芦 1 根", "鸡蛋 2 个", "面粉 50g"],
+    seasonings: ["盐", "葱", "油"],
+    steps: [
+      "西葫芦洗净擦成丝（不用挤水）",
+      "西葫芦丝加鸡蛋+面粉+盐+葱花拌匀（面糊略稠）",
+      "热油，倒入面糊摊成圆饼",
+      "小火煎至两面金黄（约 3 分钟/面）",
+      "切块装盘"
+    ],
+    tip: "面糊不要太稀，稀了摊不成形；西葫芦丝自带水分，不用额外加水。"
+  },
+  {
+    name: "西葫芦炒虾仁", time_minutes: 20, role: "主菜",
+    tags: ["家常", "营养", "清淡"],
+    ingredients: ["西葫芦 1 根", "虾仁 200g"],
+    seasonings: ["盐", "料酒", "姜", "葱", "油"],
+    steps: [
+      "虾仁用料酒+少许盐腌 5 分钟",
+      "西葫芦洗净切薄片",
+      "热油爆香姜葱",
+      "下虾仁大火炒至变色盛出",
+      "锅中再加少许油，下西葫芦炒软",
+      "倒回虾仁，加盐翻匀"
+    ],
+    tip: "虾仁别炒太久，老了口感差；西葫芦大火快炒保持脆嫩。"
+  },
+  { name: "葱爆羊肉", time_minutes: 15, role: "主菜",
+    tags: ["家常", "快手", "简单", "下饭"],
+    ingredients: ["羊肉片 300g", "大葱 2 根", "姜"],
+    seasonings: ["盐", "酱油", "料酒", "油"],
+    steps: [
+      "羊肉片用料酒+少许酱油腌 5 分钟",
+      "大葱切马耳段,姜切丝",
+      "热油爆香姜丝",
+      "下羊肉片大火快速翻炒至变色",
+      "下大葱段,加盐,翻炒几下出锅"
+],
+    tip: "大葱要最后下,炒几下就出锅,保持脆甜;羊肉大火快炒才嫩。"
+  },
+  { name: "孜然羊肉", time_minutes: 20, role: "主菜",
+    tags: ["家常", "下饭", "简单", "香"],
+    ingredients: ["羊肉 300g", "洋葱 1 个", "香菜"],
+    seasonings: ["孜然粉", "辣椒粉", "盐", "生抽", "料酒", "油"],
+    steps: [
+      "羊肉切薄片,用料酒+生抽腌 10 分钟",
+      "洋葱切丝,香菜切段",
+      "热油大火下羊肉片快速翻炒至变色",
+      "下洋葱丝翻炒",
+      "加孜然粉、辣椒粉、盐,翻炒均匀",
+      "关火撒香菜段拌匀"
+],
+    tip: "孜然粉要最后下,大火快炒激出香味;没有孜然粒就用孜然粉。"
+  },
+  { name: "红烧羊肉", time_minutes: 60, role: "主菜",
+    tags: ["硬菜", "待客", "暖身", "家常", "慢炖"],
+    ingredients: ["羊肉 500g", "胡萝卜 1 根", "土豆 2 个"],
+    seasonings: ["葱", "姜", "蒜", "八角", "桂皮", "生抽", "老抽", "料酒", "糖", "盐"],
+    steps: [
+      "羊肉切块,冷水下锅焯水去膻,捞出沥干",
+      "胡萝卜、土豆切滚刀块",
+      "热油爆香葱姜蒜、八角、桂皮",
+      "下羊肉块翻炒,加料酒、生抽、老抽、糖",
+      "加热水没过羊肉,大火烧开转小火炖 40 分钟",
+      "下胡萝卜、土豆继续炖 15 分钟",
+      "开盖大火收汁,加盐调味"
+],
+    tip: "羊肉先焯水去膻;胡萝卜土豆后下,保持形状不散。"
+  },
+  { name: "萝卜炖羊肉", time_minutes: 90, role: "汤",
+    tags: ["慢炖", "暖身", "清淡", "家常"],
+    ingredients: ["羊肉 500g", "白萝卜 1 根"],
+    seasonings: ["葱", "姜", "盐", "料酒", "花椒"],
+    steps: [
+      "羊肉切块冷水下锅焯水去膻",
+      "白萝卜切大块",
+      "锅中加水,放入羊肉、葱姜、花椒、料酒",
+      "大火烧开转小火炖 1 小时",
+      "下白萝卜继续炖 20 分钟",
+      "加盐调味,撒葱花"
+],
+    tip: "白萝卜切大块慢炖,会变透明入味;汤鲜不膻的关键是焯水。"
+  },
+  { name: "黑椒牛柳", time_minutes: 20, role: "主菜",
+    tags: ["家常", "下饭", "快手", "简单", "待客"],
+    ingredients: ["牛里脊 300g", "洋葱 1 个", "青椒 1 个"],
+    seasonings: ["黑胡椒碎", "生抽", "料酒", "糖", "蚝油", "油", "淀粉"],
+    steps: [
+      "牛里脊切条,用生抽+料酒+淀粉腌 10 分钟",
+      "洋葱、青椒切条",
+      "热油大火下牛柳快速翻炒至变色盛出",
+      "锅中再加少许油,下洋葱青椒翻炒",
+      "倒回牛柳,加蚝油、糖、黑胡椒碎",
+      "翻炒均匀出锅"
+],
+    tip: "牛柳切完用生抽+淀粉腌 10 分钟更嫩;黑胡椒碎比黑胡椒粉香很多。"
+  },
+  { name: "水煮牛肉", time_minutes: 30, role: "主菜",
+    tags: ["川菜", "麻辣", "下饭", "硬菜"],
+    ingredients: ["牛肉片 300g", "豆芽 200g", "莴笋 1 根", "蒜", "葱"],
+    seasonings: ["豆瓣酱", "干辣椒", "花椒", "生抽", "油", "盐", "淀粉"],
+    steps: [
+      "牛肉片用生抽+淀粉+少许油腌 10 分钟",
+      "莴笋切薄片,豆芽洗净",
+      "锅中加水烧开,下豆芽莴笋烫熟铺在碗底",
+      "热油下豆瓣酱炒出红油,加水煮开",
+      "下牛肉片滑散煮 2 分钟",
+      "连汤倒入铺好菜的碗里",
+      "表面撒蒜末葱花+干辣椒+花椒,泼热油激香"
+],
+    tip: "牛肉片用淀粉腌制更滑嫩;最后泼热油是川菜灵魂。"
+  },
+  { name: "黄焖鸡", time_minutes: 40, role: "主菜",
+    tags: ["家常", "下饭", "待客", "简单"],
+    ingredients: ["鸡腿 2 个", "土豆 2 个", "青椒 1 个", "香菇 5 个"],
+    seasonings: ["葱", "姜", "蒜", "生抽", "老抽", "糖", "料酒", "盐"],
+    steps: [
+      "鸡腿剁块焯水,土豆切块,香菇切片,青椒切块",
+      "热油爆香葱姜蒜,下鸡块翻炒",
+      "加生抽、老抽、糖、料酒翻炒上色",
+      "加热水没过鸡块,大火烧开转中火炖 20 分钟",
+      "下土豆香菇继续炖 10 分钟",
+      "下青椒翻炒 1 分钟,加盐"
+],
+    tip: "鸡腿比鸡胸肉嫩;土豆先煎一下再炖更香。"
+  },
+  { name: "大盘鸡", time_minutes: 50, role: "主菜",
+    tags: ["川菜", "硬菜", "待客", "家常", "麻辣"],
+    ingredients: ["鸡腿 2 个", "土豆 3 个", "青椒 1 个", "番茄 1 个", "洋葱 1 个"],
+    seasonings: ["葱", "姜", "蒜", "干辣椒", "花椒", "生抽", "糖", "豆瓣酱"],
+    steps: [
+      "鸡腿剁块焯水,土豆切块,番茄洋葱切块",
+      "热油爆香葱姜蒜、干辣椒、花椒",
+      "下鸡块翻炒至微黄,加豆瓣酱炒出红油",
+      "加生抽、糖翻炒上色",
+      "下番茄翻炒出汁,加热水炖 20 分钟",
+      "下土豆继续炖 15 分钟",
+      "下青椒洋葱翻炒 2 分钟"
+],
+    tip: "番茄是灵魂,提鲜增酸;土豆多放点可以当主食。"
+  },
+  { name: "锅包肉", time_minutes: 25, role: "主菜",
+    tags: ["东北菜", "硬菜", "酸甜", "下饭", "待客"],
+    ingredients: ["里脊 300g", "葱", "姜", "胡萝卜 少许", "香菜"],
+    seasonings: ["醋", "糖", "生抽", "盐", "淀粉", "油"],
+    steps: [
+      "里脊切薄片,用盐+淀粉+水调成稠糊挂上",
+      "胡萝卜葱姜切丝,香菜切段",
+      "调糖醋汁:醋+糖+生抽+少量水搅匀",
+      "油烧 6 成热,下肉片炸至定型捞出",
+      "油温升高复炸 30 秒至金黄酥脆",
+      "锅中留少许油,爆香葱姜胡萝卜丝",
+      "下炸好的肉片,快速翻炒淋糖醋汁",
+      "撒香菜段出锅"
+],
+    tip: "里脊切薄片挂糊炸两遍更酥脆;糖醋比例 1:1 是关键。"
+  },
+  { name: "卤牛肉", time_minutes: 60, role: "凉菜",
+    tags: ["凉菜", "下酒", "待客", "硬菜"],
+    ingredients: ["牛腱子 500g"],
+    seasonings: ["八角", "桂皮", "香叶", "花椒", "葱", "姜", "生抽", "老抽", "料酒", "盐", "糖"],
+    steps: [
+      "牛腱子整块冷水下锅焯水,捞出沥干",
+      "锅中加水,放入所有调料和香料",
+      "下牛腱子,大火烧开转小火卤 50 分钟",
+      "关火,不要捞出,在卤汁里泡一夜更入味",
+      "第二天取出,冷藏后切薄片装盘",
+      "可调蒜泥醋汁蘸食"
+],
+    tip: "牛腱子整块卤,关火后泡一夜更入味;冷藏后切薄片不散。"
+  },
+  {
+    name: "洋葱炒蛋", time_minutes: 12, role: "主菜",
+    tags: ["家常", "快手", "小孩爱"],
+    ingredients: ["鸡蛋 2 个", "洋葱 1 个", "葱"],
+    seasonings: ["盐", "油"],
+    steps: [
+      "鸡蛋打散加盐",
+      "洋葱切丝",
+      "爆葱下蛋炒散盛出",
+      "下洋葱炒软",
+      "倒回鸡蛋翻匀"
+    ],
+    tip: "洋葱大火快炒更香"
+  },
+  {
+    name: "清炒血皮菜", time_minutes: 10, role: "主菜",
+    tags: ["家常", "简单", "快手", "清淡", "素食"],
+    ingredients: ["血皮菜 1 把", "大蒜 3 瓣"],
+    seasonings: ["盐", "油"],
+    steps: [
+      "大蒜切末",
+      "血皮菜洗净沥干",
+      "热油爆香蒜末",
+      "下血皮菜大火快炒",
+      "炒软加盐翻匀出锅"
+    ],
+    tip: "血皮菜大火快炒保持翠绿不出水；选嫩叶口感好"
+  },
+  {
+    name: "血皮菜炒蛋", time_minutes: 12, role: "主菜",
+    tags: ["家常", "简单", "快手", "小孩爱", "营养"],
+    ingredients: ["血皮菜 1 把", "鸡蛋 3 个", "葱"],
+    seasonings: ["盐", "油"],
+    steps: [
+      "鸡蛋打散加少许盐",
+      "血皮菜洗净切段",
+      "热油大火炒蛋至凝固盛出",
+      "锅中再加少许油下血皮菜快炒",
+      "倒回鸡蛋翻匀加盐"
+    ],
+    tip: "血皮菜易出水量大，大火快炒是关键；蛋要炒嫩"
+  },
+  {
+    name: "凉拌皮蛋", time_minutes: 8, role: "凉菜",
+    tags: ["凉菜", "快手", "下酒"],
+    ingredients: ["皮蛋 3 个", "小葱 1 把", "蒜 3 瓣", "姜 1 小块"],
+    seasonings: ["生抽 2 勺", "香醋 1 勺", "香油 半勺", "盐 少许", "糖 半勺"],
+    steps: [
+      "皮蛋剥壳切瓣摆盘",
+      "蒜姜切末加小葱切葱花撒上",
+      "淋生抽+醋+香油+盐+糖调成的汁",
+      "静置 5 分钟入味即可"
+    ],
+    tip: "皮蛋选无铅溏心的口感更好"
+  },
+  {
+    name: "皮蛋豆腐", time_minutes: 5, role: "凉菜",
+    tags: ["凉菜", "快手", "简单"],
+    ingredients: ["内酯豆腐 1 盒", "皮蛋 2 个", "葱 1 根"],
+    seasonings: ["生抽", "香醋", "香油", "糖"],
+    steps: [
+      "豆腐倒扣盘里切块",
+      "皮蛋剥壳切瓣摆在豆腐上",
+      "调汁（生抽+醋+香油+糖）淋上",
+      "撒葱花即可"
+    ],
+    tip: "豆腐用内酯的嫩滑，皮蛋要溏心的切起来不碎"
+  },
+  {
+    name: "尖椒皮蛋", time_minutes: 15, role: "主菜",
+    tags: ["微辣", "下饭", "家常"],
+    ingredients: ["尖椒 4 个", "皮蛋 3 个", "蒜 4 瓣", "豆豉 1 勺"],
+    seasonings: ["生抽", "盐", "油"],
+    steps: [
+      "尖椒洗净拍扁切段",
+      "皮蛋剥壳切瓣",
+      "热油爆香蒜和豆豉",
+      "下尖椒炒至表皮微焦",
+      "下皮蛋翻匀加盐生抽出锅"
+    ],
+    tip: "尖椒用油煎出虎皮更香，皮蛋别炒太久会散"
+  },
+  {
+    name: "皮蛋瘦肉粥", time_minutes: 25, role: "早餐",
+    tags: ["早餐", "养胃", "快手"],
+    ingredients: ["大米 半杯", "皮蛋 2 个", "瘦肉 100g", "姜 2 片", "葱 1 根"],
+    seasonings: ["盐", "生抽", "料酒", "淀粉"],
+    steps: [
+      "大米淘洗加水煮成稠粥",
+      "瘦肉切丝加盐+料酒+淀粉腌10分钟",
+      "皮蛋剥壳切瓣",
+      "粥快好时下瘦肉丝和皮蛋",
+      "加姜丝煮5分钟撒葱花"
+    ],
+    tip: "大米提前泡半小时煮得更软，皮蛋下晚一点保持形状"
+  },
+  {
+    name: "三色皮蛋", time_minutes: 10, role: "凉菜",
+    tags: ["凉菜", "简单", "好看"],
+    ingredients: ["皮蛋 2 个", "咸鸭蛋 1 个", "鸡蛋 2 个"],
+    seasonings: ["盐", "香油"],
+    steps: [
+      "鸡蛋打散加少许盐倒入抹油的盘中",
+      "水开后蒸8分钟至凝固",
+      "皮蛋咸鸭蛋剥壳切碎撒在蛋羹上",
+      "淋香油再蒸2分钟即可"
+    ],
+    tip: "蛋羹中火蒸避免蜂窝，皮蛋咸鸭蛋切小块好看又入味"
+  },
+  {
+    name: "干锅花菜", time_minutes: 15, role: "主菜",
+    tags: ["家常", "快手", "下饭"],
+    ingredients: ["花菜 1 颗", "五花肉 150g", "干辣椒 5 个", "蒜 3 瓣", "姜 2 片", "葱 1 根"],
+    seasonings: ["生抽 2 勺", "蚝油 1 勺", "糖 半勺", "盐 少许"],
+    steps: [
+      "花菜切小朵（根部老梗削掉），沸水加少许盐焯 1 分钟沥干",
+      "五花肉切薄片，葱切段蒜切片姜切末干辣椒剪段",
+      "热锅不放油先下五花肉煸出油至焦黄",
+      "下干辣椒蒜姜爆香，再下花菜大火翻炒",
+      "淋生抽+蚝油+糖+盐大火收汁，撒葱段起锅"
+    ],
+    tip: "花菜焯水加盐保持脆感，颜色更白；五花肉要煸到微焦才香"
+  },
+  { name: "南瓜粥", time_minutes: 30, role: "早餐",
+    tags: ["简单", "健康", "清淡"],
+    ingredients: ["南瓜 300g", "大米 100g"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "南瓜小米粥", time_minutes: 30, role: "早餐",
+    tags: ["养胃", "健康", "清淡"],
+    ingredients: ["南瓜 200g", "小米 50g", "大米 50g"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "南瓜饼", time_minutes: 20, role: "主食",
+    tags: ["素食", "甜口", "小孩爱"],
+    ingredients: ["南瓜 300g", "面粉 150g", "糖 20g"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "蒸南瓜", time_minutes: 15, role: "主菜",
+    tags: ["简单", "清淡", "懒人"],
+    ingredients: ["南瓜 500g"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "南瓜炖排骨", time_minutes: 60, role: "汤",
+    tags: ["慢炖", "下饭", "健康"],
+    ingredients: ["南瓜 400g", "排骨 300g", "姜 3 片", "葱 1 根"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "南瓜小米糊", time_minutes: 20, role: "早餐",
+    tags: ["健康", "快手", "小孩爱"],
+    ingredients: ["南瓜 200g", "小米 50g", "大米 30g"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "蛋黄焗南瓜", time_minutes: 30, role: "主菜",
+    tags: ["下饭", "简单", "小孩爱"],
+    ingredients: ["南瓜 400g", "咸蛋黄 3 个", "葱 少许"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "南瓜浓汤", time_minutes: 30, role: "汤",
+    tags: ["西餐", "简单", "健康"],
+    ingredients: ["南瓜 400g", "洋葱 半颗", "淡奶油 100ml", "黄油 20g"],
+    seasonings: [],
+    steps: [],
+    tip: ""
+  },
+  { name: "糖醋排骨", time_minutes: 45, role: "主菜",
+    tags: ["硬菜", "待客", "酸甜", "下饭", "家常"],
+    ingredients: ["排骨 500g", "醋", "糖", "生抽", "料酒"],
+    seasonings: ["醋", "糖", "生抽", "料酒", "盐", "油", "葱", "姜"],
+    steps: ["排骨冷水下锅+料酒+姜片焯水 5 分钟去血沫", "捞出沥干，热锅冷油+糖小火炒至焦黄", "下排骨翻炒上色", "加生抽、料酒、葱姜、热水没过排骨", "大火烧开转小火炖 30 分钟", "开盖大火收汁，沿锅边淋醋翻匀"],
+    tip: "糖醋比例 1:1 是基础，按口味微调；最后淋醋保留酸味。"
+  },
+  { name: "土豆炖牛肉", time_minutes: 60, role: "主菜",
+    tags: ["硬菜", "下饭", "慢炖", "家常", "待客"],
+    ingredients: ["牛腩 500g", "土豆 2 个", "胡萝卜 1 根", "洋葱"],
+    seasonings: ["葱", "姜", "蒜", "八角", "桂皮", "生抽", "老抽", "料酒", "盐"],
+    steps: ["牛腩冷水下锅+料酒+姜片焯水 5 分钟", "土豆、胡萝卜、洋葱切滚刀块", "热油爆香葱姜蒜、八角、桂皮", "下牛腩翻炒，加生抽、老抽、料酒上色", "加热水没过牛腩，大火烧开转小火炖 40 分钟", "下土豆、胡萝卜、洋葱继续炖 15 分钟", "加盐调味"],
+    tip: "选牛腩带点肥才香；土豆不要下太早否则炖烂。"
+  },
+  { name: "青椒土豆丝", time_minutes: 15, role: "主菜",
+    tags: ["家常", "快手", "简单", "下饭", "酸辣"],
+    ingredients: ["土豆 1 个", "青椒 1 个", "干辣椒"],
+    seasonings: ["醋", "生抽", "盐", "葱", "蒜", "油"],
+    steps: ["土豆去皮切细丝，青椒切丝", "土豆丝泡水 5 分钟去淀粉沥干", "热油爆干辣椒、葱蒜", "下土豆丝大火快炒", "下青椒丝，加醋、生抽、盐翻匀"],
+    tip: "土豆丝泡水去淀粉更脆；大火快炒保持脆感。"
+  },
+  { name: "蒜蓉空心菜", time_minutes: 10, role: "主菜",
+    tags: ["素食", "快手", "清淡", "简单"],
+    ingredients: ["空心菜 1 把", "大蒜 4 瓣"],
+    seasonings: ["盐", "油"],
+    steps: ["空心菜洗净切段（梗叶分开）", "蒜切末", "热油爆香蒜末", "先下空心菜梗炒 1 分钟", "下空心菜叶大火快炒 30 秒", "加盐翻匀出锅"],
+    tip: "大火快炒保持翠绿；蒜末量要多才香。"
+  },
+  { name: "蚝油杏鲍菇", time_minutes: 15, role: "主菜",
+    tags: ["素食", "清淡", "简单", "快手"],
+    ingredients: ["杏鲍菇 2 个", "青椒 1 个"],
+    seasonings: ["蚝油", "生抽", "盐", "糖", "蒜", "油"],
+    steps: ["杏鲍菇切滚刀块，青椒切块", "热油爆香蒜末", "下杏鲍菇中火煸出香味（边角微焦）", "下青椒块，加蚝油、生抽、糖、盐翻匀"],
+    tip: "杏鲍菇煸出焦香更美味；蚝油提鲜不要省。"
+  },
+  { name: "蒜苗炒肉", time_minutes: 15, role: "主菜",
+    tags: ["家常", "下饭", "川菜", "快手"],
+    ingredients: ["蒜苗 1 把", "五花肉 150g"],
+    seasonings: ["生抽", "料酒", "盐", "豆豉", "油"],
+    steps: ["五花肉切薄片，蒜苗切段（梗叶分开）", "肉片用料酒+少许生抽腌 5 分钟", "热锅不放油先下肉片煸出油", "下豆豉爆香", "先下蒜苗梗炒 1 分钟，再下蒜苗叶", "加生抽、盐大火翻匀"],
+    tip: "蒜苗大火快炒保持脆甜；煸肉出油是香味关键。"
+  },
+  { name: "凉拌三丝", time_minutes: 10, role: "凉菜",
+    tags: ["简单", "快手", "开胃", "下酒"],
+    ingredients: ["黄瓜 1 根", "胡萝卜 半根", "海带丝"],
+    seasonings: ["醋", "生抽", "香油", "蒜", "盐", "糖"],
+    steps: ["黄瓜、胡萝卜切细丝", "海带丝沸水焯 1 分钟过凉水", "三丝拌加", "调汁：蒜末+醋+生抽+香油+盐+糖", "浇上拌匀静置 5 分钟"],
+    tip: "三丝颜色搭配好看；糖提鲜不可省。"
+  },
+  { name: "凉拌豆腐", time_minutes: 8, role: "凉菜",
+    tags: ["素食", "快手", "简单", "清淡"],
+    ingredients: ["内酯豆腐 1 盒", "皮蛋 1 个"],
+    seasonings: ["生抽", "香醋", "香油", "葱", "蒜"],
+    steps: ["豆腐倒扣盘里切厚片", "皮蛋剥壳切瓣摆豆腐上", "撒葱花、蒜末", "淋生抽+香醋+香油", "静置 3 分钟入味"],
+    tip: "用内酯豆腐嫩滑；皮蛋溏心的更好看。"
+  },
+  { name: "山药排骨汤", time_minutes: 60, role: "汤",
+    tags: ["慢炖", "清淡", "营养", "家常"],
+    ingredients: ["排骨 500g", "山药 1 根", "胡萝卜 1 根"],
+    seasonings: ["葱", "姜", "料酒", "盐", "胡椒粉"],
+    steps: ["排骨冷水下锅+料酒+姜片焯水 5 分钟", "山药、胡萝卜去皮切滚刀块", "砂锅加水放排骨、葱姜、料酒", "大火烧开转小火炖 40 分钟", "下山药、胡萝卜再炖 15 分钟", "加盐、胡椒粉调味"],
+    tip: "山药黏液会让汤变稠，炖出来奶白；不要加八角等香料抢味。"
+  },
+  { name: "馄饨", time_minutes: 30, role: "主食",
+    tags: ["面食", "快手", "简单", "家常"],
+    ingredients: ["馄饨皮", "猪肉馅 150g", "葱", "姜", "紫菜"],
+    seasonings: ["生抽", "香油", "盐", "胡椒粉", "虾皮"],
+    steps: ["猪肉馅加葱姜末+生抽+盐拌匀", "取馄饨皮包馅捏成元宝状", "碗底放紫菜、虾皮、胡椒粉、生抽、香油", "水烧开下馄饨煮 3 分钟至浮起", "连汤盛入碗中"],
+    tip: "肉馅打水更嫩；一次多包点冷冻随煮随吃。"
+  },
+];
+
+// 食材同义词表（Day 12.9 冰箱/搜索用，与 what_to_eat.py INGREDIENT_SYNONYMS 保持一致）
+// 注意：app.html 历史 bug —— 该常量曾缺失，导致"看能做啥"直接抛 ReferenceError
+const INGREDIENT_SYNONYMS = {
+  '肉': ['肉', '猪肉', '牛肉', '羊肉', '五花肉', '里脊肉', '排骨', '肉末', '肉丝', '肉片', '鸡肉', '鸭肉', '牛排', '牛里脊', '牛腱子', '牛腩', '羊肉片', '鸡腿', '鸡翅', '鸡胸', '鸡块', '鸡丁'],
+  '菜': ['菜', '蔬', '白菜', '萝卜', '芹', '茄', '黄瓜', '菠', '韭菜', '青菜'],
+  '蛋': ['蛋', '鸡蛋', '蛋花'],
+  '豆': ['豆', '豆腐', '豆浆'],
+  '海鲜': ['虾', '蟹', '鱼', '鱿', '蛤', '海带', '紫菜'],
+  '辣': ['辣', '椒', '麻辣', '红油'],
+  '排骨': ['排骨', '猪排骨', '肋排'],
+  '五花肉': ['五花肉', '三层肉'],
+  '猪肉': ['猪肉'],
+  '鹅肉': ['鹅肉'],
+  '牛肉': ['牛肉'],
+  '羊肉': ['羊肉'],
+  '鸡肉': ['鸡肉'],
+  '鸡蛋': ['鸡蛋', '鸡子'],
+};
+
+function expandSynonyms(keywords) {
+  const out = new Set();
+  for (const kw of keywords) {
+    out.add(kw);
+    if (INGREDIENT_SYNONYMS[kw]) {
+      for (const syn of INGREDIENT_SYNONYMS[kw]) out.add(syn);
+    }
+  }
+  return Array.from(out);
+}
+
+function filterByIngredients(dishes, available) {
+  if (!available || available.length === 0) return [];
+  // 同义词扩展：输入『肉』→ 也查 猪/牛/羊/鸡 等
+  const keywords = expandSynonyms(available);
+  // 多字段匹配：name / ingredients / tags / seasonings 都查
+  return dishes.filter(d => {
+    const haystack = [
+      d.name || '',
+      ...(d.ingredients || []),
+      ...(d.tags || []),
+      ...(d.seasonings || []),
+    ].join(' ');
+    return keywords.some(kw => haystack.includes(kw));
+  });
+}
+
+// ============ Day 18：荤/素分类（用于 chooseCombo 荤素平衡） ============
+// 有 '素食' tag → 素；否则 → 荤（包含 蛋/鱼/虾等"广义荤"）
+function isMeatVeg(dish) {
+  if (!dish || !dish.tags) return '荤';
+  return dish.tags.includes('素食') ? '素' : '荤';
+}
+
+function chooseCombo(dishes, history = [], window = 30, scores = null, comboSize = '1-1-1', nPeople = null) {
+  // Day 10: 过滤 skipped 状态
+  // Day 17: 按 comboSize 抽多道主菜（不带主食时只抽 主菜+汤）
+  //   comboSize 格式：'主菜份数-汤份数-主食份数'（主食可省略=0）
+  //   例 '1-1-1' 默认；'2-1' / '3-1' / '4-1' 两菜一汤/三菜一汤/四菜一汤
+  // Day 18: 多道主菜时保证 ≥1素（避免全是荤）；nPeople 决定菜数 + 硬菜配额
+  const recent = recentDishesFromHistory(history, window);
+  const useScores = scores || loadScores();
+  const tagAff = computeTagAffinities(useScores, dishes);
+
+  // Day 18: nPeople 决定菜数 + 硬菜配额；comboSize 是 fallback
+  let numMains, numSoups, numStaples, heavyQuota;
+  if (typeof nPeople === 'number' && nPeople >= 1 && nPeople <= 10) {
+    [numMains, numSoups, numStaples] = nPeopleComboSize(nPeople);
+    heavyQuota = nPeople <= 4 ? 1 : 2;
+  } else {
+    const parts = (comboSize || '1-1-1').split('-').map(n => parseInt(n, 10));
+    numMains = (parts[0] >= 1 && parts[0] <= 4) ? parts[0] : 1;
+    numSoups = (parts[1] === 1 || parts[1] === 2) ? parts[1] : 1;
+    numStaples = (parts[2] === 1) ? 1 : 0;
+    heavyQuota = 1;
+  }
+
+  // 本次抽签已选的菜名（多道主菜内部去重，避免抽到同一道）
+  const pickedNames = new Set();
+  // 已选主菜中的荤/素计数（用于引导后续主菜偏向）
+  const pickedMains = [];
+  let heavyUsed = 0;  // Day 18: 已选的硬菜数量（≥60min）
+
+  function pick(role, forceVeg = false) {
+    // 基础候选
+    let candidates = dishes.filter(d => d.role === role && !recent.has(d.name) && !pickedNames.has(d.name));
+    if (candidates.length === 0) candidates = dishes.filter(d => d.role === role && !pickedNames.has(d.name));
+    if (candidates.length === 0) candidates = dishes.filter(d => d.role === role);
+    if (candidates.length === 0) return null;
+
+    // Day 18：荤素平衡 — 当 forceVeg=true 时只从素菜里抽（fallback 到全部）
+    if (forceVeg) {
+      const vegOnly = candidates.filter(d => isMeatVeg(d) === '素');
+      candidates = vegOnly.length > 0 ? vegOnly : candidates;
+    }
+
+    // Day 18：硬菜配额 — 主菜时如果配额已满，过滤掉硬菜
+    if (role === '主菜' && heavyUsed >= heavyQuota) {
+      const lightOnly = candidates.filter(d => (d.time_minutes || 0) < 60);
+      if (lightOnly.length > 0) candidates = lightOnly;
+    }
+
+    const choice = weightedChoice(candidates, useScores, tagAff);
+    if (choice) {
+      pickedNames.add(choice.name);
+      if (role === '主菜') {
+        pickedMains.push(choice);
+        if ((choice.time_minutes || 0) >= 60) heavyUsed++;
+      }
+    }
+    return choice;
+  }
+
+  const combo = {};
+  for (let i = 0; i < numMains; i++) {
+    // Day 18：多主菜时，最后一道强求 ≥1素
+    const needVeg = numMains >= 2 && i === numMains - 1
+      && !pickedMains.some(d => isMeatVeg(d) === '素');
+    combo[`主菜${i > 0 ? i + 1 : ''}`] = pick("主菜", needVeg);
+  }
+  for (let i = 0; i < numSoups; i++) {
+    combo[`汤${i > 0 ? i + 1 : ''}`] = pick("汤");
+  }
+  for (let i = 0; i < numStaples; i++) {
+    combo[`主食${i > 0 ? i + 1 : ''}`] = pick("主食");
+  }
+  return combo;
+}
+
+// ============ 儿童餐筛选 ============
+// 排除辣味，且至少带一个儿童友好标签
+const SPICY_TAGS = ["辣", "微辣", "麻辣"];
+const KID_FRIENDLY_TAGS = ["小孩爱", "甜口", "酸甜", "清淡", "基础", "面食", "快手"];
+
+function filterKidFriendly(dishes) {
+  return dishes.filter(d => {
+    const hasSpicy = d.tags.some(t => SPICY_TAGS.some(s => t.includes(s)));
+    const hasFriendly = d.tags.some(t => KID_FRIENDLY_TAGS.includes(t));
+    return hasFriendly && !hasSpicy;
+  });
+}
+
+// ============ 偏好设置（Day 16：用户删了 UI 又加回来） ============
+// 4 项核心：不吃辣 / 不吃内脏 / 不吃羊肉 / 不吃荤
+// Day 17: 套餐份量（默认 1菜1汤1主食 / 两菜一汤 / 三菜一汤 / 四菜一汤）
+const PREFS_KEY = 'what-to-eat-prefs';
+const PREFS_DEFAULTS = {
+  spicy: 'any',       // 'any' | 'none' | 'mild'
+  noNumb: false,
+  avoid: { offal: false, lamb: false },
+  vegetarian: false,
+  comboSize: '1-1-1', // '1-1-1' | '2-1' | '3-1' | '4-1'（主菜-汤-主食份数）
+};
+const ALLOWED_COMBO_SIZES = ['1-1-1', '2-1', '3-1', '4-1'];
+const OFFAL_INGREDIENT_KEYS = ["肥肠", "猪肚", "肝", "腰", "心", "肚"];
+
+function loadPrefs() {
+  try {
+    const raw = JSON.parse(storeGet(PREFS_KEY) || '{}');
+    const comboSize = ALLOWED_COMBO_SIZES.includes(raw.comboSize) ? raw.comboSize : '1-1-1';
+    const nPeople = (typeof raw.nPeople === 'number' && raw.nPeople >= 1 && raw.nPeople <= 10) ? raw.nPeople : 1;
+    return {
+      spicy: raw.spicy || 'any',
+      noNumb: !!raw.noNumb,
+      avoid: {
+        offal: !!(raw.avoid && raw.avoid.offal),
+        lamb: !!(raw.avoid && raw.avoid.lamb),
+      },
+      vegetarian: !!raw.vegetarian,
+      comboSize: comboSize,
+      nPeople: nPeople,
+    };
+  } catch (e) { return Object.assign({}, PREFS_DEFAULTS, { avoid: Object.assign({}, PREFS_DEFAULTS.avoid) }); }
+}
+
+function savePrefs(p) { storeSet(PREFS_KEY, JSON.stringify(p)); }
+
+// 用餐人数 ± 按钮
+function stepNPeople(delta) {
+  const prefs = loadPrefs();
+  const next = Math.max(1, Math.min(10, (prefs.nPeople || 1) + delta));
+  if (next === prefs.nPeople) return;
+  prefs.nPeople = next;
+  savePrefs(prefs);
+  updateNPeopleUI();
+}
+
+function nPeopleComboSize(n) {
+  // 与 Python n_people_to_combo_size 对齐
+  if (n <= 4) return [n, 1, 1];
+  if (n <= 8) return [5, 1, 1];
+  return [6, 1, 1];
+}
+
+function updateNPeopleUI() {
+  const prefs = loadPrefs();
+  const n = prefs.nPeople || 1;
+  const valueEl = document.getElementById('n-people-value');
+  const hintEl = document.getElementById('n-people-hint');
+  if (valueEl) valueEl.textContent = String(n);
+  if (hintEl) {
+    const [mains] = nPeopleComboSize(n);
+    hintEl.textContent = `${n}人 · ${mains}菜 + 1汤 + 1主食`;
+  }
+}
+
+// 按偏好过滤菜；返回新列表。空 prefs 不过滤。
+function applyPrefs(dishes, prefs) {
+  if (!prefs) return dishes.slice();
+  let result = dishes;
+  if (prefs.spicy === 'none') {
+    result = result.filter(d => !d.tags.some(t => SPICY_TAGS.some(s => t.includes(s))));
+  } else if (prefs.spicy === 'mild') {
+    result = result.filter(d => !d.tags.some(t => t === '辣' || t === '麻辣'));
+  }
+  if (prefs.noNumb) {
+    result = result.filter(d => !d.tags.some(t => t.includes('麻辣')));
+  }
+  const avoid = prefs.avoid || {};
+  const ingHas = (d, keys) => (d.ingredients || []).some(ing => keys.some(k => ing.includes(k)));
+  if (avoid.offal) {
+    result = result.filter(d => !ingHas(d, OFFAL_INGREDIENT_KEYS));
+  }
+  if (avoid.lamb) {
+    result = result.filter(d => !(d.ingredients || []).some(ing => ing.includes('羊')));
+  }
+  if (prefs.vegetarian) {
+    result = result.filter(d => (d.tags || []).includes('素食'));
+  }
+  return result;
+}
+
+// 打开偏好 modal：从 store 读当前 prefs → 把 chip .active 状态同步出来
+function openPrefs() {
+  const prefs = loadPrefs();
+  const m = document.getElementById('prefs-modal');
+  if (!m) return;
+  // 单选组：spicy
+  m.querySelectorAll('.chip-row[data-prefs-key="spicy"] .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.prefsValue === prefs.spicy);
+  });
+  // 多选组：avoid
+  m.querySelectorAll('.chip-row[data-prefs-key="avoid"] .chip').forEach(c => {
+    c.classList.toggle('active', !!(prefs.avoid && prefs.avoid[c.dataset.prefsKeySub]));
+  });
+  // 单 toggle：vegetarian
+  m.querySelectorAll('.chip-row[data-prefs-key="vegetarian"] .chip').forEach(c => {
+    c.classList.toggle('active', !!prefs.vegetarian);
+  });
+  // 单选组：comboSize
+  m.querySelectorAll('.chip-row[data-prefs-key="comboSize"] .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.prefsValue === prefs.comboSize);
+  });
+  // 用餐人数 stepper
+  updateNPeopleUI();
+  m.hidden = false;
+}
+
+function closePrefs() {
+  const m = document.getElementById('prefs-modal');
+  if (m) m.hidden = true;
+}
+
+function resetPrefs() {
+  if (!confirm('重置所有偏好？')) return;
+  savePrefs(JSON.parse(JSON.stringify(PREFS_DEFAULTS)));
+  openPrefs();
+}
+
+// chip 点击：单选 = 互斥；多选/toggle = 翻转；每次写 store
+function handlePrefChipClick(e) {
+  const chip = e.target.closest('#prefs-modal .chip');
+  if (!chip) return;
+  const row = chip.parentElement;
+  const key = row.dataset.prefsKey;
+  const prefs = loadPrefs();
+  if (key === 'spicy') {
+    prefs.spicy = chip.dataset.prefsValue;
+    row.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  } else if (key === 'avoid') {
+    const sub = chip.dataset.prefsKeySub;
+    prefs.avoid[sub] = !prefs.avoid[sub];
+    chip.classList.toggle('active');
+  } else if (key === 'vegetarian') {
+    prefs.vegetarian = !prefs.vegetarian;
+    chip.classList.toggle('active');
+  } else if (key === 'comboSize') {
+    const v = chip.dataset.prefsValue;
+    if (ALLOWED_COMBO_SIZES.includes(v)) {
+      prefs.comboSize = v;
+      row.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    }
+  }
+  savePrefs(prefs);
+}
+
+// ============ 历史（localStorage） ============
+const HISTORY_KEY = 'what-to-eat-history';
+
+// ============ 跨入口同步存储（iOS Safari vs 桌面 PWA 不隔离 cookie） ============
+// localStorage 在 iOS 上隔离，但 cookie 是两个入口共享的唯一渠道。
+// 写入双写（localStorage + cookie），读取优先 localStorage，空时从 cookie 拉回。
+// 单 cookie 上限 4KB，超过自动分片（每片 3500 字符，留 596 字节余量）。
+const COOKIE_PREFIX = 'wte2-';
+
+function cookieSet(name, value) {
+  const maxChunk = 3500;
+  const chunks = Math.ceil(value.length / maxChunk);
+  const expDays = 365;
+  // 记录旧分片数；新值变短时要清掉多余分片，避免长期占用 cookie 配额。
+  const oldLenMatch = document.cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_PREFIX}${name}-n=(\\d+)`));
+  const oldChunks = oldLenMatch ? parseInt(oldLenMatch[1], 10) : 0;
+  for (let i = 0; i < chunks; i++) {
+    const chunk = value.slice(i * maxChunk, (i + 1) * maxChunk);
+    document.cookie = `${COOKIE_PREFIX}${name}-${i}=${encodeURIComponent(chunk)}; max-age=${expDays*86400}; path=/; SameSite=Lax`;
+  }
+  document.cookie = `${COOKIE_PREFIX}${name}-n=${chunks}; max-age=${expDays*86400}; path=/; SameSite=Lax`;
+  for (let i = chunks; i < oldChunks; i++) {
+    document.cookie = `${COOKIE_PREFIX}${name}-${i}=; max-age=0; path=/`;
+  }
+}
+
+function cookieGet(name) {
+  const lenMatch = document.cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_PREFIX}${name}-n=(\\d+)`));
+  const n = lenMatch ? parseInt(lenMatch[1]) : 1;
+  if (n === 0) return null;
+  let value = '';
+  for (let i = 0; i < n; i++) {
+    const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_PREFIX}${name}-${i}=([^;]*)`));
+    if (match) value += decodeURIComponent(match[1]);
+    else return null;  // 分片缺失 → 视为无效
+  }
+  return value || null;
+}
+
+function cookieDel(name) {
+  const lenMatch = document.cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_PREFIX}${name}-n=(\\d+)`));
+  const n = lenMatch ? parseInt(lenMatch[1]) : 1;
+  for (let i = 0; i < n; i++) {
+    document.cookie = `${COOKIE_PREFIX}${name}-${i}=; max-age=0; path=/`;
+  }
+  document.cookie = `${COOKIE_PREFIX}${name}-n=; max-age=0; path=/`;
+}
+
+function storeGet(key) {
+  // cookie 是 Safari 与 PWA 唯一共享的存储层，必须优先读取。
+  // 若先读各自隔离的 localStorage，另一入口的新记录会被旧缓存覆盖。
+  const cookie = cookieGet(key);
+  if (cookie !== null && cookie !== '') {
+    try { localStorage.setItem(key, cookie); } catch (e) {}
+    return cookie;
+  }
+  // cookie 不可用（例如本地 file:// 调试）时，仍可使用本地副本。
+  const local = localStorage.getItem(key);
+  if (local !== null && local !== '') return local;
+  return null;
+}
+
+function storeSet(key, value) {
+  try { localStorage.setItem(key, value); } catch (e) {}
+  try { cookieSet(key, value); } catch (e) {}
+  // cookie 被浏览器拒绝或写满时，不保留旧值；否则下次会错误地读回旧数据。
+  if (cookieGet(key) !== value) {
+    try { cookieDel(key); } catch (e) {}
+  }
+}
+
+function storeDel(key) {
+  try { localStorage.removeItem(key); } catch (e) {}
+  try { cookieDel(key); } catch (e) {}
+}
+
+function loadHistory() {
+  try { return JSON.parse(storeGet(HISTORY_KEY) || '[]'); }
+  catch (e) { return []; }
+}
+function saveHistory(h) { storeSet(HISTORY_KEY, JSON.stringify(h)); }
+
+// Day 10: 向后兼容旧 addToHistory 名字
+function addToHistory(h, name) {
+  return addToHistoryWithStatus(h, name, 'confirmed', null);
+}
+
+// Day 15: 精准撤回 - 按 index 删一条历史
+// 用于"再点同一按钮 = 撤回"功能，避免误删其他行
+function removeHistoryAt(history, index) {
+  if (index < 0 || index >= history.length) return history;
+  history.splice(index, 1);
+  return history;
+}
+
+// Day 10: 新版加历史函数（带 status）
+function addToHistoryWithStatus(history, dishName, status, suggested) {
+  const entry = {
+    dish: dishName,
+    date: new Date().toISOString().slice(0, 10),
+    status: status,
+  };
+  if (status !== 'confirmed') entry.suggested = suggested;
+  history.push(entry);
+  return history;
+}
+
+// Day 10: 旧格式迁移（旧 {dish, date} → 新格式含 status 字段）
+function migrateHistory(history) {
+  return history.map(h => h.status
+    ? h
+    : {date: h.date, dish: h.dish, status: 'confirmed'}
+  );
+}
+
+// Day 10: 从历史里提取『最近 N 条实际吃过的菜』，跳过 skipped
+function recentDishesFromHistory(history, window) {
+  const effective = migrateHistory(history);
+  const slice = effective.slice(-window);
+  return new Set(slice.filter(h => h.status !== 'skipped').map(h => h.dish));
+}
+
+// ============ 渲染 ============
+const ROLE_EMOJI = {"主菜": "🍖", "汤": "🍲", "主食": "🍚", "凉菜": "🥗", "早餐": "🥣"};
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function findDishByName(name) {
+  return DISHES_DATA.find(d => d.name === name);
+}
+
+function buildDishRow(dish, extra = "") {
+  const row = document.createElement('div');
+  row.className = 'dish-row';
+  const emoji = ROLE_EMOJI[dish.role] || '•';
+  const scores = loadScores();
+  const s = scores[dish.name] || {};
+  const likeCls    = s.likes    ? 'liked'    : '';
+  const dislikeCls = s.dislikes ? 'disliked' : '';
+  const cookCls    = s.cooks    ? 'cooked'   : '';
+  row.innerHTML = `
+    <div class="dish-emoji">${emoji}</div>
+    <div class="dish-info">
+      <div class="dish-name">${escapeHtml(dish.name)}</div>
+      <div class="dish-meta">${dish.role} · 约 ${dish.time_minutes} 分钟</div>
+      ${extra}
+    </div>
+    <div class="dish-feedback">
+      <span class="feedback-btn like ${likeCls}" data-action="like" data-dish="${escapeHtml(dish.name)}" title="喜欢">👍</span>
+      <span class="feedback-btn dislike ${dislikeCls}" data-action="dislike" data-dish="${escapeHtml(dish.name)}" title="不喜欢">👎</span>
+      <span class="feedback-btn cook ${cookCls}" data-action="cooked" data-dish="${escapeHtml(dish.name)}" title="做了">✅</span>
+    </div>`;
+  row.addEventListener('click', (e) => {
+    if (e.target.classList.contains('feedback-btn')) return;
+    showRecipe(dish);
+  });
+  // 反馈按钮事件
+  row.querySelectorAll('.feedback-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const action = btn.dataset.action;
+      const name = btn.dataset.dish;
+      toggleFeedback(name, action, btn);
+    });
+  });
+  return row;
+}
+
+function toggleFeedback(dishName, action, btn) {
+  const scores = loadScores();
+  const before = scores[dishName] || {likes: 0, dislikes: 0, cooks: 0};
+  const key = {like: 'likes', dislike: 'dislikes', cooked: 'cooks'}[action];
+  const wasOn = before[key] > 0;
+  // 切换：再次点击同 action 取消
+  if (wasOn) {
+    scores[dishName] = {...before, [key]: before[key] - 1};
+    if (scores[dishName][key] === 0 && scores[dishName].likes === 0 && scores[dishName].dislikes === 0 && scores[dishName].cooks === 0) {
+      delete scores[dishName];
+    }
+  } else {
+    scores[dishName] = {...before, [key]: (before[key] || 0) + 1};
+  }
+  saveScores(scores);
+  btn.classList.toggle(action === 'like' ? 'liked' : action === 'dislike' ? 'disliked' : 'cooked');
+  // 轻提示
+  showToast(wasOn ? '↩️ 已取消' : (action === 'like' ? '👍 已记住喜欢' : action === 'dislike' ? '👎 已记住不喜欢' : '✅ 已记录做了'));
+}
+
+function showToast(text) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:white;padding:10px 20px;border-radius:20px;font-size:14px;z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.2s;';
+    document.body.appendChild(t);
+  }
+  t.textContent = text;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 1500);
+}
+
+function renderCombo(combo) {
+  renderComboTo(combo, 'combo-result');
+}
+
+function renderComboTo(combo, targetId) {
+  const result = document.getElementById(targetId);
+  result.innerHTML = '';
+  for (const [role, dish] of Object.entries(combo)) {
+    if (dish) {
+      result.appendChild(buildDishRow(dish));
+    } else {
+      const row = document.createElement('div');
+      row.className = 'dish-row';
+      row.innerHTML = `
+        <div class="dish-emoji">⚠️</div>
+        <div class="dish-info">
+          <div class="dish-name">${role}：暂无合适菜</div>
+        </div>`;
+      result.appendChild(row);
+    }
+  }
+}
+
+function renderFeasible(available, dishes) {
+  const result = document.getElementById('ingredients-result');
+  result.innerHTML = '';
+  if (dishes.length === 0) {
+    result.innerHTML = '<div class="empty">没找到合适的菜，去买点啥吧 😄</div>';
+    return;
+  }
+  const header = document.createElement('div');
+  header.style.cssText = "padding:14px 0 8px 0;font-size:13px;color:#888;";
+  header.textContent = `🥬 冰箱：${available.map(escapeHtml).join('、')}`;
+  result.appendChild(header);
+  for (const d of dishes) {
+    const missing = d.ingredients.filter(i => !available.includes(i));
+    const missingHtml = missing.length > 0
+      ? `<div class="dish-missing">还缺：${missing.map(escapeHtml).join('、')}</div>`
+      : '<div class="dish-missing" style="background:#e8f5e9;color:#2e7d32;">✅ 食材全齐</div>';
+    result.appendChild(buildDishRow(d, missingHtml));
+  }
+}
+
+function updateHistoryHint() {
+  const h = loadHistory();
+  const hint = document.getElementById('history-hint');
+  const reset = document.getElementById('reset-btn');
+  if (h.length === 0) {
+    hint.textContent = '';
+    reset.style.display = 'none';
+  } else {
+    hint.textContent = `已记录 ${h.length} 条历史，最近 ${Math.min(5, h.length)} 道`;
+    reset.style.display = 'block';
+  }
+}
+
+// ============ 菜谱 Modal ============
+function showRecipe(dish) {
+  const modal = document.getElementById('recipe-modal');
+  document.getElementById('modal-emoji').textContent = ROLE_EMOJI[dish.role] || '🍽️';
+  document.getElementById('modal-title').textContent = dish.name;
+  document.getElementById('modal-meta').textContent = `${dish.role} · 约 ${dish.time_minutes} 分钟`;
+
+  // 食材
+  document.getElementById('modal-ingredients').innerHTML =
+    (dish.ingredients || []).map(i => `<span class="tag">${escapeHtml(i)}</span>`).join('');
+
+  // 调料
+  const seasoningsSection = document.getElementById('modal-seasonings-section');
+  if (dish.seasonings && dish.seasonings.length > 0) {
+    seasoningsSection.hidden = false;
+    document.getElementById('modal-seasonings').innerHTML =
+      dish.seasonings.map(s => `<span class="tag">${escapeHtml(s)}</span>`).join('');
+  } else {
+    seasoningsSection.hidden = true;
+  }
+
+  // 步骤
+  document.getElementById('modal-steps').innerHTML =
+    (dish.steps || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+
+  // 贴士
+  const tipSection = document.getElementById('modal-tip-section');
+  if (dish.tip) {
+    tipSection.hidden = false;
+    document.getElementById('modal-tip').textContent = dish.tip;
+  } else {
+    tipSection.hidden = true;
+  }
+
+  // 标签
+  const tagsSection = document.getElementById('modal-tags-section');
+  if (dish.tags && dish.tags.length > 0) {
+    tagsSection.hidden = false;
+    document.getElementById('modal-tags').innerHTML =
+      dish.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+  } else {
+    tagsSection.hidden = true;
+  }
+
+  modal.hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeRecipe() {
+  document.getElementById('recipe-modal').hidden = true;
+  document.body.style.overflow = '';
+}
+
+// 双向链接：从菜谱 modal 直接把菜加到历史（默认"刚刚"+手动状态）
+function quickRecordDish() {
+  const dishName = document.getElementById('modal-title').textContent;
+  if (!dishName) return;
+  const history = loadHistory();
+  const today = new Date().toISOString().slice(0, 10);
+  history.push({
+    dish: dishName,
+    date: today,
+    status: 'manual',
+    meal: null,
+  });
+  saveHistory(history);
+  bumpScoreJS(loadScoresJS(), dishName, 'cooked');
+  closeRecipe();
+  showToast(`✅ 已记录「${dishName}」（${today}）`);
+}
+
+// ============ 分享 + 反馈 ============
+function shareApp() {
+  const url = window.location.href;
+
+  // 本地文件检测：file:// 开头的 URL 不能分享给朋友
+  if (url.startsWith('file://')) {
+    alert(
+      '⚠️ 你现在打开的是本地文件，还不能分享给朋友！\n\n' +
+      '需要先把 app.html 部署到网上：\n\n' +
+      '1. 浏览器打开 https://app.netlify.com/drop\n' +
+      '2. 把 app.html 拖进去\n' +
+      '3. 等 5 秒，它给你一个公开链接\n' +
+      '4. 在浏览器打开那个链接，再点分享\n\n' +
+      '（本地地址 ' + url.substring(0, 50) + '... 只有你电脑能打开）'
+    );
+    return;
+  }
+
+  const text = '推荐一个超好用的『今天吃什么』工具——94 道家常菜随机抽，还能看菜谱！';
+
+  if (navigator.share) {
+    navigator.share({ title: '今天吃什么', text, url }).catch(() => {});
+  } else if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      alert('✅ 链接已复制！\n\n' + url + '\n\n粘贴给朋友即可');
+    }).catch(() => {
+      prompt('复制这个链接分享给朋友：', url);
+    });
+  } else {
+    prompt('复制这个链接分享给朋友：', url);
+  }
+}
+
+const FEEDBACK_KEY = 'what-to-eat-feedback';
+
+function openFeedback() {
+  document.getElementById('feedback-modal').hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFeedback() {
+  document.getElementById('feedback-modal').hidden = true;
+  document.body.style.overflow = '';
+}
+
+// ============ Day 14.2：一键复制微信号 ============
+function copyWechat() {
+  const id = document.getElementById('wechat-id-text').textContent.trim();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(id).then(showCopiedTip).catch(() => fallbackCopy(id));
+  } else {
+    fallbackCopy(id);
+  }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showCopiedTip();
+  } catch (e) {
+    alert('复制失败，请手动长按选择：' + text);
+  }
+  document.body.removeChild(ta);
+}
+function showCopiedTip() {
+  const tip = document.getElementById('wechat-copied-tip');
+  if (!tip) return;
+  tip.style.display = 'block';
+  clearTimeout(showCopiedTip._t);
+  showCopiedTip._t = setTimeout(() => { tip.style.display = 'none'; }, 2000);
+}
+
+function submitFeedback() {
+  const text = document.getElementById('feedback-input').value.trim();
+  if (!text) {
+    alert('请先输入内容');
+    return;
+  }
+  const list = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
+  list.push({
+    text,
+    time: new Date().toISOString(),
+    ua: (navigator.userAgent || '').substring(0, 80),
+  });
+  localStorage.setItem(FEEDBACK_KEY, JSON.stringify(list));
+  document.getElementById('feedback-input').value = '';
+  alert('✅ 谢谢你的反馈！\n\n已保存到本地');
+}
+
+function viewFeedback() {
+  const list = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
+  if (list.length === 0) {
+    alert('还没有收到反馈');
+    return;
+  }
+  let out = `📬 共收到 ${list.length} 条反馈：\n\n`;
+  list.forEach((f, i) => {
+    out += `${i + 1}. [${f.time.substring(0, 10)}]\n   ${f.text}\n\n`;
+  });
+  out += '\n（要复制：在终端用浏览器开发者工具的 Application > Local Storage 查看）';
+  alert(out);
+}
+
+// 在 feedback modal 里以列表形式展示已提交的反馈（替代 alert 弹窗）
+// 把反馈作为 GitHub Issue 提交（开发者真正能收到）
+// 安全设计：不需要 token，浏览器跳转到 GitHub Issues 创建页（预填 title + body）
+//          用户在 GitHub 上登录后点"Submit new issue" → 自动在 repo 创建 issue
+//          整个流程 GitHub 处理认证，不暴露任何 secret
+const GITHUB_REPO_FOR_FEEDBACK = 'qinqin1226525/what-to-eat';
+
+function submitFeedbackToGitHub() {
+  const text = document.getElementById('feedback-input').value.trim();
+  if (!text) {
+    alert('请先输入反馈');
+    return;
+  }
+  // 先本地存一份（万一 GitHub 没提交成功，用户也不丢内容）
+  submitFeedback();
+  // 构建 GitHub Issue 创建 URL（带预填 title + body）
+  const title = `[用户反馈] ${text.split('\n')[0].substring(0, 60)}`;
+  const body = [
+    text,
+    '',
+    '---',
+    '',
+    '*来自 iPhone PWA 用户*',
+    `*提交时间: ${new Date().toLocaleString('zh-CN')}*`,
+    `*User-Agent: ${(navigator.userAgent || '').substring(0, 200)}*`,
+  ].join('\n');
+  const url = `https://github.com/${GITHUB_REPO_FOR_FEEDBACK}/issues/new`
+    + `?title=${encodeURIComponent(title)}`
+    + `&body=${encodeURIComponent(body)}`
+    + `&labels=${encodeURIComponent('user-feedback')}`;
+  // 用 _blank 打开新 tab，让用户自己确认提交
+  const newWindow = window.open(url, '_blank');
+  if (!newWindow) {
+    // 弹窗被拦截的兜底：提示用户手动复制
+    alert('浏览器拦截了新窗口。\n\n请手动打开：\n' + url);
+  } else {
+    showToast('✅ 反馈已存本地 + 已打开 GitHub Issues 页面');
+  }
+}
+
+function toggleFeedbackList() {
+  const wrap = document.getElementById('feedback-list-wrap');
+  if (!wrap) return;
+  if (!wrap.hidden) {
+    wrap.hidden = true;
+    return;
+  }
+  const list = JSON.parse(localStorage.getItem(FEEDBACK_KEY) || '[]');
+  if (list.length === 0) {
+    wrap.innerHTML = '<div class="empty" style="font-size:14px;padding:20px;">还没有提交过反馈 ✨</div>';
+    wrap.hidden = false;
+    return;
+  }
+  // 按时间倒序
+  const sorted = list.slice().reverse();
+  let html = `<div style="background:#fdf6ec;border-radius:10px;padding:12px;border-left:3px solid #e85d04;">
+    <div style="font-weight:600;font-size:14px;color:#5d4500;margin-bottom:8px;">📬 共 ${list.length} 条反馈</div>`;
+  sorted.forEach((f, i) => {
+    const date = f.time ? f.time.substring(0, 16).replace('T', ' ') : '';
+    html += `<div style="border-top:1px dashed #f0ebe0;padding-top:8px;margin-top:8px;font-size:13px;line-height:1.6;">
+      <div style="color:#888;font-size:11px;">#${list.length - i} · ${date}</div>
+      <div style="color:#333;margin-top:2px;">${escapeHtml(f.text)}</div>
+    </div>`;
+  });
+  html += '<div style="font-size:11px;color:#aaa;margin-top:8px;text-align:center;">💡 只存在你手机本地（开发者看不到）</div>';
+  html += '</div>';
+  wrap.innerHTML = html;
+  wrap.hidden = false;
+}
+
+// ============ Day 11：自催化学习 ============
+const SCORES_KEY = 'what-to-eat-scores';
+
+function loadScores() {
+  try { return JSON.parse(storeGet(SCORES_KEY) || '{}'); }
+  catch (e) { return {}; }
+}
+
+function saveScores(scores) {
+  storeSet(SCORES_KEY, JSON.stringify(scores));
+}
+
+function computeTagAffinities(scores, dishes) {
+  const tagPos = {}, tagNeg = {};
+  for (const d of (dishes || [])) {
+    if (!d) continue;  // 防御：dishes 数组可能含 undefined
+    const s = scores[d.name] || {};
+    const pos = (s.likes || 0) + (s.cooks || 0);
+    const neg = (s.dislikes || 0);
+    if (pos + neg === 0) continue;
+    for (const t of (d.tags || [])) {
+      tagPos[t] = (tagPos[t] || 0) + pos;
+      tagNeg[t] = (tagNeg[t] || 0) + neg;
+    }
+  }
+  const aff = {};
+  const all = new Set([...Object.keys(tagPos), ...Object.keys(tagNeg)]);
+  for (const t of all) {
+    const total = (tagPos[t] || 0) + (tagNeg[t] || 0);
+    if (total < 3) { aff[t] = 0; continue; }
+    aff[t] = ((tagPos[t] / total) - 0.5) * 2;
+  }
+  return aff;
+}
+
+function weightedChoice(candidates, scores, tagAff) {
+  if (!candidates || candidates.length === 0) return null;
+  const weights = candidates.map(d => {
+    if (!d) return 0.1;  // 防御
+    const s = scores[d.name] || {};
+    let w = 1.0;
+    w += (s.likes || 0) * 3;
+    w += (s.cooks || 0) * 2;
+    w -= (s.dislikes || 0) * 5;
+    for (const t of (d.tags || [])) {
+      w += (tagAff[t] || 0) * 4;
+    }
+    return Math.max(w, 0.1);
+  });
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < candidates.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return candidates[i];
+  }
+  return candidates[candidates.length - 1];
+}
+
+
+// ============ Day 12：手动记录（纯自由文本 → 写 history + scores） ============
+const VALID_MEALS_JS = ["早餐", "午餐", "晚餐"];
+
+function openManualLog() {
+  const modal = document.getElementById('manual-log-modal');
+  if (!modal) {
+    alert('❌ 找不到手动记录弹弹（手动记录 modal 不存在）。请刷新页面或清缓存。');
+    return;
+  }
+  // 默认日期 = 今天
+  const dateInput = document.getElementById('manual-log-date');
+  if (dateInput && !dateInput.value) {
+    const today = new Date().toISOString().slice(0, 10);
+    dateInput.value = today;
+  }
+  modal.hidden = false;
+}
+
+// ============ Day 19：自加菜名（用户手动填自己会做的菜） ============
+const CUSTOM_DISHES_KEY = 'what-to-eat-custom-dishes';
+
+function loadCustomDishes() {
+  try {
+    const raw = storeGet(CUSTOM_DISHES_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveCustomDishes(arr) {
+  storeSet(CUSTOM_DISHES_KEY, JSON.stringify(arr));
+}
+
+function openCustomDish() {
+  const modal = document.getElementById('custom-dish-modal');
+  if (!modal) {
+    alert('❌ 找不到自加菜名弹窗（custom-dish-modal 不存在）。请刷新页面或清缓存。');
+    return;
+  }
+  // 重置输入态（保留 modal 已有的项，但角色/标签清空）
+  resetCustomDishForm();
+  renderCustomDishList();
+  modal.hidden = false;
+  // 自动聚焦菜名输入框
+  setTimeout(() => {
+    const nameInput = document.getElementById('custom-dish-name');
+    if (nameInput) nameInput.focus();
+  }, 100);
+}
+
+function closeCustomDish() {
+  const modal = document.getElementById('custom-dish-modal');
+  if (modal) modal.hidden = true;
+}
+
+function resetCustomDishForm() {
+  const nameInput = document.getElementById('custom-dish-name');
+  if (nameInput) nameInput.value = '';
+  // 清角色选择
+  document.querySelectorAll('#custom-dish-role-row .chip').forEach(c => c.classList.remove('active'));
+  // 清标签选择
+  document.querySelectorAll('#custom-dish-tag-row .chip').forEach(c => c.classList.remove('active'));
+}
+
+function selectCustomRole(chipEl) {
+  const row = chipEl.parentElement;
+  row.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  chipEl.classList.add('active');
+}
+
+function toggleCustomTag(chipEl) {
+  chipEl.classList.toggle('active');
+}
+
+function getSelectedCustomRole() {
+  const active = document.querySelector('#custom-dish-role-row .chip.active');
+  return active ? active.dataset.role : null;
+}
+
+function getSelectedCustomTags() {
+  return Array.from(document.querySelectorAll('#custom-dish-tag-row .chip.active'))
+    .map(c => c.dataset.tag);
+}
+
+function addCustomDish() {
+  const nameInput = document.getElementById('custom-dish-name');
+  const name = nameInput ? nameInput.value.trim() : '';
+  const role = getSelectedCustomRole();
+
+  if (!name) {
+    alert('⚠️ 请先填菜名');
+    if (nameInput) nameInput.focus();
+    return;
+  }
+  if (!role) {
+    alert('⚠️ 请选一个角色（主菜/汤/主食/凉菜/早餐）');
+    return;
+  }
+
+  const dishes = loadCustomDishes();
+  // 重名检查（在自定义库 + 内置库里都不能重名）
+  if (dishes.some(d => d.name === name)) {
+    alert(`❌ "${name}" 你已经加过了`);
+    return;
+  }
+  if (typeof DISHES_DATA !== 'undefined' && DISHES_DATA.some(d => d.name === name)) {
+    alert(`❌ "${name}" 已经是内置菜了，不用再加`);
+    return;
+  }
+
+  const newDish = {
+    name,
+    role,
+    tags: getSelectedCustomTags(),
+    time_minutes: 30,
+    ingredients: [],
+    custom: true,  // 标记为自定义菜
+  };
+  dishes.push(newDish);
+  saveCustomDishes(dishes);
+  resetCustomDishForm();
+  renderCustomDishList();
+  // 给个轻提示
+  flashCustomAdded(name);
+}
+
+function flashCustomAdded(name) {
+  // 不弹 alert，避免打断连续添加
+  const list = document.getElementById('custom-dish-list');
+  if (!list) return;
+  const first = list.firstElementChild;
+  if (first) {
+    first.style.transition = 'background 0.2s';
+    first.style.background = '#fff3d6';
+    setTimeout(() => { first.style.background = ''; }, 400);
+  }
+}
+
+function removeCustomDish(name) {
+  if (!confirm(`删除"${name}"？抽签时不再抽到这道菜。`)) return;
+  const dishes = loadCustomDishes().filter(d => d.name !== name);
+  saveCustomDishes(dishes);
+  renderCustomDishList();
+}
+
+function renderCustomDishList() {
+  const list = document.getElementById('custom-dish-list');
+  const count = document.getElementById('custom-dish-count');
+  if (!list) return;
+  const dishes = loadCustomDishes();
+  if (count) count.textContent = `（${dishes.length} 道）`;
+  list.innerHTML = '';
+  if (dishes.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'custom-empty';
+    empty.textContent = '还没加菜。先填上面表单，加几道你会做的 ✨';
+    list.appendChild(empty);
+    return;
+  }
+  for (const d of dishes) {
+    const card = document.createElement('div');
+    card.className = 'custom-dish-card';
+    const emoji = (typeof ROLE_EMOJI !== 'undefined' && ROLE_EMOJI[d.role]) || '🍽️';
+    const tagsStr = (d.tags && d.tags.length) ? d.tags.join(' · ') : '无标签';
+    card.innerHTML = `
+      <div class="emoji">${emoji}</div>
+      <div class="info">
+        <div class="name"></div>
+        <div class="meta"></div>
+      </div>
+      <button class="del-btn" aria-label="删除">🗑</button>
+    `;
+    card.querySelector('.name').textContent = d.name;
+    card.querySelector('.meta').textContent = `${d.role} · ${tagsStr}`;
+    card.querySelector('.del-btn').addEventListener('click', () => removeCustomDish(d.name));
+    list.appendChild(card);
+  }
+}
+
+// ============ Banner 右上角 ⋯ 菜单 ============
+function toggleMoreMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('more-menu');
+  if (!menu) return;
+  menu.hidden = !menu.hidden;
+}
+function closeMoreMenu() {
+  const menu = document.getElementById('more-menu');
+  if (menu) menu.hidden = true;
+}
+// 点击页面其他地方关闭菜单
+document.addEventListener('click', (e) => {
+  const wrap = e.target.closest('.more-menu-wrap');
+  if (!wrap) closeMoreMenu();
+});
+
+function closeManualLog() {
+  document.getElementById('manual-log-modal').hidden = true;
+}
+
+function openLogbook() {
+  renderLogbook();
+  document.getElementById('logbook-modal').hidden = false;
+}
+
+function closeLogbook() {
+  document.getElementById('logbook-modal').hidden = true;
+}
+
+// 从 logbook 底部入口调用：关闭 logbook + 打开手动记录 modal
+// （让用户连加几道菜时不用反复进出 modal）
+function addAnotherDish() {
+  window.__fromLogbookAddAnother = true;  // saveManualLog 后自动回 logbook
+  closeLogbook();
+  openManualLog();
+}
+
+function viewLog() {
+  closeManualLog();
+  openLogbook();
+}
+
+// 解析一餐的输入：逗号分隔、去空白、同餐去重
+function parseMealInput(str) {
+  if (!str) return [];
+  const seen = new Set();
+  const out = [];
+  for (const raw of String(str).split(',')) {
+    const name = raw.trim();
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    out.push(name);
+  }
+  return out;
+}
+
+function saveManualLog() {
+  const dateStr = document.getElementById('manual-log-date').value;
+  const meals = {
+    '早餐': document.getElementById('manual-log-breakfast').value,
+    '午餐': document.getElementById('manual-log-lunch').value,
+    '晚餐': document.getElementById('manual-log-dinner').value,
+  };
+  // 全部空就不保存
+  const allEmpty = Object.values(meals).every(v => !v || !v.trim());
+  if (allEmpty) {
+    alert('⚠️ 三餐都空，至少填一餐吧');
+    return;
+  }
+
+  const history = loadHistory();
+  const scores = loadScoresJS();
+  let written = 0;
+  const detail = [];
+  for (const mealKey of VALID_MEALS_JS) {
+    const names = parseMealInput(meals[mealKey]);
+    for (const name of names) {
+      history.push({ dish: name, date: dateStr, status: 'manual', meal: mealKey });
+      bumpScoreJS(scores, name, 'cooked');
+      written++;
+      detail.push(`  · ${mealKey}：${name}`);
+    }
+  }
+  saveHistory(history);
+  saveScoresJS(scores);
+
+  // 清空输入
+  document.getElementById('manual-log-breakfast').value = '';
+  document.getElementById('manual-log-lunch').value = '';
+  document.getElementById('manual-log-dinner').value = '';
+
+  updateHistoryHint();
+  closeManualLog();
+
+  alert(`✅ 已保存 ${written} 条手动记录（${dateStr}）\n\n${detail.join('\n')}\n\n已写入历史 + 自催化评分（cooks +1）`);
+
+  // 如果用户从 logbook「➕ 再加一道」进来，自动重开 logbook（无缝连加）
+  if (window.__fromLogbookAddAnother) {
+    window.__fromLogbookAddAnother = false;
+    openLogbook();
+  }
+}
+
+// ============ Day 12：scores 的 JS 端读写（与 history 同款 localStorage） ============
+// SCORES_KEY 已在上面定义过
+function loadScoresJS() {
+  try { return JSON.parse(storeGet(SCORES_KEY) || '{}'); }
+  catch (e) { return {}; }
+}
+function saveScoresJS(s) { storeSet(SCORES_KEY, JSON.stringify(s)); }
+function bumpScoreJS(scores, dishName, action) {
+  if (!scores[dishName]) scores[dishName] = { likes: 0, dislikes: 0, cooks: 0 };
+  const key = { like: 'likes', dislike: 'dislikes', cooked: 'cooks' }[action];
+  if (key) scores[dishName][key] += 1;
+}
+
+// ============ 记录本视图 ============
+function renderLogbook() {
+  const wrap = document.getElementById('logbook-content');
+  wrap.innerHTML = '';
+  const history = loadHistory();
+  if (history.length === 0) {
+    wrap.innerHTML = '<div class="empty">还没有任何记录 ✨<br>先抽一套菜，或手动记录今天吃了啥</div>';
+    return;
+  }
+  // 按 date 倒序，同一天内 manual 在前、confirmed 在后
+  const sorted = history.slice().reverse();
+  let currentDate = null;
+  const MEAL_ORDER = ['早餐', '午餐', '晚餐'];
+  const MEAL_EMOJI = { '早餐': '☀️', '午餐': '🌞', '晚餐': '🌙' };
+
+  sorted.forEach((entry, i) => {
+    if (entry.date !== currentDate) {
+      currentDate = entry.date;
+      const h = document.createElement('div');
+      h.style.cssText = "padding:14px 0 6px 0;font-size:14px;color:#5d4500;font-weight:600;border-bottom:1px solid #f0ebe0;margin-bottom:4px;";
+      h.textContent = `📅 ${entry.date}`;
+      wrap.appendChild(h);
+    }
+    const row = document.createElement('div');
+    row.style.cssText = "padding:8px 12px;font-size:14px;color:#444;display:flex;align-items:center;gap:8px;";
+    let badge = '';
+    if (entry.status === 'manual') {
+      badge = `<span style="background:#e85d04;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">手动</span>`;
+    } else if (entry.status === 'skipped') {
+      badge = `<span style="background:#888;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">跳过</span>`;
+    } else {
+      badge = `<span style="background:#a8a8a8;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">抽签</span>`;
+    }
+    const mealLabel = entry.meal ? `${MEAL_EMOJI[entry.meal] || ''} ${entry.meal}` : '🍽️';
+    // 菜名 = 可点击链接：如果在 DISHES_DATA 里 → 打开菜谱；否则弹"暂无菜谱"
+    // （手动记录里的自定义名会显示 toast 提示）
+    const dishNameSafe = escapeHtml(entry.dish);
+    const dishNameAttr = escapeHtml(entry.dish).replace(/"/g, '&quot;');
+    row.innerHTML = `${badge}<span style="color:#888;font-size:13px;min-width:80px;">${mealLabel}</span><span class="logbook-dish-link" data-dish="${dishNameAttr}" style="flex:1;cursor:pointer;color:#e85d04;text-decoration:underline;">${dishNameSafe}</span>`;
+    const editBtn = document.createElement('span');
+    editBtn.textContent = '✏️';
+    editBtn.title = '编辑这条';
+    editBtn.style.cssText = "cursor:pointer;padding:4px 8px;font-size:14px;color:#888;border-radius:6px;-webkit-tap-highlight-color:transparent;";
+    // 用 sorted 索引找原 history 索引（sorted 是 reverse 的）
+    const historyIdx = sorted.length - 1 - i;
+    editBtn.addEventListener('click', () => openEditLog(historyIdx));
+    row.appendChild(editBtn);
+
+    // 删除按钮（🗑️）：弹确认 → 从 history 移除该条 → 重渲染
+    const delBtn = document.createElement('span');
+    delBtn.textContent = '🗑️';
+    delBtn.title = '删除这条';
+    delBtn.style.cssText = "cursor:pointer;padding:4px 8px;font-size:14px;color:#c9302c;border-radius:6px;-webkit-tap-highlight-color:transparent;";
+    delBtn.addEventListener('click', () => {
+      if (confirm(`删除「${entry.dish}」这条记录？`)) {
+        const h = loadHistory();
+        h.splice(historyIdx, 1);
+        saveHistory(h);
+        updateHistoryHint();
+        renderLogbook();  // 重渲染
+      }
+    });
+    row.appendChild(delBtn);
+
+    wrap.appendChild(row);
+  });
+
+  // 菜名点击 → 打开菜谱（或提示暂无菜谱）
+  wrap.querySelectorAll('.logbook-dish-link').forEach(el => {
+    el.addEventListener('click', () => {
+      const dishName = el.dataset.dish;
+      const dish = findDishByName(dishName);
+      if (dish) {
+        showRecipe(dish);
+      } else {
+        showToast(`「${dishName}」暂无菜谱（自定义名称）`);
+      }
+    });
+  });
+}
+
+// ============ 编辑单条记录（Day 16.2） ============
+// 用 history 索引定位（修复 JSON.parse 返回新对象引用导致 indexOf 永远 -1）
+let _editingIdx = -1;
+
+function openEditLog(historyIdx) {
+  _editingIdx = historyIdx;
+  const history = loadHistory();
+  const entry = history[historyIdx];
+  if (!entry) {
+    alert('记录已被删除');
+    return;
+  }
+  const m = document.getElementById('edit-log-modal');
+  if (!m) return;
+  document.getElementById('edit-log-date').value = entry.date || '';
+  document.getElementById('edit-log-dish').value = entry.dish || '';
+  m.querySelectorAll('[data-edit-meal] .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.meal === entry.meal);
+  });
+  m.hidden = false;
+}
+
+function closeEditLog() {
+  _editingIdx = -1;
+  const m = document.getElementById('edit-log-modal');
+  if (m) m.hidden = true;
+}
+
+function saveEditLog() {
+  if (_editingIdx < 0) { closeEditLog(); return; }
+  const date = document.getElementById('edit-log-date').value;
+  const dish = document.getElementById('edit-log-dish').value.trim();
+  const mealChip = document.querySelector('#edit-log-modal [data-edit-meal] .chip.active');
+  const meal = mealChip ? mealChip.dataset.meal : '';
+
+  if (!date || !dish) {
+    alert('日期和菜名不能为空');
+    return;
+  }
+
+  const history = loadHistory();
+  if (_editingIdx >= history.length) {
+    alert('原记录已被删除（可能刷新前手动清空）');
+    closeEditLog();
+    return;
+  }
+
+  // 原地更新：保留 status / suggested 等其他字段
+  const old = history[_editingIdx];
+  history[_editingIdx] = Object.assign({}, old, { date, dish, meal });
+  saveHistory(history);
+  renderLogbook();
+  closeEditLog();
+  showToast('✅ 已更新');
+}
+
+// 编辑 modal 的餐次 chip 单选
+function handleEditMealClick(e) {
+  const chip = e.target.closest('#edit-log-modal [data-edit-meal] .chip');
+  if (!chip) return;
+  chip.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+}
+
+
+// ============ Day 14：月度报告 ============
+function getCurrentMonth() {
+  const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth() + 1 };
+}
+function filterHistoryByMonth(history, year, month) {
+  const prefix = `${year}-${String(month).padStart(2, '0')}-`;
+  return history.filter(e => e.date && e.date.startsWith(prefix));
+}
+function topDishes(history, n) {
+  const counts = {};
+  for (const e of history) { counts[e.dish] = (counts[e.dish] || 0) + 1; }
+  return Object.entries(counts)
+    .map(([dish, count]) => ({ dish, count }))
+    .sort((a, b) => b.count - a.count || a.dish.localeCompare(b.dish))
+    .slice(0, n || 5);
+}
+function mealDistribution(history) {
+  const dist = { '早餐': 0, '午餐': 0, '晚餐': 0, '未指定': 0 };
+  for (const e of history) { const k = e.meal || '未指定'; dist[k] = (dist[k] || 0) + 1; }
+  return dist;
+}
+function statusDistribution(history) {
+  const dist = { confirmed: 0, manual: 0, skipped: 0 };
+  for (const e of history) { const k = e.status || 'confirmed'; dist[k] = (dist[k] || 0) + 1; }
+  return dist;
+}
+function uniqueDishCount(history) {
+  const set = new Set(); for (const e of history) set.add(e.dish); return set.size;
+}
+function tagDistribution(history, dishesData) {
+  const nameToTags = {};
+  for (const d of (dishesData || [])) {
+    if (!d) continue;  // 防御
+    nameToTags[d.name] = d.tags || [];
+  }
+  const counts = {};
+  for (const e of history) {
+    const tags = nameToTags[e.dish] || [];
+    for (const t of tags) counts[t] = (counts[t] || 0) + 1;
+  }
+  return Object.entries(counts)
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+function renderMonthlyReport() {
+  const wrap = document.getElementById('monthly-report-content');
+  const meta = document.getElementById('monthly-report-meta');
+  const title = document.getElementById('monthly-report-title');
+  const { year, month } = getCurrentMonth();
+  title.textContent = `${year}年${month}月 · 饮食报告`;
+  const allHistory = loadHistory();
+  const monthHistory = filterHistoryByMonth(allHistory, year, month);
+  meta.textContent = `本月共 ${allHistory.length} 条历史 · 本月 ${monthHistory.length} 条`;
+
+  if (monthHistory.length === 0) {
+    wrap.innerHTML = '<div class="report-empty">本月还没有记录 ✨<br><br>先去抽几套菜,或者手动记录今天吃了啥,<br>下个月再来这里看报告</div>';
+    return;
+  }
+
+  // === 概览数字 ===
+  const dishCount = uniqueDishCount(monthHistory);
+  const activeDays = new Set(monthHistory.map(e => e.date)).size;
+  const mealDist = mealDistribution(monthHistory);
+  const totalMeals = mealDist['早餐'] + mealDist['午餐'] + mealDist['晚餐'];
+  const avgPerDay = activeDays > 0 ? (totalMeals / activeDays).toFixed(1) : '0';
+
+  // === Top 5 菜 ===
+  const top = topDishes(monthHistory, 5);
+
+  // === 三餐分布 ===
+  const maxMeal = Math.max(mealDist['早餐'], mealDist['午餐'], mealDist['晚餐'], 1);
+
+  // === 来源 ===
+  const statusDist = statusDistribution(monthHistory);
+  const sourceTotal = statusDist.confirmed + statusDist.manual + statusDist.skipped;
+
+  // === 标签 Top 5 ===
+  const tagDist = tagDistribution(monthHistory, DISHES_DATA).slice(0, 5);
+
+  wrap.innerHTML = `
+    <section>
+      <h3>📈 数据概览</h3>
+      <div class="report-stats">
+        <div class="report-stat-card">
+          <div class="report-stat-num">${dishCount}</div>
+          <div class="report-stat-label">本月吃了(道)</div>
+        </div>
+        <div class="report-stat-card">
+          <div class="report-stat-num">${activeDays}</div>
+          <div class="report-stat-label">有记录的天数</div>
+        </div>
+        <div class="report-stat-card">
+          <div class="report-stat-num">${avgPerDay}</div>
+          <div class="report-stat-label">平均每天(餐)</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h3>🏆 本月 Top 5</h3>
+      <ol class="report-top-list">
+        ${top.map((t, i) => `
+          <li>
+            <span class="report-rank ${i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : ''}">${i + 1}</span>
+            <span class="report-dish-name">${escapeHtml(t.dish)}</span>
+            <span class="report-dish-count">${t.count} 次</span>
+          </li>
+        `).join('')}
+      </ol>
+    </section>
+
+    <section>
+      <h3>🍽️ 三餐分布</h3>
+      <div class="report-bar-row">
+        <span class="report-bar-label">☀️ 早餐</span>
+        <div class="report-bar-track"><div class="report-bar-fill" style="width:${(mealDist['早餐']/maxMeal)*100}%"></div></div>
+        <span class="report-bar-num">${mealDist['早餐']}</span>
+      </div>
+      <div class="report-bar-row">
+        <span class="report-bar-label">🌞 午餐</span>
+        <div class="report-bar-track"><div class="report-bar-fill" style="width:${(mealDist['午餐']/maxMeal)*100}%"></div></div>
+        <span class="report-bar-num">${mealDist['午餐']}</span>
+      </div>
+      <div class="report-bar-row">
+        <span class="report-bar-label">🌙 晚餐</span>
+        <div class="report-bar-track"><div class="report-bar-fill" style="width:${(mealDist['晚餐']/maxMeal)*100}%"></div></div>
+        <span class="report-bar-num">${mealDist['晚餐']}</span>
+      </div>
+      ${mealDist['未指定'] > 0 ? `<div class="report-bar-row">
+        <span class="report-bar-label" style="color:#888;">🍽️ 未指定</span>
+        <div class="report-bar-track"><div class="report-bar-fill" style="width:${(mealDist['未指定']/maxMeal)*100}%;background:#ccc"></div></div>
+        <span class="report-bar-num">${mealDist['未指定']}</span>
+      </div>` : ''}
+    </section>
+
+    <section>
+      <h3>📝 记录来源</h3>
+      <div class="report-source-row"><span class="report-source-badge confirmed">🎲 抽签</span><span>${statusDist.confirmed} 条 (${sourceTotal ? Math.round(statusDist.confirmed/sourceTotal*100) : 0}%)</span></div>
+      <div class="report-source-row"><span class="report-source-badge manual">📝 手动</span><span>${statusDist.manual} 条 (${sourceTotal ? Math.round(statusDist.manual/sourceTotal*100) : 0}%)</span></div>
+      <div class="report-source-row"><span class="report-source-badge skipped">⏭️ 跳过</span><span>${statusDist.skipped} 条 (${sourceTotal ? Math.round(statusDist.skipped/sourceTotal*100) : 0}%)</span></div>
+    </section>
+
+    ${tagDist.length > 0 ? `<section>
+      <h3>🏷️ 本月标签偏好</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${tagDist.map(t => `<span style="background:#fff5e8;color:#e85d04;padding:6px 14px;border-radius:14px;font-size:13px;font-weight:600;">${escapeHtml(t.tag)} <span style="color:#888;font-weight:400;">${t.count}</span></span>`).join('')}
+      </div>
+    </section>` : ''}
+  `;
+}
+
+function openMonthlyReport() {
+  renderMonthlyReport();
+  document.getElementById('monthly-report-modal').hidden = false;
+}
+function closeMonthlyReport() {
+  document.getElementById('monthly-report-modal').hidden = true;
+}
+
+// ============ 主逻辑 ============
+class Dish {
+  constructor(d) {
+    this.name = d.name;
+    this.time_minutes = d.time_minutes;
+    this.role = d.role;
+    this.tags = d.tags || [];
+    this.ingredients = d.ingredients || [];
+    this.seasonings = d.seasonings || [];
+    this.steps = d.steps || [];
+    this.tip = d.tip || "";
+    this.nutrition = d.nutrition || [];
+  }
+}
+
+function getDishes() {
+  // Day 19：合并内置菜 + 用户自加菜名
+  const builtin = DISHES_DATA.map(d => new Dish(d));
+  const custom = loadCustomDishes().map(d => new Dish(d));
+  return builtin.concat(custom);
+}
+
+// ============ Day 10.2：每道菜的内联确认按钮 ============
+// 不弹窗。每道菜下面直接放 4 个按钮：✅ 就做 / 🔄 换一道 / 🍜 别的 / ❌ 跳过
+// 点完直接写历史（status 区分），用户可继续操作其他菜或重新抽
+//
+// 数据流：
+// 1. drawCombo/drawThreeMeals/drawKidCombo 抽出菜 → 渲染带按钮的 dish-row
+// 2. 用户对每道菜点 4 个按钮之一 → 即时写历史 + 标记该菜状态
+// 3. 用户点「再抽一套」→ 重新抽（已确认的菜留历史；未确认的菜不写）
+
+// 渲染带内联按钮的菜
+function buildDishRowWithConfirm(dish, role, slotId, onAction) {
+  if (!dish) return null;
+  const row = document.createElement('div');
+  row.className = 'dish-row';
+  row.id = slotId;
+  row.dataset.dishName = dish.name;
+  row.dataset.role = role;
+  row.innerHTML = `
+    <div class="dish-emoji">${ROLE_EMOJI[role] || '•'}</div>
+    <div class="dish-info">
+      <div class="dish-name">${escapeHtml(dish.name)}</div>
+      <div class="dish-meta">${role} · 约 ${dish.time_minutes} 分钟</div>
+      <div class="dish-status" id="${slotId}-status" style="margin-top:6px;font-size:13px;color:#888;"></div>
+    </div>
+    <div class="dish-actions" style="display:flex;flex-direction:column;gap:6px;padding:6px 0;">
+      <button class="confirm-btn" data-action="confirmed" style="background:#4caf50;color:white;border:none;padding:6px 10px;border-radius:6px;font-size:13px;cursor:pointer;">✅ 就做</button>
+      <button class="confirm-btn" data-action="redraw" style="background:#fff7e6;color:#5a4a3a;border:1px solid #e8dcc4;padding:6px 10px;border-radius:6px;font-size:13px;cursor:pointer;">🔄 换一道</button>
+      <button class="confirm-btn" data-action="manual" style="background:#fff;color:#e85d04;border:1px solid #e85d04;padding:6px 10px;border-radius:6px;font-size:13px;cursor:pointer;">🍜 别的</button>
+      <button class="confirm-btn" data-action="skipped" style="background:#fff;color:#888;border:1px solid #e8dcc4;padding:6px 10px;border-radius:6px;font-size:13px;cursor:pointer;">❌ 跳过</button>
+    </div>`;
+  // 整行可点查看菜谱（但不要点按钮时触发）
+  const info = row.querySelector('.dish-info');
+  info.addEventListener('click', () => showRecipe(dish));
+
+  // 绑定按钮
+  row.querySelectorAll('.confirm-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      onAction(btn.dataset.action, dish, row);
+    });
+  });
+
+  return row;
+}
+
+// 给某道菜标状态（写历史 + UI 高亮）
+// Day 15: toggle 撤回 - 再点同一按钮 = 撤回刚写的历史
+// opts.forceReplace = true: 即使 action 相同也强制替换（用于 🍜 别的 弹框二次输入）
+function applyDecisionToSlot(row, dish, action, suggestedName, opts = {}) {
+  const history = loadHistory();
+  const prevIndex = row.dataset.historyIndex;
+  const prevState = row.dataset.state;
+  // 1) 撤回路径：row 上已有同 action → 删它 + 清状态（除非强制替换）
+  if (!opts.forceReplace && prevIndex !== undefined && prevState === action) {
+    removeHistoryAt(history, parseInt(prevIndex, 10));
+    saveHistory(history);
+    clearSlotState(row);
+    updateHistoryHint();
+    showToast('↩️ 已撤回');
+    return;
+  }
+  // 2) 切换 action / 强制替换：先撤回旧的（如果有）
+  if (prevIndex !== undefined && prevState && (prevState !== action || opts.forceReplace)) {
+    removeHistoryAt(history, parseInt(prevIndex, 10));
+  }
+  // 3) 写新历史
+  let msg = '';
+  if (action === 'confirmed') {
+    addToHistoryWithStatus(history, dish.name, 'confirmed', null);
+    msg = '✅ 已记录：就做这个';
+  } else if (action === 'skipped') {
+    addToHistoryWithStatus(history, '没做饭', 'skipped', dish.name);
+    msg = '❌ 已记录：跳过';
+  } else if (action === 'manual') {
+    addToHistoryWithStatus(history, suggestedName, 'manual', dish.name);
+    msg = `🍜 已记录：实际吃了 ${suggestedName}`;
+  }
+  saveHistory(history);
+  // 记录刚才写到哪一行（撤回时用）
+  row.dataset.historyIndex = String(history.length - 1);
+  row.dataset.state = action;
+  markSlotState(row, action, msg);
+  updateHistoryHint();
+}
+
+function markSlotState(row, action, msg) {
+  const status = document.getElementById(row.id + '-status');
+  if (status) {
+    status.textContent = msg;
+    status.style.color = '#2e7d32';
+    status.style.fontWeight = '600';
+  }
+  // 被点按钮变 "↩️ 撤回"，其他按钮半透明提示
+  row.querySelectorAll('.confirm-btn').forEach(b => {
+    b.disabled = false;
+    b.style.opacity = '0.5';
+    if (b.dataset.action === action) {
+      b.style.opacity = '1';
+      b.textContent = b.dataset.action === 'confirmed' ? '↩️ 撤回就做'
+                     : b.dataset.action === 'skipped'  ? '↩️ 撤回跳过'
+                     : /* manual */                        '↩️ 撤回别的';
+    } else if (b.dataset.action === 'redraw') {
+      // 换一道按钮：抽出来后状态会重置，这里保持原样
+      b.style.opacity = '0.5';
+    }
+  });
+  row.style.background = '#f0f9f0';
+}
+
+function clearSlotState(row) {
+  const status = document.getElementById(row.id + '-status');
+  if (status) {
+    status.textContent = '';
+    status.style.color = '#888';
+    status.style.fontWeight = '';
+  }
+  // 恢复所有按钮原状
+  row.querySelectorAll('.confirm-btn').forEach(b => {
+    b.disabled = false;
+    b.style.opacity = '1';
+    if (b.dataset.action === 'confirmed') b.textContent = '✅ 就做';
+    else if (b.dataset.action === 'skipped') b.textContent = '❌ 跳过';
+    else if (b.dataset.action === 'manual') b.textContent = '🍜 别的';
+    else if (b.dataset.action === 'redraw') b.textContent = '🔄 换一道';
+  });
+  delete row.dataset.historyIndex;
+  delete row.dataset.state;
+  row.style.background = '';
+}
+
+// 弹「吃别的」输入层（在菜下方插入）
+// Day 19.1：模糊查找（菜名/角色/标签 任一字段 contains query，模块级供 verify）
+function fuzzyMatchDishes(query) {
+  const q = (query || '').trim().toLowerCase();
+  if (!q) {
+    return getDishes().map(d => ({dish: d, matchedField: null}));
+  }
+  const out = [];
+  for (const d of getDishes()) {
+    const name = (d.name || '').toLowerCase();
+    const role = (d.role || '').toLowerCase();
+    const tags = (d.tags || []).join(' ').toLowerCase();
+    let matchedField = null;
+    if (name.includes(q)) matchedField = 'name';
+    else if (role.includes(q)) matchedField = 'role';
+    else if (tags.includes(q)) matchedField = 'tags';
+    if (matchedField) out.push({dish: d, matchedField});
+  }
+  return out;
+}
+
+function promptManualDish(row, originalDish) {
+  // 移除已有输入框
+  const existing = row.parentNode.querySelector('.manual-input-wrap');
+  if (existing) existing.remove();
+
+  const wrap = document.createElement('div');
+  wrap.className = 'manual-input-wrap';
+  wrap.style.cssText = "background:#fff7e6;padding:12px;border-radius:8px;margin:8px 0 16px 0;border:1px solid #e8dcc4;";
+  wrap.innerHTML = `
+    <div style="font-size:13px;color:#888;margin-bottom:6px;">🍜 实际吃了什么？</div>
+    <input type="text" class="manual-filter" placeholder="🔍 打一个字筛选（菜名/角色/标签）" style="width:100%;padding:8px;border:1px solid #e8dcc4;border-radius:6px;font-size:13px;margin-bottom:6px;">
+    <div class="manual-dish-list" style="max-height:120px;overflow-y:auto;border:1px solid #e8dcc4;border-radius:6px;padding:6px;margin-bottom:8px;background:white;"></div>
+    <input type="text" class="manual-input" placeholder="或者手动输入" style="width:100%;padding:8px;border:1px solid #e8dcc4;border-radius:6px;font-size:13px;">
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="manual-confirm" style="flex:1;background:#e85d04;color:white;border:none;padding:8px;border-radius:6px;font-size:13px;cursor:pointer;">确认</button>
+      <button class="manual-cancel" style="background:#fff;color:#888;border:1px solid #e8dcc4;padding:8px 12px;border-radius:6px;font-size:13px;cursor:pointer;">取消</button>
+    </div>`;
+
+  const list = wrap.querySelector('.manual-dish-list');
+  const filterInput = wrap.querySelector('.manual-filter');
+  const input = wrap.querySelector('.manual-input');
+
+  // 模糊匹配：复用模块级 fuzzyMatchDishes（菜名/role/tags 任一字段 contains query）
+  // 保留 filterDishes 别名，便于阅读
+  const filterDishes = fuzzyMatchDishes;
+
+  function renderList(query) {
+    const matches = filterDishes(query);
+    list.innerHTML = '';
+    if (matches.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.cssText = "padding:8px 6px;color:#aaa;font-size:13px;text-align:center;";
+      empty.textContent = '没有匹配的菜';
+      list.appendChild(empty);
+      return;
+    }
+    for (const {dish} of matches) {
+      const item = document.createElement('div');
+      item.style.cssText = "padding:4px 6px;cursor:pointer;border-radius:4px;font-size:13px;";
+      item.textContent = `${ROLE_EMOJI[dish.role] || '•'} ${dish.name}`;
+      item.onmouseenter = () => item.style.background = '#fdf6e3';
+      item.onmouseleave = () => item.style.background = '';
+      item.onclick = () => { input.value = dish.name; };
+      list.appendChild(item);
+    }
+  }
+
+  // 实时过滤
+  filterInput.addEventListener('input', e => renderList(e.target.value));
+  // 初始渲染（全部）
+  renderList('');
+
+  const confirm = wrap.querySelector('.manual-confirm');
+  const cancel = wrap.querySelector('.manual-cancel');
+  confirm.onclick = () => {
+    const val = input.value.trim();
+    if (!val) { alert('请输入或选择菜名'); return; }
+    // Day 15: 用 forceReplace 区分 toggle(撤回) vs 替换菜名
+    applyDecisionToSlot(row, originalDish, 'manual', val, {forceReplace: true});
+    wrap.remove();
+  };
+  cancel.onclick = () => wrap.remove();
+  input.onkeydown = e => { if (e.key === 'Enter') confirm.onclick(); };
+  filterInput.onkeydown = e => {
+    // 在 filter 框按 Enter → 第一个匹配项填入 input
+    if (e.key === 'Enter') {
+      const matches = filterDishes(filterInput.value);
+      if (matches.length > 0) input.value = matches[0].dish.name;
+      input.focus();
+    }
+  };
+
+  row.parentNode.insertBefore(wrap, row.nextSibling);
+  filterInput.focus();
+}
+
+// 处理单个菜按钮点击
+function handleDishAction(action, dish, row) {
+  if (action === 'redraw') {
+    // 换一道：只换当前这一道，其他菜保持不变
+    redrawSlot(row);
+  } else if (action === 'manual') {
+    promptManualDish(row, dish);
+  } else {
+    applyDecisionToSlot(row, dish, action, null);
+  }
+}
+
+// 单槽位换一道：仅替换当前 row 代表的菜，保留本面板其他菜
+// 排除：本面板已显示 + 30/7 天历史（窗口随 source 变）
+function redrawSlot(row) {
+  const source = row.dataset.source;
+  const role = row.dataset.role;
+  const panelId = source === 'combo' ? 'combo-result'
+                : source === 'kids' ? 'kids-result'
+                : 'three-result';
+
+  // 1. 池：偏好 + 儿童餐过滤
+  let pool = getDishes();
+  const prefs = loadPrefs();
+  pool = applyPrefs(pool, prefs);
+  if (pool.length === 0) pool = getDishes();
+  if (source === 'kids') pool = filterKidFriendly(pool);
+
+  // 2. 排除：本面板已显示的菜
+  const shownNames = new Set();
+  document.querySelectorAll(`#${panelId} .dish-row[data-dish-name]`).forEach(r => {
+    if (r.dataset.dishName) shownNames.add(r.dataset.dishName);
+  });
+
+  // 3. 排除：30/7 天内非 skipped 的历史
+  const windowDays = source === 'three' ? 7 : 30;
+  const history = loadHistory();
+  const recentNames = new Set(
+    history.filter(h => isWithinWindow(h.date, windowDays) && h.status !== 'skipped').map(h => h.dish)
+  );
+  const excludeNames = new Set([...shownNames, ...recentNames]);
+
+  // 4. 候选 = 池中此 role 且未被排除
+  let candidates = pool.filter(d => d.role === role && !excludeNames.has(d.name));
+  // fallback 1：去掉历史限制（只剩同面板已显示）
+  if (candidates.length === 0) candidates = pool.filter(d => d.role === role && !shownNames.has(d.name));
+  // fallback 2：什么都不排除
+  if (candidates.length === 0) candidates = pool.filter(d => d.role === role);
+
+  if (candidates.length === 0) {
+    showToast('😅 池子里没别的了');
+    return;
+  }
+
+  // 5. 加权抽
+  const scores = loadScores();
+  const tagAff = computeTagAffinities(scores, pool);
+  const newDish = weightedChoice(candidates, scores, tagAff);
+
+  // 6. 原地替换 row
+  const newRow = buildDishRowWithConfirm(newDish, role, row.id, handleDishAction);
+  if (newRow) {
+    newRow.dataset.source = source;
+    row.replaceWith(newRow);
+  }
+}
+
+function drawCombo() {
+  const btn = document.getElementById('draw-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '抽签中...';
+  }
+  // 自动切到「随机套餐」tab（用户可能在三餐/冰箱/儿童餐 tab，
+  // 否则结果渲染到不可见的 panel 里，看起来像"按钮没反应"）
+  switchTab('combo');
+  setTimeout(() => {
+    let dishes = getDishes();
+    const prefs = loadPrefs();
+    let pool = applyPrefs(dishes, prefs);
+    if (pool.length === 0) pool = dishes; // 三级 fallback：池空 → 全表
+    const history = loadHistory();
+    const combo = chooseCombo(pool, history, 30, null, prefs.comboSize, prefs.nPeople);
+    renderComboWithConfirm(combo);
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '再抽一套 🔄';
+    }
+  }, 250);
+}
+
+function renderComboWithConfirm(combo) {
+  const result = document.getElementById('combo-result');
+  result.innerHTML = '';
+  for (const [role, dish] of Object.entries(combo)) {
+    const slotId = `slot-combo-${role}`;
+    const row = buildDishRowWithConfirm(dish, role, slotId, handleDishAction);
+    if (row) {
+      row.dataset.source = 'combo';
+      result.appendChild(row);
+    }
+  }
+  // Day 18：营养 + 荤素覆盖 banner
+  const banner = document.createElement('div');
+  banner.style.cssText = "margin-top:14px;padding:12px 14px;border-radius:10px;background:#fff8e8;border-left:3px solid #ffc107;font-size:13px;line-height:1.8;";
+  // 蛋白/碳水/蔬菜
+  const covered = new Set();
+  const allDishes = Object.values(combo).filter(Boolean);
+  allDishes.forEach(d => classifyNutrition(d).forEach(c => covered.add(c)));
+  const order = ["蛋白", "碳水", "蔬菜"];
+  const line = order.map(c => (covered.has(c) ? "✅" : "⚠️") + " " + c).join("  ");
+  // 荤素搭配
+  const mains = Object.entries(combo).filter(([k]) => k.startsWith("主菜") && combo[k]).map(([_, d]) => d);
+  const meatCount = mains.filter(d => isMeatVeg(d) === '荤').length;
+  const vegCount = mains.filter(d => isMeatVeg(d) === '素').length;
+  const mvLine = mains.length > 0 ? `  ·  荤素：${meatCount > 0 ? `${meatCount}荤` : ''}${meatCount > 0 && vegCount > 0 ? '+' : ''}${vegCount > 0 ? `${vegCount}素` : ''}` : '';
+  banner.innerHTML = `<b>营养覆盖：</b>${line}${mvLine}`;
+  result.appendChild(banner);
+}
+
+function checkIngredients() {
+  const raw = document.getElementById('ingredient-input').value.trim();
+  if (!raw) {
+    document.getElementById('ingredients-result').innerHTML =
+      '<div class="empty">请先输入食材 ✨</div>';
+    return;
+  }
+  const available = raw.split(/\s+/).filter(s => s);
+  const dishes = getDishes();
+  const prefs = loadPrefs();
+  let pool = applyPrefs(dishes, prefs);
+  if (pool.length === 0) pool = dishes;
+  const feasible = filterByIngredients(pool, available);
+  renderFeasible(available, feasible);
+}
+
+// ============ 一日三餐（Day 8） ============
+// 营养分类的子串回退规则（用于未显式写 nutrition 的旧菜）
+const PROTEIN_KEYS = ["鸡", "鸭", "鹅", "猪", "牛", "羊", "鱼", "虾", "蟹", "蛋", "豆腐", "豆浆", "牛奶", "奶酪"];
+const CARB_KEYS    = ["米", "面", "馒头", "饺子", "包子", "土豆", "红薯", "玉米", "燕麦", "饼", "年糕", "糯米", "面包"];
+const VEG_KEYS     = ["青", "芹", "白菜", "菜", "萝卜", "木耳", "菇", "海带", "茄", "黄瓜", "豆", "菠", "韭菜"];
+
+function classifyNutrition(dish) {
+  if (dish.nutrition && dish.nutrition.length > 0) return dish.nutrition.slice();
+  const joined = (dish.ingredients || []).join(" ");
+  const classes = [];
+  if (PROTEIN_KEYS.some(k => joined.includes(k))) classes.push("蛋白");
+  if (CARB_KEYS.some(k => joined.includes(k))) classes.push("碳水");
+  if (VEG_KEYS.some(k => joined.includes(k))) classes.push("蔬菜");
+  return classes;
+}
+
+// 安全解析日期；解析失败回退到很早（视为可被 recent 排除）
+function parseHistoryDate(s) {
+  try { return new Date(s); } catch (e) { return new Date(0); }
+}
+function isWithinWindow(dateStr, windowDays) {
+  if (!dateStr) return true;
+  const d = parseHistoryDate(dateStr);
+  if (isNaN(d.getTime())) return true;
+  const cutoff = new Date(Date.now() - windowDays * 86400000);
+  return d >= cutoff;
+}
+
+// 用户习惯版：一顿午饭/晚饭（面条/饺子一碗一餐，米饭配菜+汤）
+function isLunchMainAllowed(dish) {
+  return ["米", "面", "饺子"].some(k => dish.name.includes(k));
+}
+function isOneBowlMeal(dish) {
+  return dish.name.includes("面") || dish.name.includes("饺子");
+}
+function isRice(dish) {
+  return dish.name.includes("米") && !dish.name.includes("面");
+}
+
+function chooseOneMeal(dishes, history = [], window = 30, scores = null, mustBeRice = false, comboSize = '1-1-1') {
+  // Day 10: 迁移旧格式 + 过滤 skipped
+  // Day 17.1: comboSize 支持 N 菜一汤（默认 '1-1-1' 保持向后兼容）
+  const effective = migrateHistory(history);
+  const recent = new Set(
+    effective.filter(h => isWithinWindow(h.date, window) && h.status !== 'skipped').map(h => h.dish)
+  );
+  const useScores = scores || loadScores();
+  const tagAff = computeTagAffinities(useScores, dishes);
+
+  // 抽主食：限定池
+  function pickMain(pool, fallback) {
+    // mustBeRice=true 时主食池只含米饭（用于『不能两顿面』约束）
+    const mainFilter = mustBeRice ? isRice : isLunchMainAllowed;
+    let cands = pool.filter(d => d.role === "主食" && mainFilter(d) && !recent.has(d.name));
+    if (cands.length === 0) cands = pool.filter(d => d.role === "主食" && mainFilter(d));
+    if (cands.length === 0 && fallback !== pool) {
+      cands = fallback.filter(d => d.role === "主食" && mainFilter(d) && !recent.has(d.name));
+    }
+    if (cands.length === 0 && fallback !== pool) {
+      cands = fallback.filter(d => d.role === "主食" && mainFilter(d));
+    }
+    if (cands.length === 0) return null;
+    return weightedChoice(cands, useScores, tagAff);
+  }
+
+  const main = pickMain(dishes, dishes);
+  if (!main) return {"主菜": null, "汤": null, "主食": null, "模式": "无"};
+
+  // 一碗一餐
+  if (isOneBowlMeal(main)) {
+    return {"主菜": null, "汤": null, "主食": main, "模式": "一碗一餐"};
+  }
+
+  // 配菜模式
+  const picked = new Set([main.name]);
+  function pickRole(role) {
+    let cands = dishes.filter(d => d.role === role && !picked.has(d.name) && !recent.has(d.name));
+    if (cands.length === 0) cands = dishes.filter(d => d.role === role && !picked.has(d.name));
+    if (cands.length === 0) cands = dishes.filter(d => d.role === role);
+    if (cands.length === 0) return null;
+    const choice = weightedChoice(cands, useScores, tagAff);
+    if (choice) picked.add(choice.name);
+    return choice;
+  }
+
+  // 按 comboSize 抽 N 道主菜（默认 1）+ 1 道汤
+  const parts = (ALLOWED_COMBO_SIZES.includes(comboSize) ? comboSize : '1-1-1').split('-').map(n => parseInt(n, 10));
+  const numMains = (parts[0] >= 1 && parts[0] <= 4) ? parts[0] : 1;
+  const result = { "主食": main, "模式": "配菜模式" };
+  for (let i = 0; i < numMains; i++) {
+    result[`主菜${i > 0 ? i + 1 : ''}`] = pickRole("主菜");
+  }
+  result["汤"] = pickRole("汤");
+  return result;
+}
+
+function chooseThreeMeals(dishes, history = [], window = 7, scores = null, comboSize = '1-1-1') {
+  // Day 10: 迁移旧格式 + 过滤 skipped 状态
+  // Day 17.1: comboSize 透传到 chooseOneMeal（午晚饭按份量抽 N 菜一汤）
+  const effective = migrateHistory(history);
+  const recent = new Set(
+    effective
+      .filter(h => isWithinWindow(h.date, window) && h.status !== 'skipped')
+      .map(h => h.dish)
+  );
+  const useScores = scores || loadScores();
+  const tagAff = computeTagAffinities(useScores, dishes);
+  function pick(role, exclude) {
+    let candidates = dishes.filter(d =>
+      d.role === role && !exclude.has(d.name) && !recent.has(d.name));
+    if (candidates.length === 0) {
+      candidates = dishes.filter(d => d.role === role && !recent.has(d.name));
+    }
+    if (candidates.length === 0) {
+      candidates = dishes.filter(d => d.role === role);
+    }
+    if (candidates.length === 0) return null;
+    return weightedChoice(candidates, useScores, tagAff);
+  }
+
+  const breakfast = pick("早餐", new Set());
+
+  // 午晚饭走用户习惯版（一碗一餐 / 配菜模式）
+  const lunch = chooseOneMeal(dishes, effective, window, useScores, false, comboSize);
+  // 避免午晚重复：把午餐选的菜加进历史传给晚餐
+  const lunchNames = Object.values(lunch).filter(d => d && d.name).map(d => d.name);
+  const dinnerHistory = effective.concat(lunchNames.map(n => ({dish: n, date: new Date().toISOString().slice(0, 10), status: 'confirmed'})));
+  // 『一天不能两顿面条』：午餐若是一碗一餐，晚餐强制米饭模式
+  const mustBeRiceDinner = (lunch.模式 === "一碗一餐");
+  const dinner = chooseOneMeal(dishes, dinnerHistory, window, useScores, mustBeRiceDinner, comboSize);
+
+  return {"早餐": breakfast, "午餐": lunch, "晚餐": dinner};
+}
+
+function renderThreeMeals(meals) {
+  const result = document.getElementById('three-result');
+  result.innerHTML = '';
+
+  function header(text) {
+    const h = document.createElement('div');
+    h.style.cssText = "padding:14px 0 4px 0;font-size:15px;color:#5d4500;font-weight:600;";
+    h.textContent = text;
+    result.appendChild(h);
+  }
+  function emptyRow(text) {
+    const row = document.createElement('div');
+    row.className = 'dish-row';
+    row.innerHTML = `<div class="dish-emoji">⚠️</div><div class="dish-info"><div class="dish-name">${text}</div></div>`;
+    result.appendChild(row);
+  }
+  function addWithConfirm(dish, role, slotId) {
+    const row = buildDishRowWithConfirm(dish, role, slotId, handleDishAction);
+    if (row) {
+      row.dataset.source = 'three';
+      result.appendChild(row);
+    }
+  }
+
+  function renderMeal(meal, emoji, label) {
+    header(`${emoji} ${label}`);
+    if (!meal || meal.模式 === "无" || !meal["主食"]) {
+      emptyRow("暂无合适");
+      return;
+    }
+    if (meal.模式 === "一碗一餐") {
+      const tag = document.createElement('div');
+      tag.style.cssText = "font-size:13px;color:#888;padding:2px 0 4px 4px;";
+      tag.textContent = "一碗一餐";
+      result.appendChild(tag);
+      addWithConfirm(meal["主食"], "主食", `slot-three-${label}-main`);
+    } else {
+      const tag = document.createElement('div');
+      tag.style.cssText = "font-size:13px;color:#888;padding:2px 0 4px 4px;";
+      tag.textContent = "配菜模式";
+      result.appendChild(tag);
+      // Day 17.1：先按 主菜/主菜2/主菜3/主菜4 顺序抽所有主菜槽，再抽汤、最后主食
+      const roleOrder = [];
+      for (let i = 1; i <= 4; i++) {
+        const key = i === 1 ? "主菜" : `主菜${i}`;
+        if (meal[key]) roleOrder.push(key);
+      }
+      if (meal["汤"]) roleOrder.push("汤");
+      if (meal["主食"]) roleOrder.push("主食");
+      for (const role of roleOrder) {
+        const dish = meal[role];
+        if (dish) addWithConfirm(dish, role, `slot-three-${label}-${role}`);
+        else emptyRow(`${role}：暂无合适`);
+      }
+    }
+  }
+
+  // 早餐
+  header("☀️ 早餐");
+  if (meals["早餐"]) {
+    addWithConfirm(meals["早餐"], "早餐", "slot-three-早餐");
+  } else {
+    emptyRow("暂无合适早餐");
+  }
+
+  // 午餐 + 晚餐
+  renderMeal(meals["午餐"], "午餐", "午餐");
+  renderMeal(meals["晚餐"], "晚餐", "晚餐");
+
+  // 营养覆盖
+  const allDishes = [];
+  if (meals["早餐"]) allDishes.push(meals["早餐"]);
+  for (const meal of [meals["午餐"], meals["晚餐"]]) {
+    if (!meal) continue;
+    Object.values(meal).forEach(d => { if (d && d.name) allDishes.push(d); });
+  }
+  const covered = new Set();
+  allDishes.forEach(d => classifyNutrition(d).forEach(c => covered.add(c)));
+
+  const banner = document.createElement('div');
+  banner.style.cssText = "margin-top:16px;padding:14px 16px;border-radius:10px;background:#fff8e8;border-left:3px solid #ffc107;font-size:14px;line-height:1.8;";
+  const order = ["蛋白", "碳水", "蔬菜"];
+  const line = order.map(c => (covered.has(c) ? "✅" : "⚠️") + " " + c).join("  ");
+  banner.innerHTML = `<b>营养覆盖：</b>${line}`;
+  result.appendChild(banner);
+}
+
+function drawThreeMeals() {
+  const btn = document.getElementById('three-btn');
+  btn.disabled = true;
+  btn.textContent = '抽签中...';
+  setTimeout(() => {
+    let dishes = getDishes();
+    const prefs = loadPrefs();
+    let pool = applyPrefs(dishes, prefs);
+    if (pool.length === 0) pool = dishes;
+    const history = loadHistory();
+    const meals = chooseThreeMeals(pool, history, 7, null, prefs.comboSize);
+    renderThreeMeals(meals);
+    btn.disabled = false;
+    btn.textContent = '再抽一天 🔄';
+  }, 250);
+}
+
+// 抽一顿：用户习惯版（一碗一餐 / 配菜模式）
+function drawOneMeal() {
+  const result = document.getElementById('three-result');
+  result.innerHTML = '';
+  const dishes = getDishes();
+  const prefs = loadPrefs();
+  let pool = applyPrefs(dishes, prefs);
+  if (pool.length === 0) pool = dishes;
+  const history = loadHistory();
+  const meal = chooseOneMeal(pool, history, 30);
+
+  const banner = document.createElement('div');
+  banner.style.cssText = "padding:14px 0;font-size:15px;color:#5d4500;font-weight:600;";
+  banner.textContent = meal.模式 === "一碗一餐" ? "🍱 一碗一餐：" : "🍱 配菜模式：";
+  result.appendChild(banner);
+
+  if (meal.模式 === "一碗一餐") {
+    result.appendChild(buildDishRow(meal["主食"]));
+  } else {
+    for (const role of ["主菜", "汤", "主食"]) {
+      const dish = meal[role];
+      if (dish) result.appendChild(buildDishRow(dish));
+    }
+  }
+  // 写历史
+  Object.values(meal).forEach(d => { if (d && d.name) addToHistory(history, d.name); });
+  saveHistory(history);
+  updateHistoryHint();
+}
+
+function drawKidCombo() {
+  const btn = document.getElementById('kids-btn');
+  btn.disabled = true;
+  btn.textContent = '抽签中...';
+  setTimeout(() => {
+    const kidDishes = filterKidFriendly(getDishes());
+    const prefs = loadPrefs();
+    let pool = applyPrefs(kidDishes, prefs);
+    if (pool.length === 0) pool = kidDishes;
+    const history = loadHistory();
+    const combo = chooseCombo(pool, history);
+    renderKidsComboWithConfirm(combo);
+    btn.disabled = false;
+    btn.textContent = '再抽一套 🔄';
+  }, 250);
+}
+
+function renderKidsComboWithConfirm(combo) {
+  const result = document.getElementById('kids-result');
+  result.innerHTML = '';
+  for (const [role, dish] of Object.entries(combo)) {
+    const slotId = `slot-kids-${role}`;
+    const row = buildDishRowWithConfirm(dish, role, slotId, handleDishAction);
+    if (row) {
+      row.dataset.source = 'kids';
+      result.appendChild(row);
+    }
+  }
+}
+
+// ============ 全局搜索 ============
+function searchDishes(dishes, query) {
+  // 全文搜索：菜名 + 标签 + 食材 + 调料 都参与匹配
+  // 多关键词用空格分隔，AND 关系
+  if (!query || !query.trim()) return [];
+  const keywords = query.trim().toLowerCase().split(/\s+/).filter(k => k);
+  return dishes.filter(d => {
+    const haystack = [
+      d.name || '',
+      ...(d.tags || []),
+      ...(d.ingredients || []),
+      ...(d.seasonings || [])
+    ].join(' ').toLowerCase();
+    return keywords.every(kw => haystack.includes(kw));
+  });
+}
+
+function renderSearchResults(results, query) {
+  const container = document.getElementById('search-results');
+  const bar = document.getElementById('search-bar');
+  if (!query.trim()) {
+    container.hidden = true;
+    container.innerHTML = '';
+    bar.classList.remove('has-query');
+    return;
+  }
+  bar.classList.add('has-query');
+  if (results.length === 0) {
+    container.innerHTML = `<div class="search-empty">没找到含「${escapeHtml(query)}」的菜 😔</div>`;
+    container.hidden = false;
+    return;
+  }
+  let html = `<div class="result-meta">找到 ${results.length} 道菜</div>`;
+  results.slice(0, 30).forEach(d => {
+    const emoji = ROLE_EMOJI[d.role] || '🍽️';
+    html += `<div class="dish-row" data-dish-name="${d.name}">
+      <div class="dish-emoji">${emoji}</div>
+      <div class="dish-info">
+        <div class="dish-name">${d.name}</div>
+        <div class="dish-meta">${d.role} · 约 ${d.time_minutes} 分钟</div>
+      </div>
+    </div>`;
+  });
+  if (results.length > 30) {
+    html += `<div class="result-meta">还有 ${results.length - 30} 道没显示</div>`;
+  }
+  container.innerHTML = html;
+  container.hidden = false;
+
+  // 绑定点击查看详情
+  container.querySelectorAll('.dish-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const dish = DISHES_DATA.find(d => d.name === row.dataset.dishName);
+      if (dish) showRecipe(dish);
+    });
+  });
+}
+
+let searchDebounceTimer = null;
+function handleSearchInput(e) {
+  const q = e.target.value;
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => {
+    const results = searchDishes(DISHES_DATA, q);
+    renderSearchResults(results, q);
+  }, 150);
+}
+
+function clearGlobalSearch() {
+  const input = document.getElementById('global-search');
+  if (input) {
+    input.value = '';
+    renderSearchResults([], '');
+    input.focus();
+  }
+}
+
+// ============ 事件绑定 ============
+// ⚠️ 每个 addEventListener 都要 null-check：DOM id 不存在时不能让脚本挂掉
+// (Day 15 教训：之前删 draw-btn 按钮后忘了删引用，TypeError 中断所有后续监听器)
+function bindClick(id, fn) {
+  const el = document.getElementById(id);
+  if (!el) { console.warn(`bindClick: #${id} not found`); return; }
+  el.addEventListener('click', fn);
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+// 编程式切 tab（被 drawCombo 等函数调用，避免结果渲染到看不见的 panel）
+function switchTab(tabName) {
+  const tab = document.querySelector(`[data-tab="${tabName}"]`);
+  if (!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById(tabName).classList.add('active');
+}
+
+bindClick('draw-btn', drawCombo);
+bindClick('three-btn', drawThreeMeals);
+bindClick('check-btn', checkIngredients);
+bindClick('kids-btn', drawKidCombo);
+const ingredientInput = document.getElementById('ingredient-input');
+if (ingredientInput) {
+  ingredientInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkIngredients();
+  });
+}
+
+// 全局搜索框
+const globalSearchInput = document.getElementById('global-search');
+if (globalSearchInput) {
+  globalSearchInput.addEventListener('input', handleSearchInput);
+  globalSearchInput.addEventListener('keydown', e => {
+    if (e.key === 'Escape') clearGlobalSearch();
+  });
+}
+bindClick('reset-btn', () => {
+  if (confirm('清空所有历史？30 天不重复会重置。')) {
+    storeDel(HISTORY_KEY);
+    updateHistoryHint();
+    document.getElementById('combo-result').innerHTML =
+      '<div class="empty">历史已清空 ✨</div>';
+  }
+});
+
+// ESC 关闭菜谱 / 反馈 / 偏好 / 手动记录 / 记录本 / ⋯菜单
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const moreMenu = document.getElementById('more-menu');
+  if (moreMenu && !moreMenu.hidden) closeMoreMenu();
+  else if (!document.getElementById('feedback-modal').hidden) closeFeedback();
+  else if (!document.getElementById('manual-log-modal').hidden) closeManualLog();
+  else if (!document.getElementById('prefs-modal').hidden) closePrefs();
+  else if (!document.getElementById('edit-log-modal').hidden) closeEditLog();
+  else if (!document.getElementById('logbook-modal').hidden) closeLogbook();
+  else if (!document.getElementById('monthly-report-modal').hidden) closeMonthlyReport();
+  else if (!document.getElementById('recipe-modal').hidden) closeRecipe();
+});
+
+// 偏好 modal 的 chip 点击统一委托（脚本在 body 末尾，DOM 已就绪）
+const _prefsModalEl = document.getElementById('prefs-modal');
+if (_prefsModalEl) _prefsModalEl.addEventListener('click', handlePrefChipClick);
+
+// 编辑记录 modal 的餐次 chip 单选
+const _editLogModalEl = document.getElementById('edit-log-modal');
+if (_editLogModalEl) _editLogModalEl.addEventListener('click', handleEditMealClick);
+
+document.getElementById('today').textContent =
+  new Date().toLocaleDateString('zh-CN', {year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'});
+
+updateHistoryHint();
+
+// ============ 全局错误捕获（debug 用，显示在页面右下角小标签） ============
+window.addEventListener('error', e => {
+  const div = document.createElement('div');
+  div.style.cssText = "position:fixed;bottom:10px;right:10px;max-width:300px;background:#fff3cd;color:#856404;padding:8px 12px;z-index:99999;font-size:12px;border-radius:6px;border:1px solid #ffc107;box-shadow:0 2px 8px rgba(0,0,0,0.15);cursor:pointer;";
+  div.innerHTML = `⚠️ ${e.message}`;
+  div.onclick = () => alert(`JS Error\n${e.message}\n行号 ${e.lineno}`);
+  document.body.appendChild(div);
+});
+
+// ============ Service Worker 注册（解决 iPhone PWA 缓存导致新版本下不来）============
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.warn('SW 注册失败:', err);
+    });
+  });
+}
+</script>
+
+</body>
+</html>
