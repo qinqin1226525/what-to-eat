@@ -26,6 +26,14 @@ Page({
     // 记录 modal
     showManualLog: false,
     manualForm: { date: '', breakfast: '', lunch: '', dinner: '' },
+    // 历史记录本 modal
+    showLogbook: false,
+    logbookLoading: false,
+    logbookGroups: [],
+    // 编辑单条记录 modal
+    showEditRecord: false,
+    editForm: { _id: '', dish: '', meal: '午餐', date: '' },
+    editing: false,
     // 月度报告 modal
     showMonthlyReport: false,
     monthlyReport: {
@@ -366,6 +374,111 @@ Page({
   },
 
   onManualDateTap() {},
+
+  // ----- 手动记录本（看历史 + 编辑 + 删除） -----
+  async onOpenLogbook() {
+    this.setData({ showLogbook: true, logbookLoading: true })
+    try {
+      const res = await cloud.getHistory(500)
+      const history = (res && res.ok) ? res.history : []
+      const MEAL_EMOJI = { '早餐': '☀️', '午餐': '🌞', '晚餐': '🌙' }
+      const STATUS = { confirmed: '✅', manual: '手动', skipped: '⏭' }
+      // 按日期分组
+      const map = new Map()
+      for (const h of history) {
+        const d = h.date || '未知'
+        if (!map.has(d)) map.set(d, [])
+        map.get(d).push({
+          ...h,
+          statusLabel: STATUS[h.status] || h.status,
+          mealEmoji: MEAL_EMOJI[h.meal] || '🍽'
+        })
+      }
+      const groups = Array.from(map.entries())
+        .map(([date, items]) => ({ date, items }))
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .slice(0, 60)
+      this.setData({ logbookGroups: groups, logbookLoading: false })
+    } catch (err) {
+      this.setData({ logbookLoading: false })
+      util.showError('加载失败', err)
+    }
+  },
+
+  closeLogbook() {
+    this.setData({ showLogbook: false })
+  },
+
+  onEditLogItem(e) {
+    const id = e.currentTarget.dataset.id
+    const all = this.data.logbookGroups.flatMap(g => g.items)
+    const r = all.find(x => x._id === id)
+    if (!r) return
+    this.setData({
+      showEditRecord: true,
+      editForm: { _id: r._id, dish: r.dish, meal: r.meal || '午餐', date: r.date }
+    })
+  },
+
+  closeEditRecord() {
+    if (this.data.editing) return
+    this.setData({ showEditRecord: false })
+  },
+
+  onEditField(e) {
+    const field = e.currentTarget.dataset.field
+    this.setData({ [`editForm.${field}`]: e.detail.value })
+  },
+
+  onEditMeal(e) {
+    const meal = e.currentTarget.dataset.meal
+    this.setData({ 'editForm.meal': meal })
+  },
+
+  async onSaveEdit() {
+    const f = this.data.editForm
+    if (!f.dish || !f.dish.trim()) {
+      wx.showToast({ title: '菜名不能空', icon: 'none' })
+      return
+    }
+    this.setData({ editing: true })
+    try {
+      const res = await cloud.updateMeal(f._id, {
+        dish: f.dish.trim(),
+        meal: f.meal
+      })
+      if (res && res.ok) {
+        wx.showToast({ title: '已保存', icon: 'success' })
+        this.setData({ showEditRecord: false, editing: false })
+        this.onOpenLogbook()
+      } else {
+        util.showError('保存失败', new Error((res && res.error) || '未知错误'))
+        this.setData({ editing: false })
+      }
+    } catch (err) {
+      this.setData({ editing: false })
+      util.showError('保存失败', err)
+    }
+  },
+
+  onDeleteLogItem(e) {
+    const id = e.currentTarget.dataset.id
+    const that = this
+    wx.showModal({
+      title: '删除这条？',
+      content: '删除后不可恢复',
+      success: async (res) => {
+        if (!res.confirm) return
+        try {
+          await cloud.deleteMeal(id)
+          wx.showToast({ title: '已删除', icon: 'success' })
+          that.onOpenLogbook()
+        } catch (err) {
+          util.showError('删除失败', err)
+        }
+      }
+    })
+  },
 
   async onManualSave() {
     const f = this.data.manualForm

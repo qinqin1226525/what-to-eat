@@ -221,6 +221,69 @@
         <view class="btn-secondary" catchtap="closeManualLog">取消</view>
         <view class="btn-primary" catchtap="onManualSave">保存记录</view>
       </view>
+      <view class="manual-logbook-link" catchtap="onOpenLogbook">📋 查看历史记录</view>
+    </view>
+  </view>
+
+  <!-- ========== 历史记录本 modal（看历史 + 编辑 + 删除） ========== -->
+  <view wx:if="{{showLogbook}}" class="logbook-mask" catchtap="closeLogbook">
+    <view class="logbook-card" catchtap="_noop">
+      <view class="logbook-header">
+        <text class="logbook-emoji" style="font-size: {{64 * fontScale}}rpx;">📋</text>
+        <view class="logbook-title-block">
+          <view class="logbook-title" style="font-size: {{32 * fontScale}}rpx;">历史记录</view>
+          <view class="logbook-sub" style="font-size: {{22 * fontScale}}rpx;">最近的吃食记录（手动 + 抽签）</view>
+        </view>
+        <view class="modal-close" catchtap="closeLogbook">✕</view>
+      </view>
+      <scroll-view scroll-y class="logbook-scroll">
+        <view wx:if="{{logbookLoading}}" class="logbook-loading">加载中…</view>
+        <view wx:elif="{{logbookGroups.length === 0}}" class="logbook-empty">还没有记录</view>
+        <block wx:else>
+          <block wx:for="{{logbookGroups}}" wx:key="date" wx:for-item="g">
+            <view class="logbook-date" style="font-size: {{26 * fontScale}}rpx;">📅 {{g.date}}</view>
+            <block wx:for="{{g.items}}" wx:key="_id" wx:for-item="r">
+              <view class="logbook-row" hover-class="logbook-row-hover">
+                <view class="logbook-row-left" data-id="{{r._id}}" catchtap="onEditLogItem">
+                  <text class="logbook-row-badge">{{r.statusLabel}}</text>
+                  <text class="logbook-row-meal">{{r.mealEmoji}}</text>
+                  <text class="logbook-row-dish">{{r.dish}}</text>
+                </view>
+                <view class="logbook-row-actions">
+                  <view class="logbook-row-action" data-id="{{r._id}}" catchtap="onEditLogItem">✏️</view>
+                  <view class="logbook-row-action" data-id="{{r._id}}" catchtap="onDeleteLogItem">🗑</view>
+                </view>
+              </view>
+            </block>
+          </block>
+        </block>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- ========== 编辑某条记录 modal ========== -->
+  <view wx:if="{{showEditRecord}}" class="edit-mask" catchtap="closeEditRecord">
+    <view class="edit-card" catchtap="_noop">
+      <view class="modal-close" catchtap="closeEditRecord">✕</view>
+      <view class="edit-header">
+        <view class="edit-title" style="font-size: {{32 * fontScale}}rpx;">✏️ 编辑记录</view>
+      </view>
+      <view class="edit-section">
+        <view class="edit-label" style="font-size: {{26 * fontScale}}rpx;">🍱 菜名</view>
+        <input class="edit-input" value="{{editForm.dish}}" bindinput="onEditField" data-field="dish" />
+      </view>
+      <view class="edit-section">
+        <view class="edit-label" style="font-size: {{26 * fontScale}}rpx;">⏰ 类型</view>
+        <view class="edit-meal-row">
+          <view class="edit-meal-chip {{editForm.meal === '早餐' ? 'on' : ''}}" data-meal="早餐" catchtap="onEditMeal">☀️ 早餐</view>
+          <view class="edit-meal-chip {{editForm.meal === '午餐' ? 'on' : ''}}" data-meal="午餐" catchtap="onEditMeal">🌞 午餐</view>
+          <view class="edit-meal-chip {{editForm.meal === '晚餐' ? 'on' : ''}}" data-meal="晚餐" catchtap="onEditMeal">🌙 晚餐</view>
+        </view>
+      </view>
+      <view class="edit-actions">
+        <view class="btn-secondary" catchtap="closeEditRecord">取消</view>
+        <view class="btn-primary" catchtap="onSaveEdit">保存</view>
+      </view>
     </view>
   </view>
 
