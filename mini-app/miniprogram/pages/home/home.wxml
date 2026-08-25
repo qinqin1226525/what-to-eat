@@ -216,7 +216,7 @@
 
   <!-- 搜菜谱详情 modal（点搜索结果触发） -->
   <view wx:if="{{searchDetail}}" class="search-detail-mask" catchtap="closeSearchDetail">
-    <view class="search-detail-card" catchtap="">
+    <view class="search-detail-card" catchtap="_noop">
       <view class="search-detail-header">
         <text class="search-detail-emoji" style="font-size: {{64 * fontScale}}rpx;">{{searchDetail.emoji}}</text>
         <view class="search-detail-title-block">

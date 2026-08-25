@@ -145,8 +145,14 @@ Page({
     if (this.data.picking) return
     const { customDishes, recentPicks, fridgeItems } = this.data
     if (customDishes.length === 0) {
-      wx.showToast({ title: '菜池为空，先加几道', icon: 'none' })
-      this.openOnboarding()
+      // 菜池空 → 自动展开批量输入区 + 滚动 + 提示
+      if (!this.data.expanded.pool) {
+        this.setData({ 'expanded.pool': true })
+      }
+      setTimeout(() => {
+        wx.pageScrollTo({ selector: '.batch-inputs', duration: 300 })
+      }, 50)
+      wx.showToast({ title: '菜池为空，先在下面加几道', icon: 'none', duration: 3000 })
       return
     }
     // 候选 = 菜池 - 最近7天
@@ -1126,7 +1132,13 @@ Page({
 
   // ----- 顶部 4 按钮 handlers -----
   onScrollToStats() {
-    wx.pageScrollTo({ selector: '#stats-section', duration: 300 })
+    // 统计 section 默认折叠 → 点 📊 时自动展开 + 滚到
+    if (!this.data.expanded.stats) {
+      this.setData({ 'expanded.stats': true })
+    }
+    setTimeout(() => {
+      wx.pageScrollTo({ selector: '#stats-section', duration: 300 })
+    }, 50)
   },
 
   onOpenSettings() {
