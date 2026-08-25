@@ -1,0 +1,98 @@
+<!-- pages/history/history.wxml —— 清单页（冰箱 + 手动记录 + 历史）-->
+<view class="container">
+
+  <!-- 顶部齿轮：跳设置 -->
+  <view class="gear-btn" bindtap="onOpenSettings">⚙ 设置</view>
+
+  <!-- 冰箱 section -->
+  <view class="card fridge-card">
+    <view class="card-title fridge-card-title">
+      <text>🥬 冰箱</text>
+      <text wx:if="{{fridgeItems.length > 0}}" class="fridge-clear-link" bindtap="onFridgeClear">清空</text>
+    </view>
+    <view class="text-muted fridge-hint">去「选菜」用「冰箱有什么」功能</view>
+    <view class="fridge-row">
+      <input class="input fridge-input" value="{{fridgeInput}}" bindinput="onFridgeInput"
+             placeholder="输入食材，逗号分隔…" confirm-type="done" bindconfirm="onFridgeAdd" />
+      <view class="btn-add {{savingFridge ? 'disabled' : ''}}" bindtap="onFridgeAdd">加</view>
+    </view>
+    <view wx:if="{{fridgeItems.length > 0}}" class="fridge-grid">
+      <block wx:for="{{fridgeItems}}" wx:key="*this">
+        <view class="fridge-item">
+          <text class="fridge-name">{{item}}</text>
+          <view class="fridge-remove" data-name="{{item}}" bindtap="onFridgeRemove">×</view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 手动记录按钮 -->
+  <view class="manual-btn" bindtap="openManual">📝 手动记录今天吃了啥</view>
+
+  <!-- 历史记录 -->
+  <view wx:if="{{loading}}" class="loading">加载中…</view>
+
+  <view wx:elif="{{grouped.length === 0}}" class="empty card">
+    <view class="card-title text-center">还没有记录</view>
+    <view class="text-muted text-center">去「选菜」吃点啥，记录会自动出现在这</view>
+  </view>
+
+  <block wx:else>
+    <block wx:for="{{grouped}}" wx:key="date" wx:for-item="group">
+      <view class="card">
+        <view class="card-title">{{group.date}}</view>
+        <block wx:for="{{group.items}}" wx:key="_id" wx:for-item="h">
+          <view class="history-row">
+            <view class="history-info">
+              <view class="history-dish">{{h.dish}}</view>
+              <view class="history-meta">
+                <text class="tag {{h.status === 'confirmed' ? 'tag-green' : h.status === 'skipped' ? 'tag-red' : 'tag-gray'}}">{{h.statusLabel}}</text>
+                <text wx:if="{{h.meal}}" class="tag tag-gray">{{h.meal}}</text>
+              </view>
+            </view>
+            <view class="history-delete" data-id="{{h._id}}" bindtap="onDelete">×</view>
+          </view>
+        </block>
+      </view>
+    </block>
+  </block>
+
+  <!-- 手动记录 modal -->
+  <view wx:if="{{showManualLog}}" class="manual-mask" bindtap="closeManual">
+    <view class="manual-card" catchtap="_noop">
+      <view class="manual-header">
+        <view class="manual-title">手动记录今天吃了啥</view>
+        <view class="manual-close" bindtap="closeManual">✕</view>
+      </view>
+      <view class="manual-meta">多个菜用逗号分隔 · 可只填一餐</view>
+
+      <view class="manual-section">
+        <view class="manual-label">📅 日期</view>
+        <picker mode="date" value="{{manualForm.date}}" bindchange="onManualField" data-field="date">
+          <view class="manual-input picker-input">{{manualForm.date}}</view>
+        </picker>
+      </view>
+
+      <view class="manual-section">
+        <view class="manual-label">☀️ 早餐 <text class="hint">（可空）</text></view>
+        <input class="manual-input" value="{{manualForm.breakfast}}" bindinput="onManualField" data-field="breakfast" placeholder="例：面包,牛奶" />
+      </view>
+
+      <view class="manual-section">
+        <view class="manual-label">🌞 午餐 <text class="hint">（可空）</text></view>
+        <input class="manual-input" value="{{manualForm.lunch}}" bindinput="onManualField" data-field="lunch" placeholder="例：宫保鸡丁,米饭" />
+      </view>
+
+      <view class="manual-section">
+        <view class="manual-label">🌙 晚餐 <text class="hint">（可空）</text></view>
+        <input class="manual-input" value="{{manualForm.dinner}}" bindinput="onManualField" data-field="dinner" placeholder="例：番茄蛋汤,清炒时蔬" />
+      </view>
+
+      <view class="manual-actions">
+        <view class="btn-secondary" bindtap="closeManual">取消</view>
+        <view class="btn-primary" bindtap="onManualSave" hover-class="btn-primary-hover">保存记录</view>
+      </view>
+    </view>
+  </view>
+
+</view>

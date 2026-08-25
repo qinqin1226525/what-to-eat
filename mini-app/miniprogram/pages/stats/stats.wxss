@@ -1,0 +1,225 @@
+/* pages/stats/stats.wxss */
+
+/* 营养条（同首页 daily-card 风格） */
+.nutrient-row {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 0;
+  gap: 16rpx;
+}
+
+.nutrient-label {
+  font-size: 26rpx;
+  color: #666;
+  width: 100rpx;
+  flex-shrink: 0;
+}
+
+.nutrient-bar-wrap {
+  flex: 1;
+  height: 16rpx;
+  background: #f0f0f0;
+  border-radius: 8rpx;
+  overflow: hidden;
+  min-width: 120rpx;
+}
+
+.nutrient-bar {
+  height: 100%;
+  border-radius: 8rpx;
+  transition: width 0.3s ease;
+}
+
+.bar-cal { background: linear-gradient(90deg, #ff9a3c, #ff6b35); }
+.bar-protein { background: linear-gradient(90deg, #2da44e, #1a7a37); }
+.bar-carbs { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.bar-fat { background: linear-gradient(90deg, #ef4444, #b91c1c); }
+
+.nutrient-num {
+  font-size: 24rpx;
+  color: #555;
+  width: 200rpx;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* 7 天柱状图 */
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 360rpx;
+  padding: 0 8rpx;
+  margin-top: 20rpx;
+}
+
+.bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  margin: 0 4rpx;
+  position: relative;
+}
+
+.bar-value {
+  font-size: 20rpx;
+  color: #999;
+  height: 32rpx;
+  line-height: 32rpx;
+  margin-bottom: 4rpx;
+}
+
+.bar-track {
+  flex: 1;
+  width: 60%;
+  background: #f5f5f5;
+  border-radius: 8rpx 8rpx 0 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  position: relative;
+}
+
+.bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #ffc26b, #ff9a3c);
+  border-radius: 8rpx 8rpx 0 0;
+  transition: height 0.3s ease;
+  min-height: 4rpx;
+}
+
+.bar-today {
+  background: linear-gradient(180deg, #ff6b35, #d14545);
+  box-shadow: 0 -4rpx 12rpx rgba(255, 107, 53, 0.4);
+}
+
+.bar-label {
+  font-size: 24rpx;
+  color: #333;
+  font-weight: 600;
+  margin-top: 8rpx;
+}
+
+.bar-date {
+  font-size: 20rpx;
+  color: #999;
+  margin-top: 2rpx;
+}
+
+/* 饮食多样性 */
+.diversity-stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  padding: 20rpx 0;
+}
+
+.big-num {
+  font-size: 80rpx;
+  font-weight: 700;
+  color: #ff9a3c;
+}
+
+.big-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-left: 16rpx;
+}
+
+.top-list {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 2rpx solid #f5f5f5;
+}
+
+.top-title {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 12rpx;
+}
+
+.top-item {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 0;
+}
+
+.top-rank {
+  width: 40rpx;
+  height: 40rpx;
+  background: #ff9a3c;
+  color: #fff;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 40rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-right: 16rpx;
+}
+
+.top-item:nth-child(2) .top-rank { background: #f59e0b; }
+.top-item:nth-child(3) .top-rank { background: #fbbf24; }
+
+.top-name {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.top-count {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 周报 */
+.week-stat {
+  padding: 8rpx 0;
+}
+
+.week-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.week-row:last-child {
+  border-bottom: none;
+}
+
+.week-label {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.week-value {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 600;
+}
+
+.trend-tag {
+  padding: 6rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.trend-up {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.trend-down {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.trend-flat {
+  background: #f5f5f5;
+  color: #999;
+}

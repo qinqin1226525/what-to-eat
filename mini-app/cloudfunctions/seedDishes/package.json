@@ -1,0 +1,9 @@
+{
+  "name": "seedDishes",
+  "version": "1.0.0",
+  "description": "把本地 dishes.json 上传到云数据库（dishes 集合）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

@@ -1,4 +1,5 @@
-[
+// Auto-generated from dishes.json —— 不要手动改
+module.exports = [
   {
     "name": "西红柿炒蛋",
     "time_minutes": 15,
@@ -4077,4 +4078,4 @@
     ],
     "tip": "肉馅打水更嫩；一次多包点冷冻随煮随吃。"
   }
-]
+];

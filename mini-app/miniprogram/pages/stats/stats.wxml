@@ -1,0 +1,130 @@
+<!-- pages/stats/stats.wxml -->
+<view class="container">
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading">加载中…</view>
+
+  <block wx:else>
+    <!-- 顶部：今日 vs 推荐 -->
+    <view class="card">
+      <view class="card-title">📊 今日 vs 推荐</view>
+      <view wx:if="{{!hasProfile}}" class="text-muted" style="padding:16rpx 0;">
+        完善「我的 → 健康档案」后显示推荐量
+      </view>
+      <block wx:else>
+        <view class="nutrient-row">
+          <text class="nutrient-label">卡路里</text>
+          <view class="nutrient-bar-wrap">
+            <view class="nutrient-bar bar-cal"
+                  style="width: {{targets.calories > 0 ? (todayTotals.calories / targets.calories * 100) > 100 ? 100 : (todayTotals.calories / targets.calories * 100) : 0}}%;"></view>
+          </view>
+          <text class="nutrient-num">{{todayTotals.calories}}/{{targets.calories}} kcal</text>
+        </view>
+        <view class="nutrient-row">
+          <text class="nutrient-label">蛋白质</text>
+          <view class="nutrient-bar-wrap">
+            <view class="nutrient-bar bar-protein"
+                  style="width: {{targets.protein > 0 ? (todayTotals.protein / targets.protein * 100) > 100 ? 100 : (todayTotals.protein / targets.protein * 100) : 0}}%;"></view>
+          </view>
+          <text class="nutrient-num">{{todayTotals.protein}}/{{targets.protein}} g</text>
+        </view>
+        <view class="nutrient-row">
+          <text class="nutrient-label">碳水</text>
+          <view class="nutrient-bar-wrap">
+            <view class="nutrient-bar bar-carbs"
+                  style="width: {{targets.carbs > 0 ? (todayTotals.carbs / targets.carbs * 100) > 100 ? 100 : (todayTotals.carbs / targets.carbs * 100) : 0}}%;"></view>
+          </view>
+          <text class="nutrient-num">{{todayTotals.carbs}}/{{targets.carbs}} g</text>
+        </view>
+        <view class="nutrient-row">
+          <text class="nutrient-label">脂肪</text>
+          <view class="nutrient-bar-wrap">
+            <view class="nutrient-bar bar-fat"
+                  style="width: {{targets.fat > 0 ? (todayTotals.fat / targets.fat * 100) > 100 ? 100 : (todayTotals.fat / targets.fat * 100) : 0}}%;"></view>
+          </view>
+          <text class="nutrient-num">{{todayTotals.fat}}/{{targets.fat}} g</text>
+        </view>
+      </block>
+    </view>
+
+    <!-- 近 7 天卡路里柱状图 -->
+    <view class="card">
+      <view class="card-title">📈 近 7 天卡路里</view>
+      <view class="bar-chart">
+        <block wx:for="{{days}}" wx:key="date" wx:for-item="d">
+          <view class="bar-col">
+            <view class="bar-value">{{d.total.calories}}</view>
+            <view class="bar-track">
+              <view class="bar-fill {{d.isToday ? 'bar-today' : ''}}"
+                    style="height: {{d.pct}}%;">
+              </view>
+            </view>
+            <view class="bar-label">{{d.weekday}}</view>
+            <view class="bar-date">{{d.label}}</view>
+          </view>
+        </block>
+      </view>
+      <view class="text-muted" style="font-size:22rpx;margin-top:12rpx;text-align:center;">
+        柱高 = 实际 / 推荐（{{targets.calories || 2000}} kcal）
+      </view>
+    </view>
+
+    <!-- 饮食多样性 -->
+    <view class="card">
+      <view class="card-title">🍽 饮食多样性</view>
+      <view class="diversity-stat">
+        <text class="big-num">{{diversity}}</text>
+        <text class="big-label">道不同的菜</text>
+      </view>
+      <view wx:if="{{topDishes.length > 0}}" class="top-list">
+        <view class="top-title">🏆 最常吃</view>
+        <block wx:for="{{topDishes}}" wx:key="name" wx:for-item="d">
+          <view class="top-item">
+            <text class="top-rank">{{d.rank}}</text>
+            <text class="top-name">{{d.name}}</text>
+            <text class="top-count">×{{d.count}}</text>
+          </view>
+        </block>
+      </view>
+      <view wx:else class="text-muted text-center" style="padding:20rpx 0;">
+        还没有记录
+      </view>
+    </view>
+
+    <!-- 本周报告 -->
+    <view class="card">
+      <view class="card-title">📋 本周报告</view>
+      <view class="week-stat">
+        <view class="week-row">
+          <text class="week-label">日均卡路里</text>
+          <text class="week-value">{{weekAvg.calories}} kcal</text>
+        </view>
+        <view class="week-row">
+          <text class="week-label">日均蛋白质</text>
+          <text class="week-value">{{weekAvg.protein}} g</text>
+        </view>
+        <view class="week-row">
+          <text class="week-label">日均碳水</text>
+          <text class="week-value">{{weekAvg.carbs}} g</text>
+        </view>
+        <view class="week-row">
+          <text class="week-label">日均脂肪</text>
+          <text class="week-value">{{weekAvg.fat}} g</text>
+        </view>
+        <view class="week-row">
+          <text class="week-label">本周趋势</text>
+          <view class="trend-tag {{trend > 5 ? 'trend-up' : trend < -5 ? 'trend-down' : 'trend-flat'}}">
+            <text wx:if="{{trend > 5}}">↑ {{trend}}%</text>
+            <text wx:elif="{{trend < -5}}">↓ {{Math.abs(trend)}}%</text>
+            <text wx:else>— 平稳</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="text-muted text-center" style="padding:24rpx 0 60rpx;font-size:22rpx;">
+      数据基于过去 {{range}} 天 · 下拉刷新可重新加载
+    </view>
+  </block>
+
+</view>

@@ -1,0 +1,378 @@
+<!-- pages/home/home.wxml —— 1 页式主页（对齐 web app 风格）
+     整体结构：橙色 banner（标题+日期+4 按钮）→ 搜索框 → 4 mode tab → 大按钮 → 结果区
+-->
+<view class="home">
+
+  <!-- 橙色 banner 头部 -->
+  <view class="header-banner">
+    <view class="header-top">
+      <view class="header-top-left">
+        <view class="header-title">🥢 今天吃什么</view>
+        <view class="header-date">{{todayLabel}}</view>
+      </view>
+    </view>
+    <!-- 4 个大按钮（对齐 web app 的 banner-actions） -->
+    <view class="banner-actions">
+      <view class="banner-btn" catchtap="onOpenManualLog">📝 记录</view>
+      <view class="banner-btn banner-btn-primary" catchtap="onDrawCombo">🎲 抽一套</view>
+      <view class="banner-btn" catchtap="onOpenAI">🤖 AI 顾问</view>
+      <view class="banner-btn" catchtap="onOpenMonthlyReport">📊 报告</view>
+    </view>
+  </view>
+
+  <!-- 搜索框 -->
+  <view class="search-bar">
+    <text class="search-icon">🔍</text>
+    <input class="search-input" value="{{searchQuery}}" bindinput="onSearchInput"
+           placeholder="搜菜名、食材、标签…空格分多词" confirm-type="search" />
+    <text wx:if="{{searchQuery}}" class="search-clear" catchtap="onClearSearch">×</text>
+  </view>
+  <view wx:if="{{searchResults.length > 0}}" class="search-results">
+    <block wx:for="{{searchResults}}" wx:key="name" wx:for-item="d">
+      <view class="search-result-row" data-name="{{d.name}}" catchtap="onShowRecipe" hover-class="search-result-hover">
+        <text class="search-result-emoji" style="font-size: {{32 * fontScale}}rpx;">{{d.emoji}}</text>
+        <view class="search-result-info">
+          <view class="search-result-name" style="font-size: {{28 * fontScale}}rpx;">{{d.name}}</view>
+          <view class="search-result-meta" style="font-size: {{20 * fontScale}}rpx;">{{d.role}} · 约 {{d.time}} 分钟</view>
+        </view>
+        <text class="search-result-arrow">›</text>
+      </view>
+    </block>
+  </view>
+
+  <!-- 4 mode tab -->
+  <view class="mode-tabs">
+    <view class="mode-tab {{mode === 'combo' ? 'active' : ''}}" data-mode="combo" catchtap="onSwitchMode">🎲 随机套餐</view>
+    <view class="mode-tab {{mode === 'three' ? 'active' : ''}}" data-mode="three" catchtap="onSwitchMode">🍱 三餐</view>
+    <view class="mode-tab {{mode === 'fridge' ? 'active' : ''}}" data-mode="fridge" catchtap="onSwitchMode">🥬 冰箱有什么</view>
+    <view class="mode-tab {{mode === 'kids' ? 'active' : ''}}" data-mode="kids" catchtap="onSwitchMode">🍭 儿童餐</view>
+  </view>
+
+  <!-- 模式面板 -->
+  <view class="mode-panel">
+
+    <!-- 随机套餐 -->
+    <view wx:if="{{mode === 'combo'}}" class="panel">
+      <view class="big-btn" catchtap="onDrawCombo">🎲 抽一套！</view>
+      <view class="result-area" id="combo-result">
+        <view wx:if="{{comboResult.length === 0}}" class="empty-hint">点击上面的按钮开始 ✨</view>
+        <block wx:for="{{comboResult}}" wx:key="role" wx:for-item="dish" wx:for-index="idx">
+          <view class="dish-card">
+            <view class="dish-card-main" data-name="{{dish.name}}" catchtap="onShowRecipe">
+              <text class="dish-emoji" style="font-size: {{40 * fontScale}}rpx;">{{dish.emoji}}</text>
+              <view class="dish-info">
+                <view class="dish-name" style="font-size: {{30 * fontScale}}rpx;">{{dish.name}}</view>
+                <view class="dish-meta" style="font-size: {{20 * fontScale}}rpx;">{{dish.role}} · 约 {{dish.time}} 分钟</view>
+              </view>
+              <text class="dish-toggle" style="font-size: {{32 * fontScale}}rpx;">›</text>
+            </view>
+            <view class="dish-actions">
+              <view class="dish-act dish-act-eat" data-name="{{dish.name}}" catchtap="onEatOne">✓ 就做</view>
+              <view class="dish-act dish-act-swap" data-idx="{{idx}}" catchtap="onSwapCombo">🔄 换</view>
+              <view class="dish-act dish-act-skip" data-idx="{{idx}}" catchtap="onSkipCombo">✕ 跳过</view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 三餐 -->
+    <view wx:elif="{{mode === 'three'}}" class="panel">
+      <view class="big-btn" catchtap="onDrawThree">🍱 抽一天三餐</view>
+      <view class="result-area" id="three-result">
+        <view wx:if="{{threeResult.length === 0}}" class="empty-hint">点上面的按钮，抽出早中晚三顿 ✨</view>
+        <block wx:for="{{threeResult}}" wx:key="slot" wx:for-item="meal">
+          <view class="meal-section">
+            <view class="meal-header">
+              <text class="meal-emoji">{{meal.slot === '早餐' ? '☀️' : meal.slot === '午餐' ? '🌞' : '🌙'}}</text>
+              <text class="meal-name" style="font-size: {{28 * fontScale}}rpx;">{{meal.slot}}</text>
+              <text wx:if="{{meal.dishes.length === 0}}" class="meal-sub" style="font-size: {{20 * fontScale}}rpx;">配菜模式</text>
+            </view>
+            <block wx:for="{{meal.dishes}}" wx:key="name" wx:for-item="dish" wx:for-index="didx">
+              <view class="meal-dish-card">
+                <view class="meal-dish-main" data-name="{{dish.name}}" catchtap="onShowRecipe">
+                  <text class="dish-emoji" style="font-size: {{32 * fontScale}}rpx;">{{dish.emoji}}</text>
+                  <view class="meal-dish-info">
+                    <view class="meal-dish-name" style="font-size: {{28 * fontScale}}rpx;">{{dish.name}}</view>
+                    <view class="meal-dish-meta" style="font-size: {{20 * fontScale}}rpx;">{{dish.role}} · 约 {{dish.time}} 分钟</view>
+                  </view>
+                  <text class="dish-toggle" style="font-size: {{32 * fontScale}}rpx;">›</text>
+                </view>
+                <view class="dish-actions">
+                  <view class="dish-act dish-act-eat" data-name="{{dish.name}}" data-meal="{{meal.slot}}" catchtap="onEatThree">✓ 就做</view>
+                  <view class="dish-act dish-act-swap" data-idx="{{index}}" data-didx="{{didx}}" catchtap="onSwapThree">🔄 换</view>
+                  <view class="dish-act dish-act-custom" data-idx="{{index}}" data-didx="{{didx}}" catchtap="onCustomThree">🍽 别的</view>
+                  <view class="dish-act dish-act-skip" data-idx="{{index}}" data-didx="{{didx}}" catchtap="onSkipThree">✕ 跳过</view>
+                </view>
+              </view>
+            </block>
+          </view>
+        </block>
+        <view wx:if="{{threeResult.length > 0}}" class="all-eat-btn" catchtap="onEatAllThree">📋 全部就做这些</view>
+      </view>
+    </view>
+
+    <!-- 冰箱有什么 -->
+    <view wx:elif="{{mode === 'fridge'}}" class="panel">
+      <view class="fridge-input-row">
+        <input class="fridge-input" value="{{fridgeInput}}" bindinput="onFridgeInputChange"
+               placeholder="输入你有的食材（空格分隔）" confirm-type="done" />
+        <view class="big-btn small" catchtap="onCheckFridge">🥬 看能做啥</view>
+      </view>
+      <view class="result-area">
+        <view wx:if="{{fridgeResults.length === 0}}" class="empty-hint">输入你冰箱里有的食材</view>
+        <block wx:for="{{fridgeResults}}" wx:key="name" wx:for-item="d">
+          <view class="dish-card">
+            <view class="dish-card-main" data-name="{{d.name}}" catchtap="onShowRecipe">
+              <text class="dish-emoji" style="font-size: {{36 * fontScale}}rpx;">{{d.emoji}}</text>
+              <view class="dish-info">
+                <view class="dish-name" style="font-size: {{28 * fontScale}}rpx;">{{d.name}}</view>
+                <view class="dish-meta" style="font-size: {{20 * fontScale}}rpx;">{{d.role}}</view>
+              </view>
+              <text class="dish-toggle" style="font-size: {{32 * fontScale}}rpx;">›</text>
+            </view>
+            <view class="dish-actions">
+              <view class="dish-act dish-act-eat" data-name="{{d.name}}" catchtap="onEatOne">✓ 就做</view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 儿童餐 -->
+    <view wx:elif="{{mode === 'kids'}}" class="panel">
+      <view class="big-btn" catchtap="onDrawKids">🍭 给娃抽一套！</view>
+      <view class="result-area">
+        <view wx:if="{{kidsResult.length === 0}}" class="empty-hint">点上面的按钮，给娃挑一顿 ✨</view>
+        <block wx:for="{{kidsResult}}" wx:key="name" wx:for-item="dish">
+          <view class="dish-card">
+            <view class="dish-card-main" data-name="{{dish.name}}" catchtap="onShowRecipe">
+              <text class="dish-emoji" style="font-size: {{36 * fontScale}}rpx;">{{dish.emoji}}</text>
+              <view class="dish-info">
+                <view class="dish-name" style="font-size: {{28 * fontScale}}rpx;">{{dish.name}}</view>
+                <view class="dish-meta" style="font-size: {{20 * fontScale}}rpx;">{{dish.role}}</view>
+              </view>
+              <text class="dish-toggle" style="font-size: {{32 * fontScale}}rpx;">›</text>
+            </view>
+            <view class="dish-actions">
+              <view class="dish-act dish-act-eat" data-name="{{dish.name}}" catchtap="onEatOne">✓ 就做</view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 菜谱详情 modal ========== -->
+  <view wx:if="{{recipeDish}}" class="recipe-mask" catchtap="closeRecipe">
+    <view class="recipe-card" catchtap="_noop">
+      <view class="modal-close" catchtap="closeRecipe">✕</view>
+      <view class="recipe-header">
+        <text class="recipe-emoji" style="font-size: {{60 * fontScale}}rpx;">{{recipeDish.emoji}}</text>
+        <view class="recipe-title" style="font-size: {{34 * fontScale}}rpx;">{{recipeDish.name}}</view>
+        <view class="recipe-meta" style="font-size: {{22 * fontScale}}rpx;">{{recipeDish.role}} · 约 {{recipeDish.time}} 分钟</view>
+      </view>
+      <scroll-view scroll-y class="recipe-scroll">
+        <view wx:if="{{recipeDish.ingredients.length > 0}}" class="recipe-section">
+          <view class="recipe-section-title" style="font-size: {{26 * fontScale}}rpx;">🥕 食材</view>
+          <view class="recipe-tags">
+            <text wx:for="{{recipeDish.ingredients}}" wx:key="*this" wx:for-item="i" class="recipe-tag">{{i}}</text>
+          </view>
+        </view>
+        <view wx:if="{{recipeDish.seasonings.length > 0}}" class="recipe-section">
+          <view class="recipe-section-title" style="font-size: {{26 * fontScale}}rpx;">🧂 调料</view>
+          <view class="recipe-tags">
+            <text wx:for="{{recipeDish.seasonings}}" wx:key="*this" wx:for-item="i" class="recipe-tag">{{i}}</text>
+          </view>
+        </view>
+        <view wx:if="{{recipeDish.steps.length > 0}}" class="recipe-section">
+          <view class="recipe-section-title" style="font-size: {{26 * fontScale}}rpx;">📝 做法</view>
+          <view wx:for="{{recipeDish.steps}}" wx:key="*this" wx:for-item="step" wx:for-index="sidx" class="recipe-step">
+            <text class="recipe-step-num">{{sidx + 1}}.</text>
+            <text class="recipe-step-text" style="font-size: {{26 * fontScale}}rpx;">{{step}}</text>
+          </view>
+        </view>
+        <view wx:if="{{recipeDish.tip}}" class="recipe-tip" style="font-size: {{26 * fontScale}}rpx;">💡 {{recipeDish.tip}}</view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- ========== 手动记录 modal ========== -->
+  <view wx:if="{{showManualLog}}" class="manual-mask" catchtap="closeManualLog">
+    <view class="manual-card" catchtap="_noop">
+      <view class="modal-close" catchtap="closeManualLog">✕</view>
+      <view class="manual-title" style="font-size: {{32 * fontScale}}rpx;">📝 手动记录今天吃了啥</view>
+      <view class="manual-meta" style="font-size: {{22 * fontScale}}rpx;">纯自由文本 · 多个菜用逗号分隔</view>
+      <view class="manual-date-card" catchtap="onManualDateTap">
+        <text class="manual-date-label" style="font-size: {{22 * fontScale}}rpx;">📅 日期</text>
+        <picker mode="date" value="{{manualForm.date}}" bindchange="onManualField" data-field="date">
+          <view class="manual-date-value" style="font-size: {{28 * fontScale}}rpx;">{{manualForm.date}}</view>
+        </picker>
+      </view>
+      <view class="manual-meal-section">
+        <view class="manual-meal-header">
+          <text class="meal-emoji">☀️</text>
+          <text class="manual-meal-name" style="font-size: {{28 * fontScale}}rpx;">早餐</text>
+        </view>
+        <input class="manual-meal-input" value="{{manualForm.breakfast}}" bindinput="onManualField" data-field="breakfast" placeholder="例：面包,牛奶" />
+      </view>
+      <view class="manual-meal-section">
+        <view class="manual-meal-header">
+          <text class="meal-emoji">🌞</text>
+          <text class="manual-meal-name" style="font-size: {{28 * fontScale}}rpx;">午餐</text>
+        </view>
+        <input class="manual-meal-input" value="{{manualForm.lunch}}" bindinput="onManualField" data-field="lunch" placeholder="例：宫保鸡丁,米饭" />
+      </view>
+      <view class="manual-meal-section">
+        <view class="manual-meal-header">
+          <text class="meal-emoji">🌙</text>
+          <text class="manual-meal-name" style="font-size: {{28 * fontScale}}rpx;">晚餐</text>
+        </view>
+        <input class="manual-meal-input" value="{{manualForm.dinner}}" bindinput="onManualField" data-field="dinner" placeholder="例：番茄蛋汤" />
+      </view>
+      <view class="manual-actions">
+        <view class="btn-secondary" catchtap="closeManualLog">取消</view>
+        <view class="btn-primary" catchtap="onManualSave">保存记录</view>
+      </view>
+      <view class="manual-logbook-link" catchtap="onOpenLogbook">📋 查看历史记录</view>
+    </view>
+  </view>
+
+  <!-- ========== 历史记录本 modal（看历史 + 编辑 + 删除） ========== -->
+  <view wx:if="{{showLogbook}}" class="logbook-mask" catchtap="closeLogbook">
+    <view class="logbook-card" catchtap="_noop">
+      <view class="logbook-header">
+        <text class="logbook-emoji" style="font-size: {{64 * fontScale}}rpx;">📋</text>
+        <view class="logbook-title-block">
+          <view class="logbook-title" style="font-size: {{32 * fontScale}}rpx;">历史记录</view>
+          <view class="logbook-sub" style="font-size: {{22 * fontScale}}rpx;">最近的吃食记录（手动 + 抽签）</view>
+        </view>
+        <view class="modal-close" catchtap="closeLogbook">✕</view>
+      </view>
+      <scroll-view scroll-y class="logbook-scroll">
+        <view wx:if="{{logbookLoading}}" class="logbook-loading">加载中…</view>
+        <view wx:elif="{{logbookGroups.length === 0}}" class="logbook-empty">还没有记录</view>
+        <block wx:else>
+          <block wx:for="{{logbookGroups}}" wx:key="date" wx:for-item="g">
+            <view class="logbook-date" style="font-size: {{26 * fontScale}}rpx;">📅 {{g.date}}</view>
+            <block wx:for="{{g.items}}" wx:key="_id" wx:for-item="r">
+              <view class="logbook-row" hover-class="logbook-row-hover">
+                <view class="logbook-row-left" data-id="{{r._id}}" catchtap="onEditLogItem">
+                  <text class="logbook-row-badge">{{r.statusLabel}}</text>
+                  <text class="logbook-row-meal">{{r.mealEmoji}}</text>
+                  <text class="logbook-row-dish">{{r.dish}}</text>
+                </view>
+                <view class="logbook-row-actions">
+                  <view class="logbook-row-action" data-id="{{r._id}}" catchtap="onEditLogItem">✏️</view>
+                  <view class="logbook-row-action" data-id="{{r._id}}" catchtap="onDeleteLogItem">🗑</view>
+                </view>
+              </view>
+            </block>
+          </block>
+        </block>
+      </scroll-view>
+      <view wx:if="{{logbookGroups.length > 0}}" class="logbook-clear-link" catchtap="onClearAllHistory">🗑️ 清空所有历史</view>
+    </view>
+  </view>
+
+  <!-- ========== 编辑某条记录 modal ========== -->
+  <view wx:if="{{showEditRecord}}" class="edit-mask" catchtap="closeEditRecord">
+    <view class="edit-card" catchtap="_noop">
+      <view class="modal-close" catchtap="closeEditRecord">✕</view>
+      <view class="edit-header">
+        <view class="edit-title" style="font-size: {{32 * fontScale}}rpx;">✏️ 编辑记录</view>
+      </view>
+      <view class="edit-section">
+        <view class="edit-label" style="font-size: {{26 * fontScale}}rpx;">🍱 菜名</view>
+        <input class="edit-input" value="{{editForm.dish}}" bindinput="onEditField" data-field="dish" />
+      </view>
+      <view class="edit-section">
+        <view class="edit-label" style="font-size: {{26 * fontScale}}rpx;">⏰ 类型</view>
+        <view class="edit-meal-row">
+          <view class="edit-meal-chip {{editForm.meal === '早餐' ? 'on' : ''}}" data-meal="早餐" catchtap="onEditMeal">☀️ 早餐</view>
+          <view class="edit-meal-chip {{editForm.meal === '午餐' ? 'on' : ''}}" data-meal="午餐" catchtap="onEditMeal">🌞 午餐</view>
+          <view class="edit-meal-chip {{editForm.meal === '晚餐' ? 'on' : ''}}" data-meal="晚餐" catchtap="onEditMeal">🌙 晚餐</view>
+        </view>
+      </view>
+      <view class="edit-actions">
+        <view class="btn-secondary" catchtap="closeEditRecord">取消</view>
+        <view class="btn-primary" catchtap="onSaveEdit">保存</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 月度报告 modal ========== -->
+  <view wx:if="{{showMonthlyReport}}" class="report-mask" catchtap="closeMonthlyReport">
+    <view class="report-card" catchtap="_noop">
+      <view class="modal-close" catchtap="closeMonthlyReport">✕</view>
+      <view class="report-icon">📊</view>
+      <view class="report-title" style="font-size: {{34 * fontScale}}rpx;">{{monthlyReport.monthLabel}} · 饮食报告</view>
+      <view class="report-sub" style="font-size: {{22 * fontScale}}rpx;">共 {{monthlyReport.totalMeals}} 条历史 · 本月 {{monthlyReport.totalMeals}} 条</view>
+
+      <view class="report-stats">
+        <view class="report-stat">
+          <view class="report-num" style="font-size: {{56 * fontScale}}rpx;">{{monthlyReport.totalMeals}}</view>
+          <view class="report-label" style="font-size: {{20 * fontScale}}rpx;">本月吃了（道）</view>
+        </view>
+        <view class="report-stat">
+          <view class="report-num report-num-green" style="font-size: {{56 * fontScale}}rpx;">{{monthlyReport.activeDays}}</view>
+          <view class="report-label" style="font-size: {{20 * fontScale}}rpx;">有记录的天数</view>
+        </view>
+        <view class="report-stat">
+          <view class="report-num report-num-purple" style="font-size: {{56 * fontScale}}rpx;">{{monthlyReport.avgPerDay}}</view>
+          <view class="report-label" style="font-size: {{20 * fontScale}}rpx;">平均每天（餐）</view>
+        </view>
+      </view>
+
+      <view wx:if="{{monthlyReport.topDishes.length > 0}}" class="report-section">
+        <view class="report-section-title" style="font-size: {{26 * fontScale}}rpx;">🏆 本月 Top {{monthlyReport.topDishes.length}}</view>
+        <block wx:for="{{monthlyReport.topDishes}}" wx:key="rank" wx:for-item="d">
+          <view class="report-top-row">
+            <view class="report-top-rank" style="background: {{d.color}}; font-size: {{22 * fontScale}}rpx;">{{d.rank}}</view>
+            <view class="report-top-name" style="font-size: {{28 * fontScale}}rpx;">{{d.name}}</view>
+            <view class="report-top-count" style="font-size: {{22 * fontScale}}rpx;">{{d.count}} 次</view>
+          </view>
+        </block>
+      </view>
+
+      <view class="report-section">
+        <view class="report-section-title" style="font-size: {{26 * fontScale}}rpx;">🍱 三餐分布</view>
+        <block wx:for="{{monthlyReport.mealDist}}" wx:key="meal" wx:for-item="m">
+          <view class="report-meal-row">
+            <view class="report-meal-label" style="font-size: {{26 * fontScale}}rpx;">{{m.meal}}</view>
+            <view class="report-meal-bar-wrap">
+              <view class="report-meal-bar" style="width: {{m.fill}}%; background: {{m.color}};"></view>
+            </view>
+            <view class="report-meal-count" style="font-size: {{22 * fontScale}}rpx;">{{m.count}}</view>
+          </view>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== AI 顾问 modal（选 chat 或 preference） ========== -->
+  <view wx:if="{{showAIPanel}}" class="ai-mask" catchtap="closeAIPanel">
+    <view class="ai-card" catchtap="_noop">
+      <view class="modal-close" catchtap="closeAIPanel">✕</view>
+      <view class="ai-title" style="font-size: {{32 * fontScale}}rpx;">🤖 AI 顾问</view>
+      <view class="ai-sub" style="font-size: {{22 * fontScale}}rpx;">2 个入口，按需选</view>
+      <view class="ai-entry" catchtap="onOpenAIChat">
+        <text class="ai-entry-emoji">💬</text>
+        <view class="ai-entry-info">
+          <view class="ai-entry-title" style="font-size: {{28 * fontScale}}rpx;">跟 AI 聊三餐 / 营养</view>
+          <view class="ai-entry-sub" style="font-size: {{20 * fontScale}}rpx;">自由聊天，问什么都可以</view>
+        </view>
+        <text class="ai-entry-arrow">›</text>
+      </view>
+      <view class="ai-entry" catchtap="onOpenAIPrefs">
+        <text class="ai-entry-emoji">🎙️</text>
+        <view class="ai-entry-info">
+          <view class="ai-entry-title" style="font-size: {{28 * fontScale}}rpx;">跟 AI 聊口味</view>
+          <view class="ai-entry-sub" style="font-size: {{20 * fontScale}}rpx;">用自然语言告诉 AI 你的偏好</view>
+        </view>
+        <text class="ai-entry-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+</view>

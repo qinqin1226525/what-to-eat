@@ -1,0 +1,338 @@
+<!-- pages/profile/profile.wxml -->
+<view class="container">
+
+  <!-- 账号信息 -->
+  <view class="card">
+    <view class="card-title">账号</view>
+    <view class="info-row">
+      <text class="info-label">OpenID</text>
+      <text class="info-value mono">{{openidDisplay}}</text>
+    </view>
+    <view class="text-muted" style="margin-top:12rpx;">多设备登录同一微信自动同步数据，无需账号密码。</view>
+  </view>
+
+  <!-- 偏好 -->
+  <view class="card">
+    <view class="card-title">口味偏好</view>
+
+    <!-- AI 聊天设置入口 -->
+    <view class="ai-chat-btn" catchtap="onOpenAiChat">
+      <text class="ai-chat-emoji">🎙️</text>
+      <view class="ai-chat-text">
+        <view class="ai-chat-title">跟 AI 聊口味</view>
+        <view class="ai-chat-sub" style="font-size: {{22 * fontScale}}rpx;">不想填表？告诉 AI 你的口味就行</view>
+      </view>
+      <text class="ai-chat-arrow">›</text>
+    </view>
+
+    <view wx:if="{{prefs.customNote}}" class="custom-note-display" style="font-size: {{24 * fontScale}}rpx;">
+      💡 {{prefs.customNote}}
+    </view>
+
+    <view class="section">
+      <view class="section-title">菜系（多选）</view>
+      <view class="chip-row">
+        <view wx:for="{{cuisineOptions}}" wx:key="*this" wx:for-item="c"
+              class="chip {{prefs.cuisines.indexOf(c) >= 0 ? 'chip-on' : ''}}"
+              data-cuisine="{{c}}" bindtap="onToggleCuisine">{{c}}</view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">辣度</view>
+      <view class="chip-row">
+        <view class="chip {{prefs.spicy === 'any' ? 'chip-on' : ''}}" data-spicy="any" bindtap="onSpicy">不限</view>
+        <view class="chip {{prefs.spicy === 'mild' ? 'chip-on' : ''}}" data-spicy="mild" bindtap="onSpicy">微辣</view>
+        <view class="chip {{prefs.spicy === 'none' ? 'chip-on' : ''}}" data-spicy="none" bindtap="onSpicy">不吃辣</view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">其他开关</view>
+      <view class="switch-row" data-key="noNumb" bindtap="onToggle">
+        <text>不要麻辣</text>
+        <switch checked="{{prefs.noNumb}}" disabled="{{false}}" />
+      </view>
+      <view class="switch-row" data-key="vegetarian" bindtap="onToggle">
+        <text>只吃素食</text>
+        <switch checked="{{prefs.vegetarian}}" disabled="{{false}}" />
+      </view>
+      <view class="switch-row" data-key="noCold" bindtap="onToggle">
+        <text>不要凉菜</text>
+        <switch checked="{{prefs.noCold}}" disabled="{{false}}" />
+      </view>
+      <view class="switch-row" data-key="skipBreakfast" bindtap="onToggle">
+        <text>跳过早餐（一日三餐模式）</text>
+        <switch checked="{{prefs.skipBreakfast}}" disabled="{{false}}" />
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">忌口</view>
+      <view class="switch-row" data-key="seafood" bindtap="onToggleAvoid">
+        <text>不吃海鲜</text>
+        <switch checked="{{prefs.avoid.seafood}}" />
+      </view>
+      <view class="switch-row" data-key="offal" bindtap="onToggleAvoid">
+        <text>不吃内脏</text>
+        <switch checked="{{prefs.avoid.offal}}" />
+      </view>
+      <view class="switch-row" data-key="beef" bindtap="onToggleAvoid">
+        <text>不吃牛肉</text>
+        <switch checked="{{prefs.avoid.beef}}" />
+      </view>
+      <view class="switch-row" data-key="lamb" bindtap="onToggleAvoid">
+        <text>不吃羊肉</text>
+        <switch checked="{{prefs.avoid.lamb}}" />
+      </view>
+      <view class="switch-row" data-key="cilantro" bindtap="onToggleAvoid">
+        <text>不吃香菜</text>
+        <switch checked="{{prefs.avoid.cilantro}}" />
+      </view>
+      <view class="switch-row" data-key="centuryEgg" bindtap="onToggleAvoid">
+        <text>不吃皮蛋</text>
+        <switch checked="{{prefs.avoid.centuryEgg}}" />
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">南北餐习惯（午+晚）</view>
+      <view class="chip-row">
+        <view class="chip {{prefs.mealPattern === 'any' ? 'chip-on' : 'chip-ghost'}}" data-value="any" bindtap="onMealPattern">随便</view>
+        <view class="chip {{prefs.mealPattern === 'noodle-noodle' ? 'chip-on' : 'chip-ghost'}}" data-value="noodle-noodle" bindtap="onMealPattern">面食+面食</view>
+        <view class="chip {{prefs.mealPattern === 'noodle-rice' ? 'chip-on' : 'chip-ghost'}}" data-value="noodle-rice" bindtap="onMealPattern">面食+米饭</view>
+        <view class="chip {{prefs.mealPattern === 'rice-rice' ? 'chip-on' : 'chip-ghost'}}" data-value="rice-rice" bindtap="onMealPattern">米饭+米饭</view>
+      </view>
+      <view class="text-muted" style="font-size:22rpx;margin-top:8rpx;">影响「一日三餐」模式（午+晚两顿的主食）</view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">时间上限</view>
+      <view class="chip-row">
+        <view class="chip {{prefs.maxTime === 0 ? 'chip-on' : ''}}" data-value="0" bindtap="onMaxTime">不限</view>
+        <view class="chip {{prefs.maxTime === 30 ? 'chip-on' : ''}}" data-value="30" bindtap="onMaxTime">≤30 分钟</view>
+        <view class="chip {{prefs.maxTime === 60 ? 'chip-on' : ''}}" data-value="60" bindtap="onMaxTime">≤60 分钟</view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">套餐份量</view>
+      <view class="chip-row">
+        <view class="chip {{prefs.comboSize === '1-1-1' ? 'chip-on' : ''}}" data-value="1-1-1" bindtap="onComboSize">1 主菜+1 汤+1 主食</view>
+        <view class="chip {{prefs.comboSize === '2-1' ? 'chip-on' : ''}}" data-value="2-1" bindtap="onComboSize">2 主菜+1 汤</view>
+        <view class="chip {{prefs.comboSize === '3-1' ? 'chip-on' : ''}}" data-value="3-1" bindtap="onComboSize">3 主菜+1 汤</view>
+        <view class="chip {{prefs.comboSize === '4-1' ? 'chip-on' : ''}}" data-value="4-1" bindtap="onComboSize">4 主菜+1 汤</view>
+      </view>
+    </view>
+
+    <view style="margin-top:24rpx;">
+      <button class="btn-primary" bindtap="onSave" disabled="{{saving}}">保存偏好</button>
+    </view>
+  </view>
+
+  <!-- 开发者工具 -->
+  <view class="card">
+    <view class="card-title">开发者工具</view>
+    <view class="text-muted" style="margin-bottom:8rpx;">云端菜谱库：{{dishCount}} 道菜</view>
+    <view class="text-muted" style="margin-bottom:16rpx;">🤖 今日 AI 剩余：<text style="color:#ff9a3c;font-weight:600;">{{aiRemaining}}</text> / {{aiLimit}} 次</view>
+    <view style="display:flex;gap:12rpx;">
+      <view style="flex:1;">
+        <button class="btn-primary" bindtap="openAddDish" style="font-size:28rpx;padding:18rpx 0;">➕ 添加新菜</button>
+      </view>
+      <view style="flex:1;">
+        <button class="btn-secondary" bindtap="onSeed" disabled="{{seedStatus === 'seeding'}}" style="font-size:26rpx;padding:18rpx 0;">
+          {{seedButtonText}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加新菜弹窗 -->
+  <view wx:if="{{showAddDish}}" class="detail-mask" bindtap="closeAddDish">
+    <view class="detail-card" catchtap="onNoop">
+      <view class="detail-header">
+        <view class="detail-emoji">➕</view>
+        <view class="detail-title">添加新菜</view>
+        <view class="detail-close" bindtap="closeAddDish">✕</view>
+      </view>
+
+      <view class="form-section">
+        <view class="form-label">菜名 *</view>
+        <view style="display:flex;gap:12rpx;align-items:center;">
+          <input class="form-input" style="flex:1;" value="{{newDish.name}}" data-field="name" bindinput="onNewDishField" placeholder="例：番茄牛腩" maxlength="30" />
+          <button class="ai-fill-btn" bindtap="onSmartFill" disabled="{{smartFilling}}">
+            {{smartFilling ? '...' : 'AI auto'}}
+          </button>
+        </view>
+        <view wx:if="{{smartFilled}}" class="text-muted" style="font-size:22rpx;margin-top:8rpx;">AI 自动填充，可修改</view>
+      </view>
+
+      <view class="form-section">
+        <view class="form-label">耗时（分钟）*</view>
+        <input class="form-input" type="number" value="{{newDish.time_minutes}}" data-field="time_minutes" bindinput="onNewDishField" placeholder="15" maxlength="3" />
+      </view>
+
+      <view class="form-section">
+        <view class="form-label">类型 *</view>
+        <view class="chip-row">
+          <view class="chip {{newDish.role === '0' ? 'chip-on' : 'chip-ghost'}}" data-value="0" bindtap="onNewDishRole">主菜</view>
+          <view class="chip {{newDish.role === '1' ? 'chip-on' : 'chip-ghost'}}" data-value="1" bindtap="onNewDishRole">主食</view>
+          <view class="chip {{newDish.role === '2' ? 'chip-on' : 'chip-ghost'}}" data-value="2" bindtap="onNewDishRole">汤</view>
+          <view class="chip {{newDish.role === '3' ? 'chip-on' : 'chip-ghost'}}" data-value="3" bindtap="onNewDishRole">早餐</view>
+          <view class="chip {{newDish.role === '4' ? 'chip-on' : 'chip-ghost'}}" data-value="4" bindtap="onNewDishRole">凉菜</view>
+        </view>
+      </view>
+
+      <view class="form-section">
+        <view class="form-label">食材 *（用逗号或顿号分隔）</view>
+        <textarea class="form-input" value="{{newDish.ingredients}}" data-field="ingredients" bindinput="onNewDishField" placeholder="例：牛腩 500g, 番茄 2 个, 洋葱 1 颗" maxlength="300" auto-height />
+      </view>
+
+      <view class="form-section">
+        <view class="form-label">调料（可选）</view>
+        <textarea class="form-input" value="{{newDish.seasonings}}" data-field="seasonings" bindinput="onNewDishField" placeholder="例：生抽 2 勺, 糖 1 勺, 醋 半勺" maxlength="200" auto-height />
+      </view>
+
+      <view class="form-section">
+        <view class="form-label">做法（每行一步）</view>
+        <textarea class="form-input" value="{{newDish.steps}}" data-field="steps" bindinput="onNewDishField" placeholder="例：&#10;1. 牛腩切块焯水&#10;2. 番茄切块&#10;3. 热油爆香" maxlength="500" auto-height />
+      </view>
+
+      <view class="form-section">
+        <view class="form-label">小贴士（可选）</view>
+        <textarea class="form-input" value="{{newDish.tips}}" data-field="tips" bindinput="onNewDishField" placeholder="例：番茄要炒出汁" maxlength="200" auto-height />
+      </view>
+
+      <view style="display:flex;gap:12rpx;margin-top:24rpx;">
+        <view style="flex:1;">
+          <button class="btn-ghost" bindtap="closeAddDish" disabled="{{addingDish}}">取消</button>
+        </view>
+        <view style="flex:2;">
+          <button class="btn-primary" bindtap="submitNewDish" disabled="{{addingDish}}">
+            {{addingDish ? '...' : 'submit'}}
+          </button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 健康档案 -->
+  <view class="card">
+    <view class="card-title">健康档案</view>
+    <view class="text-muted" style="margin-bottom:20rpx;">用于自动算每日推荐摄入。完善后顶部会显示推荐量。</view>
+
+    <view class="section">
+      <view class="section-title">性别</view>
+      <view class="chip-row">
+        <view class="chip {{profile.sex === 'male' ? 'chip-on' :'chip-ghost'}}" data-field="sex" data-value="male" bindtap="onProfileRadio">男</view>
+        <view class="chip {{profile.sex === 'female' ? 'chip-on' :'chip-ghost'}}" data-field="sex" data-value="female" bindtap="onProfileRadio">女</view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">年龄</view>
+      <input class="input" type="number" value="{{profile.age}}" data-field="age" bindinput="onProfileInput" placeholder="岁" maxlength="3" />
+    </view>
+
+    <view class="section">
+      <view class="section-title">身高（cm）</view>
+      <input class="input" type="number" value="{{profile.height}}" data-field="height" bindinput="onProfileInput" placeholder="cm" maxlength="3" />
+    </view>
+
+    <view class="section">
+      <view class="section-title">体重（kg）</view>
+      <input class="input" type="number" value="{{profile.weight}}" data-field="weight" bindinput="onProfileInput" placeholder="kg" maxlength="3" />
+    </view>
+
+    <view class="section">
+      <view class="section-title">活动量</view>
+      <view class="chip-row">
+        <view class="chip {{profile.activity === 'sedentary' ? 'chip-on' :'chip-ghost'}}" data-field="activity" data-value="sedentary" bindtap="onProfileRadio">久坐</view>
+        <view class="chip {{profile.activity === 'light' ? 'chip-on' :'chip-ghost'}}" data-field="activity" data-value="light" bindtap="onProfileRadio">轻度</view>
+        <view class="chip {{profile.activity === 'moderate' ? 'chip-on' :'chip-ghost'}}" data-field="activity" data-value="moderate" bindtap="onProfileRadio">中度</view>
+        <view class="chip {{profile.activity === 'active' ? 'chip-on' :'chip-ghost'}}" data-field="activity" data-value="active" bindtap="onProfileRadio">高度</view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">目标</view>
+      <view class="chip-row">
+        <view class="chip {{profile.goal === 'lose' ? 'chip-on' :'chip-ghost'}}" data-field="goal" data-value="lose" bindtap="onProfileRadio">减脂</view>
+        <view class="chip {{profile.goal === 'maintain' ? 'chip-on' :'chip-ghost'}}" data-field="goal" data-value="maintain" bindtap="onProfileRadio">维持</view>
+        <view class="chip {{profile.goal === 'gain' ? 'chip-on' :'chip-ghost'}}" data-field="goal" data-value="gain" bindtap="onProfileRadio">增肌</view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">慢病情况</view>
+      <view class="chip-row">
+        <view class="chip {{profile.conditions.indexOf('hypertension') >= 0 ? 'chip-on' :'chip-ghost'}}" data-field="conditions" data-value="hypertension" bindtap="onProfileMulti">高血压</view>
+        <view class="chip {{profile.conditions.indexOf('diabetes') >= 0 ? 'chip-on' :'chip-ghost'}}" data-field="conditions" data-value="diabetes" bindtap="onProfileMulti">糖尿病</view>
+        <view class="chip {{profile.conditions.indexOf('gout') >= 0 ? 'chip-on' :'chip-ghost'}}" data-field="conditions" data-value="gout" bindtap="onProfileMulti">痛风</view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">过敏原</view>
+      <view class="chip-row">
+        <view class="chip {{profile.allergies.indexOf('seafood') >= 0 ? 'chip-on' :'chip-ghost'}}" data-field="allergies" data-value="seafood" bindtap="onProfileMulti">海鲜</view>
+        <view class="chip {{profile.allergies.indexOf('nuts') >= 0 ? 'chip-on' :'chip-ghost'}}" data-field="allergies" data-value="nuts" bindtap="onProfileMulti">坚果</view>
+        <view class="chip {{profile.allergies.indexOf('dairy') >= 0 ? 'chip-on' :'chip-ghost'}}" data-field="allergies" data-value="dairy" bindtap="onProfileMulti">乳制品</view>
+        <view class="chip {{profile.allergies.indexOf('gluten') >= 0 ? 'chip-on' :'chip-ghost'}}" data-field="allergies" data-value="gluten" bindtap="onProfileMulti">麸质</view>
+      </view>
+    </view>
+
+    <view wx:if="{{profileComplete}}" class="targets-summary">
+      <view class="text-muted" style="margin-top:20rpx;">📊 每日推荐摄入（自动计算）</view>
+      <view class="target-row"><text>卡路里</text><text class="target-num">{{targets.calories}} kcal</text></view>
+      <view class="target-row"><text>蛋白质</text><text class="target-num">{{targets.protein}} g</text></view>
+      <view class="target-row"><text>碳水</text><text class="target-num">{{targets.carbs}} g</text></view>
+      <view class="target-row"><text>脂肪</text><text class="target-num">{{targets.fat}} g</text></view>
+      <view class="target-row"><text>钠</text><text class="target-num">{{targets.sodium}} mg</text></view>
+      <view class="text-muted" style="margin-top:8rpx;font-size:22rpx;">基础代谢 {{targets.bmr}} · 总消耗 {{targets.tdee}} kcal</view>
+    </view>
+
+    <view style="margin-top:24rpx;">
+      <button class="btn-primary" bindtap="onSave" disabled="{{saving}}">保存档案</button>
+    </view>
+  </view>
+
+  <view class="text-muted text-center" style="padding:24rpx 0 60rpx;">v0.2.0 · 健康画像</view>
+
+  <!-- AI 聊口味 modal -->
+  <view wx:if="{{showAiChat}}" class="ai-mask" catchtap="closeAiChat">
+    <view class="ai-card" catchtap="onNoop">
+      <view class="ai-header">
+        <view class="ai-title" style="font-size: {{32 * fontScale}}rpx;">🎙️ 跟 AI 聊口味</view>
+        <view class="ai-close" catchtap="closeAiChat">✕</view>
+      </view>
+      <view class="ai-sub" style="font-size: {{22 * fontScale}}rpx;">
+        告诉 AI 你的偏好，比如：最近在增肌高蛋白 / 老婆怀孕要低钠 / 不吃香菜
+      </view>
+
+      <!-- 对话列表 -->
+      <scroll-view scroll-y class="ai-chat-scroll">
+        <block wx:for="{{aiChatHistory}}" wx:key="idx" wx:for-item="msg">
+          <view class="ai-msg ai-msg-{{msg.role}}" style="font-size: {{28 * fontScale}}rpx;">
+            <view class="ai-msg-bubble">{{msg.text}}</view>
+            <view wx:if="{{msg.explanation}}" class="ai-msg-explanation" style="font-size: {{22 * fontScale}}rpx;">
+              ✓ {{msg.explanation}}
+            </view>
+          </view>
+        </block>
+        <view wx:if="{{aiChatSending}}" class="ai-msg ai-msg-ai" style="font-size: {{28 * fontScale}}rpx;">
+          <view class="ai-msg-bubble">…思考中</view>
+        </view>
+      </scroll-view>
+
+      <!-- 输入区 -->
+      <view class="ai-input-row">
+        <input class="ai-input" value="{{aiChatInput}}" bindinput="onAiChatInput"
+               bindconfirm="onAiChatSend" placeholder="说说你想吃什么 / 不想吃什么…"
+               confirm-type="send" disabled="{{aiChatSending}}" />
+        <view class="ai-send-btn {{aiChatSending ? 'disabled' : ''}}" catchtap="onAiChatSend">发送</view>
+      </view>
+    </view>
+  </view>
+
+</view>
