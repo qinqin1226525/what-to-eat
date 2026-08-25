@@ -967,8 +967,9 @@
 
 .top-nav-btn:nth-child(1) { background: linear-gradient(135deg, #fff5e6, #ffe4c4); }
 .top-nav-btn:nth-child(2) { background: linear-gradient(135deg, #f0f4ed, #d8e4d0); }
-.top-nav-btn:nth-child(3) { background: linear-gradient(135deg, #e8f0fe, #d4e2fc); }
-.top-nav-btn:nth-child(4) { background: linear-gradient(135deg, #f3e8ff, #e2d0fc); }
+.top-nav-btn:nth-child(3) { background: linear-gradient(135deg, #fce4ec, #f8bbd0); }
+.top-nav-btn:nth-child(4) { background: linear-gradient(135deg, #e8f0fe, #d4e2fc); }
+.top-nav-btn:nth-child(5) { background: linear-gradient(135deg, #f3e8ff, #e2d0fc); }
 
 .top-nav-btn:active {
   transform: scale(0.95);
@@ -1640,3 +1641,176 @@ button.sub-action-btn::after {
 }
 
 .manual-cancel { flex: 1; }
+
+/* ===== 一日三餐 modal ===== */
+.day-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 32rpx;
+  box-sizing: border-box;
+}
+
+.day-card {
+  background: #fafaf7;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  width: 100%;
+  max-width: 680rpx;
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+}
+
+.day-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+  position: relative;
+}
+
+.day-emoji {
+  font-size: 56rpx;
+  margin-right: 12rpx;
+  line-height: 1;
+}
+
+.day-title-block { flex: 1; min-width: 0; }
+
+.day-title {
+  font-weight: 700;
+  color: #2a2a2a;
+  margin-bottom: 4rpx;
+}
+
+.day-sub {
+  color: #888;
+}
+
+.day-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 36rpx;
+}
+
+.day-loading {
+  text-align: center;
+  color: #ff9a3c;
+  padding: 60rpx 0;
+  font-size: 28rpx;
+}
+
+.day-scroll {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.day-meal-section {
+  background: #fff;
+  border-radius: 14rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 12rpx;
+  box-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.03);
+}
+
+.day-meal-header {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-bottom: 10rpx;
+  padding-bottom: 8rpx;
+  border-bottom: 2rpx solid #fafaf7;
+}
+
+.day-meal-emoji {
+  font-size: 28rpx;
+}
+
+.day-meal-name {
+  font-weight: 600;
+  color: #2a2a2a;
+}
+
+.day-dish-row {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 0;
+}
+
+.day-dish-hover {
+  background: #fafaf7;
+}
+
+.day-dish-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.day-dish-name {
+  font-weight: 500;
+  color: #2a2a2a;
+  margin-bottom: 2rpx;
+}
+
+.day-dish-reason {
+  color: #888;
+  font-style: italic;
+}
+
+.day-dish-swap {
+  background: #fff;
+  color: #ff9a3c;
+  border: 2rpx solid #ff9a3c;
+  border-radius: 999rpx;
+  padding: 6rpx 16rpx;
+  font-size: 22rpx;
+  flex-shrink: 0;
+}
+
+.day-dish-swap:active {
+  background: #fff5e6;
+}
+
+.day-actions {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.day-cancel {
+  flex: 1;
+  background: #fff;
+  border: 2rpx solid #f0ebe0;
+  border-radius: 12rpx;
+  padding: 18rpx 0;
+  text-align: center;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.day-accept {
+  flex: 2;
+  background: linear-gradient(135deg, #ff9a3c, #e88a30);
+  color: #fff;
+  border-radius: 12rpx;
+  padding: 18rpx 0;
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.day-accept:active { opacity: 0.85; }
+.day-accept.disabled { opacity: 0.5; }

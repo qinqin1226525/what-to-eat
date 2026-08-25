@@ -20,6 +20,10 @@
       <text class="top-nav-emoji" style="font-size: {{40 * fontScale}}rpx;">🎲</text>
       <text class="top-nav-text" style="font-size: {{22 * fontScale}}rpx;">抽一套</text>
     </view>
+    <view class="top-nav-btn" catchtap="onPickMeals">
+      <text class="top-nav-emoji" style="font-size: {{40 * fontScale}}rpx;">🍱</text>
+      <text class="top-nav-text" style="font-size: {{22 * fontScale}}rpx;">一日三餐</text>
+    </view>
     <view class="top-nav-btn" catchtap="onManualRecord">
       <text class="top-nav-emoji" style="font-size: {{40 * fontScale}}rpx;">📝</text>
       <text class="top-nav-text" style="font-size: {{22 * fontScale}}rpx;">记录</text>
@@ -167,6 +171,46 @@
         </view>
       </block>
     </view>
+    </view>
+  </view>
+
+  <!-- 一日三餐定制 modal -->
+  <view wx:if="{{showDayMeals}}" class="day-mask" catchtap="closeDayMeals">
+    <view class="day-card" catchtap="">
+      <view class="day-header">
+        <text class="day-emoji" style="font-size: {{60 * fontScale}}rpx;">🍱</text>
+        <view class="day-title-block">
+          <view class="day-title" style="font-size: {{32 * fontScale}}rpx;">一日三餐</view>
+          <view class="day-sub" style="font-size: {{22 * fontScale}}rpx;">{{dayMealNote || 'AI 按你的偏好分配'}}</view>
+        </view>
+        <view class="day-close" catchtap="closeDayMeals">✕</view>
+      </view>
+
+      <view wx:if="{{dayMealsLoading}}" class="day-loading">🤖 AI 分配中…</view>
+      <scroll-view scroll-y class="day-scroll">
+        <block wx:for="{{['早餐', '午餐', '晚餐']}}" wx:key="*this" wx:for-item="slot">
+          <view class="day-meal-section">
+            <view class="day-meal-header">
+              <text class="day-meal-emoji">{{slot === '早餐' ? '☀️' : slot === '午餐' ? '🌞' : '🌙'}}</text>
+              <text class="day-meal-name" style="font-size: {{28 * fontScale}}rpx;">{{slot}}</text>
+            </view>
+            <block wx:for="{{dayMeals[slot] || []}}" wx:key="dish" wx:for-item="item" wx:for-index="didx">
+              <view class="day-dish-row" hover-class="day-dish-hover">
+                <view class="day-dish-info">
+                  <view class="day-dish-name" style="font-size: {{28 * fontScale}}rpx;">{{item.dish}}</view>
+                  <view wx:if="{{item.reason}}" class="day-dish-reason" style="font-size: {{22 * fontScale}}rpx;">{{item.reason}}</view>
+                </view>
+                <view class="day-dish-swap" data-slot="{{slot}}" data-idx="{{didx}}" catchtap="onSwapDayMeal">换</view>
+              </view>
+            </block>
+          </view>
+        </block>
+      </scroll-view>
+
+      <view class="day-actions">
+        <view class="day-cancel" catchtap="closeDayMeals">取消</view>
+        <view class="day-accept {{savingDayMeals ? 'disabled' : ''}}" catchtap="onAcceptAllDayMeals">{{savingDayMeals ? '保存中…' : '📋 全部就做这些'}}</view>
+      </view>
     </view>
   </view>
 

@@ -48,6 +48,12 @@ Page({
     // 手动记录 modal（按饮食报告风格）
     showManualLog: false,
     manualForm: { date: '', breakfast: '', lunch: '', dinner: '' },
+    // 一日三餐定制 modal
+    showDayMeals: false,
+    dayMeals: null,         // {早餐: [], 午餐: [], 晚餐: []}
+    dayMealNote: '',        // AI 整体说明
+    dayMealsLoading: false,
+    savingDayMeals: false,
     // 搜菜谱（输入菜名出菜谱）
     searchInput: '',
     searchResults: [],   // 过滤后的菜谱
@@ -826,6 +832,108 @@ Page({
     const section = e.currentTarget.dataset.section
     if (!section) return
     this.setData({ [`expanded.${section}`]: !this.data.expanded[section] })
+  },
+
+  // ----- 一日三餐定制 -----
+  async onPickMeals() {
+    const { customDishes, recentPicks } = this.data
+    if (customDishes.length === 0) {
+      wx.showToast({ title: '菜池为空，先加几道', icon: 'none' })
+      this.openOnboarding()
+      return
+    }
+    const recentSet = new Set(recentPicks)
+    const candidates = customDishes.filter(d => !recentSet.has(d))
+    if (candidates.length < 3) {
+      wx.showToast({ title: '7 天内都吃过了，加点新菜', icon: 'none' })
+      return
+    }
+    const prefs = app.globalData.prefs || {}
+    const customNote = (prefs.customNote || '').trim()
+
+    this.setData({ showDayMeals: true, dayMealsLoading: true, dayMeals: null })
+    try {
+      const res = await cloud.call('aiAdvisor', {
+        mode: 'pickMealsForDay',
+        candidates,
+        recentPicks,
+        hint: customNote
+      })
+      if (res && res.ok && res.meals) {
+        this.setData({ dayMeals: res.meals, dayMealNote: res.note || '', dayMealsLoading: false })
+      } else {
+        util.showError('AI 推荐失败', new Error((res && res.error) || '未知错误'))
+        this.setData({ dayMealsLoading: false })
+      }
+    } catch (err) {
+      this.setData({ dayMealsLoading: false })
+      util.showError('AI 推荐失败', err)
+    }
+  },
+
+  closeDayMeals() {
+    this.setData({ showDayMeals: false, dayMeals: null, dayMealNote: '' })
+  },
+
+  // 换一餐里的某道菜（从菜池随机抽 1 道替换）
+  onSwapDayMeal(e) {
+    const slot = e.currentTarget.dataset.slot
+    const idx = Number(e.currentTarget.dataset.idx)
+    const meals = this.data.dayMeals
+    if (!meals || !meals[slot]) return
+    const inMeals = Object.values(meals).flat().map(m => m.dish)
+    const pool = this.data.customDishes.filter(d => !inMeals.includes(d))
+    if (pool.length === 0) {
+      wx.showToast({ title: '没菜可换了', icon: 'none' })
+      return
+    }
+    const newDish = pool[Math.floor(Math.random() * pool.length)]
+    const newItems = meals[slot].slice()
+    newItems[idx] = { dish: newDish, reason: '本地换菜' }
+    this.setData({ [`dayMeals.${slot}`]: newItems })
+  },
+
+  // 全部就做这些：批量 addMeal
+  async onAcceptAllDayMeals() {
+    if (this.data.savingDayMeals) return
+    const meals = this.data.dayMeals
+    if (!meals) return
+    const today = new Date().toISOString().slice(0, 10)
+    const all = []
+    for (const slot of ['早餐', '午餐', '晚餐']) {
+      for (const item of (meals[slot] || [])) {
+        if (item && item.dish) all.push({ meal: slot, dish: item.dish })
+      }
+    }
+    if (all.length === 0) {
+      wx.showToast({ title: '没有菜可记录', icon: 'none' })
+      return
+    }
+    this.setData({ savingDayMeals: true })
+    let ok = 0, fail = 0
+    try {
+      for (const { meal, dish } of all) {
+        try {
+          await cloud.addMeal({ dish, meal, status: 'confirmed', date: today })
+          ok++
+        } catch (e) {
+          fail++
+        }
+      }
+      if (fail === 0) {
+        wx.showToast({ title: `已记录 ${ok} 条`, icon: 'success' })
+      } else if (ok > 0) {
+        wx.showToast({ title: `成功 ${ok}，失败 ${fail}`, icon: 'none' })
+      } else {
+        util.showError('记录失败', new Error('全部失败'))
+      }
+      this.setData({ showDayMeals: false, dayMeals: null, dayMealNote: '' })
+      this.refresh()
+    } catch (err) {
+      util.showError('保存失败', err)
+    } finally {
+      this.setData({ savingDayMeals: false })
+    }
   },
 
   // ----- 菜池：批量输入 + 保存 -----

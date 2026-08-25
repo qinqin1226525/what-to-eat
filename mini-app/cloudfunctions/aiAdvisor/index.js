@@ -21,6 +21,11 @@ exports.main = async (event) => {
     return setPreferencesFromChat(event, { API_KEY, API_URL, MODEL })
   }
 
+  // 一日三餐定制：按用户偏好（customNote）分配早/午/晚
+  if (event.mode === 'pickMealsForDay') {
+    return pickMealsForDay(event, { API_KEY, API_URL, MODEL })
+  }
+
   const { question, profile, todayMeals, todayTotals, targets } = event
 
   if (!API_KEY) {
@@ -306,6 +311,106 @@ function mergePrefs(current, updated) {
     }
   }
   return merged
+}
+
+// 一日三餐定制：根据 customNote 智能分配早/午/晚
+async function pickMealsForDay(event, { API_KEY, API_URL, MODEL }) {
+  const { candidates = [], recentPicks = [], hint = '' } = event
+  if (!API_KEY) {
+    return { ok: false, error: 'API_KEY 未配置' }
+  }
+  if (!candidates || candidates.length === 0) {
+    return { ok: false, error: '菜池为空，先加几道菜' }
+  }
+
+  const systemPrompt = `你是用户的私人饮食顾问「三餐肆计」。
+任务：根据用户偏好，从【候选菜】里分配一日三餐的菜。
+
+## 关键规则
+- **早/午/晚各给 1-2 道菜**（主菜 1 道，可选加汤/主食）
+- **必须在【候选菜】里挑**，不能编新菜
+- 每道菜配 1 句理由（≤20 字），说明为什么放在这餐
+
+## 餐次默认结构（用户没说时按这个）
+- 早餐：主食或简单快手（牛奶 面包/包子/粥）
+- 午餐：主菜 + 主食（管饱）
+- 晚餐：主菜 + 可选汤（不要太重）
+
+## 用户偏好
+\`\`\`
+${hint || '（无）'}
+\`\`\`
+
+如果用户说了「中午吃面晚上吃炒菜」之类的 meal-specific 偏好，**严格按偏好分配**（午餐必须面食、晚餐必须炒菜类）。
+如果只说了「不吃辣」之类的通用偏好，**早午晚都遵守**。
+
+## 输出 JSON（不要 markdown 代码块）
+{
+  "meals": {
+    "早餐": [{"dish": "菜名", "reason": "简短理由"}, ...],
+    "午餐": [{"dish": "菜名", "reason": "简短理由"}, ...],
+    "晚餐": [{"dish": "菜名", "reason": "简短理由"}, ...]
+  },
+  "note": "整体说明（≤40 字）"
+}`
+
+## 输入
+- 候选菜：${candidates.join('、')}
+- 最近 7 天吃过：${recentPicks.join('、') || '（无）'}`
+
+⚠️ 注意：最近 7 天吃过的菜尽量不要再出现`
+
+  try {
+    const data = await httpsPostJson(API_URL, API_KEY, {
+      model: MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `候选菜：${candidates.join('、')}` }
+      ],
+      max_tokens: 800,
+      temperature: 0.7,
+      stream: false,
+      response_format: { type: 'json_object' }
+    })
+
+    const reply = data.choices?.[0]?.message?.content?.trim()
+    if (!reply) return { ok: false, error: 'AI 返回为空' }
+
+    let parsed
+    try {
+      parsed = JSON.parse(reply)
+    } catch (e) {
+      return { ok: false, error: 'AI 返回不是 JSON: ' + reply.slice(0, 100) }
+    }
+
+    // 校验：每餐的 dish 必须在 candidates 里
+    const validSet = new Set(candidates)
+    const meals = {}
+    for (const slot of ['早餐', '午餐', '晚餐']) {
+      const items = Array.isArray(parsed.meals?.[slot]) ? parsed.meals[slot] : []
+      meals[slot] = items
+        .filter(it => it && it.dish && validSet.has(it.dish))
+        .map(it => ({ dish: it.dish, reason: String(it.reason || '').slice(0, 30) }))
+    }
+
+    // 兜底：如果某餐没菜，从 candidates 随机补 1 道
+    for (const slot of ['早餐', '午餐', '晚餐']) {
+      if (meals[slot].length === 0) {
+        const remain = candidates.filter(d => !Object.values(meals).flat().some(x => x.dish === d))
+        if (remain.length > 0) {
+          meals[slot] = [{ dish: remain[0], reason: '兜底推荐' }]
+        }
+      }
+    }
+
+    return {
+      ok: true,
+      meals,
+      note: String(parsed.note || '').slice(0, 60)
+    }
+  } catch (err) {
+    return { ok: false, error: `AI 调用失败：${err.message || String(err)}` }
+  }
 }
 
 function buildContext(profile, todayMeals, todayTotals, targets) {
