@@ -86,11 +86,24 @@
             <view class="meal-header">
               <text class="meal-emoji">{{meal.slot === '早餐' ? '☀️' : meal.slot === '午餐' ? '🌞' : '🌙'}}</text>
               <text class="meal-name" style="font-size: {{28 * fontScale}}rpx;">{{meal.slot}}</text>
+              <text wx:if="{{meal.dishes.length === 0}}" class="meal-sub" style="font-size: {{20 * fontScale}}rpx;">配菜模式</text>
             </view>
-            <block wx:for="{{meal.dishes}}" wx:key="name" wx:for-item="dish">
-              <view class="dish-mini-row">
-                <text class="dish-mini-emoji">{{dish.emoji}}</text>
-                <text class="dish-mini-name" style="font-size: {{26 * fontScale}}rpx;">{{dish.name}}</text>
+            <block wx:for="{{meal.dishes}}" wx:key="name" wx:for-item="dish" wx:for-index="didx">
+              <view class="meal-dish-card">
+                <view class="meal-dish-main" data-name="{{dish.name}}" catchtap="onShowRecipe">
+                  <text class="dish-emoji" style="font-size: {{32 * fontScale}}rpx;">{{dish.emoji}}</text>
+                  <view class="meal-dish-info">
+                    <view class="meal-dish-name" style="font-size: {{28 * fontScale}}rpx;">{{dish.name}}</view>
+                    <view class="meal-dish-meta" style="font-size: {{20 * fontScale}}rpx;">{{dish.role}} · 约 {{dish.time}} 分钟</view>
+                  </view>
+                  <text class="dish-toggle" style="font-size: {{32 * fontScale}}rpx;">›</text>
+                </view>
+                <view class="dish-actions">
+                  <view class="dish-act dish-act-eat" data-name="{{dish.name}}" data-meal="{{meal.slot}}" catchtap="onEatThree">✓ 就做</view>
+                  <view class="dish-act dish-act-swap" data-idx="{{index}}" data-didx="{{didx}}" catchtap="onSwapThree">🔄 换</view>
+                  <view class="dish-act dish-act-custom" data-idx="{{index}}" data-didx="{{didx}}" catchtap="onCustomThree">🍽 别的</view>
+                  <view class="dish-act dish-act-skip" data-idx="{{index}}" data-didx="{{didx}}" catchtap="onSkipThree">✕ 跳过</view>
+                </view>
               </view>
             </block>
           </view>

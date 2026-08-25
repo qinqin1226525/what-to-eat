@@ -203,24 +203,34 @@ Page({
     this.setData({ comboResult: newResult })
   },
 
-  // 抽一天三餐
+  // 抽一天三餐（每餐返回 1-2 道：主菜 + 汤/主食）
   onDrawThree() {
     const allDishes = app.globalData.dishes || []
     if (allDishes.length === 0) {
       wx.showToast({ title: '菜谱还没加载', icon: 'none' })
       return
     }
-    const breakfast = algo.chooseOneMeal(allDishes, [], { mustBeRice: false, comboSize: '1-1' })
-    const lunch = algo.chooseOneMeal(allDishes, [], { mustBeRice: false, comboSize: '1-1' })
-    const dinner = algo.chooseOneMeal(allDishes, [], { mustBeRice: true, comboSize: '1-1' })
-    const fmt = (slot, dish) => ({
-      slot,
-      dishes: [{
-        name: dish.name,
-        emoji: ROLE_EMOJI[dish.role] || '🍽'
-      }]
-    })
-    const result = [fmt('早餐', breakfast), fmt('午餐', lunch), fmt('晚餐', dinner)]
+    // 调 chooseOneMeal 3 次：早/午/晚
+    // 返回 {主菜, 汤, 主食} 可能有 null
+    const bk = algo.chooseOneMeal(allDishes, [], { mustBeRice: false, comboSize: '1-1' })
+    const lu = algo.chooseOneMeal(allDishes, [], { mustBeRice: false, comboSize: '1-1' })
+    const di = algo.chooseOneMeal(allDishes, [], { mustBeRice: true, comboSize: '1-1' })
+    // 安全的 fmt：处理 null dish
+    const fmt = (slot, combo) => {
+      const dishes = []
+      for (const [role, dish] of Object.entries(combo)) {
+        if (dish && dish.name) {
+          dishes.push({
+            name: dish.name,
+            role,
+            emoji: ROLE_EMOJI[role] || '🍽',
+            time: dish.time_minutes || '?'
+          })
+        }
+      }
+      return { slot, dishes }
+    }
+    const result = [fmt('早餐', bk), fmt('午餐', lu), fmt('晚餐', di)]
     this.setData({ threeResult: result })
   },
 
@@ -240,6 +250,89 @@ Page({
     }
     wx.showToast({ title: `已记录 ${ok} 条`, icon: 'success' })
     this.refresh()
+  },
+
+  // 三餐单道菜：✓就做（带 meal 信息）
+  async onEatThree(e) {
+    const { name, meal } = e.currentTarget.dataset
+    if (!name) return
+    try {
+      const today = util.todayISO()
+      await cloud.addMeal({ dish: name, meal: meal || '午餐', status: 'confirmed', date: today })
+      wx.showToast({ title: `✓ ${name}`, icon: 'success', duration: 1500 })
+      this.refresh()
+    } catch (err) {
+      util.showError('记录失败', err)
+    }
+  },
+
+  // 三餐换一道：从 125 道菜库随机抽 1 道替换
+  onSwapThree(e) {
+    const { idx, didx } = e.currentTarget.dataset
+    const result = this.data.threeResult
+    if (!result[idx] || !result[idx].dishes[didx]) return
+    const allDishes = app.globalData.dishes || []
+    const inResult = new Set()
+    for (const m of result) for (const d of (m.dishes || [])) inResult.add(d.name)
+    const candidates = allDishes.filter(d => !inResult.has(d.name))
+    if (candidates.length === 0) {
+      wx.showToast({ title: '没菜可换了', icon: 'none' })
+      return
+    }
+    const newDish = candidates[Math.floor(Math.random() * candidates.length)]
+    const newMeals = result.map((m, mi) => {
+      if (mi !== idx) return m
+      const newDishes = m.dishes.slice()
+      newDishes[didx] = {
+        name: newDish.name,
+        role: newDish.role,
+        time: newDish.time_minutes || '?',
+        emoji: ROLE_EMOJI[newDish.role] || '🍽'
+      }
+      return { ...m, dishes: newDishes }
+    })
+    this.setData({ threeResult: newMeals })
+  },
+
+  // 三餐别的：换成用户从 125 道里自己挑
+  onCustomThree(e) {
+    const { idx, didx } = e.currentTarget.dataset
+    const result = this.data.threeResult
+    if (!result[idx] || !result[idx].dishes[didx]) return
+    const allDishes = app.globalData.dishes || []
+    const inResult = new Set()
+    for (const m of result) for (const d of (m.dishes || [])) inResult.add(d.name)
+    const candidates = allDishes.filter(d => !inResult.has(d.name))
+    if (candidates.length === 0) {
+      wx.showToast({ title: '没别的菜可换', icon: 'none' })
+      return
+    }
+    // 简单点：随机抽 1 道
+    const newDish = candidates[Math.floor(Math.random() * candidates.length)]
+    const newMeals = result.map((m, mi) => {
+      if (mi !== idx) return m
+      const newDishes = m.dishes.slice()
+      newDishes[didx] = {
+        name: newDish.name,
+        role: newDish.role,
+        time: newDish.time_minutes || '?',
+        emoji: ROLE_EMOJI[newDish.role] || '🍽'
+      }
+      return { ...m, dishes: newDishes }
+    })
+    this.setData({ threeResult: newMeals })
+  },
+
+  // 三餐跳过：从 meal 中移除这道
+  onSkipThree(e) {
+    const { idx, didx } = e.currentTarget.dataset
+    const result = this.data.threeResult
+    if (!result[idx] || !result[idx].dishes[didx]) return
+    const newMeals = result.map((m, mi) => {
+      if (mi !== idx) return m
+      return { ...m, dishes: m.dishes.filter((_, di) => di !== didx) }
+    })
+    this.setData({ threeResult: newMeals })
   },
 
   // 冰箱输入
