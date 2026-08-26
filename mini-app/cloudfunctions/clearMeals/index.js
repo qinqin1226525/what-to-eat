@@ -20,7 +20,7 @@ exports.main = async () => {
 
     // 如果 0 条，兜底：按 _openid 用 command.eq（更宽松）
     if (deleted === 0) {
-      const r2 = await db.collection(COL).where(_.eq(OPENID)).remove()
+      const r2 = await db.collection(COL).where(_.eq('_openid', OPENID)).remove()
       deleted = r2.deleted || 0
     }
 
