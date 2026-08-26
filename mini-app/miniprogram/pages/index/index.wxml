@@ -125,7 +125,6 @@
     </view>
   </block>
 
-  </block>
 
   <!-- 一日三餐 -->
   <block wx:if="{{mode === 'three-meals' && result}}">
