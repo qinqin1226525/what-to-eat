@@ -134,6 +134,37 @@
   font-weight: 300;
 }
 
+/* ========== 加入菜池按钮（搜索结果 / 菜谱详情 / combo 结果通用） ========== */
+.add-to-pool-btn {
+  margin-left: 12rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  background: #fff;
+  color: #ff9a3c;
+  border: 2rpx solid #ff9a3c;
+  font-size: 22rpx;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.add-to-pool-btn:active {
+  background: #fff5e6;
+}
+
+.add-to-pool-btn-in {
+  background: #e8f5e9;
+  color: #4caf50;
+  border-color: #4caf50;
+}
+
+.add-to-pool-btn-large {
+  margin-top: 16rpx;
+  padding: 14rpx 32rpx;
+  font-size: 26rpx;
+  align-self: center;
+}
+
 /* ========== 4 mode tabs ========== */
 .mode-tabs {
   display: flex;
@@ -794,7 +825,6 @@
   max-height: 86vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
 }
 
@@ -839,6 +869,7 @@
 .logbook-scroll {
   flex: 1;
   overflow-y: auto;
+  min-height: 100rpx;
   max-height: 65vh;
 }
 
@@ -850,12 +881,19 @@
 }
 
 .logbook-clear-link {
+  flex-shrink: 0;
   text-align: center;
   color: #d14545;
   font-size: 24rpx;
   padding: 20rpx 0 8rpx;
   border-top: 2rpx solid #fafaf7;
   margin-top: 12rpx;
+}
+
+.logbook-clear-link-inside {
+  margin-top: 20rpx;
+  padding: 24rpx 0;
+  border-top: 2rpx solid #fafaf7;
 }
 
 .logbook-clear-link:active {

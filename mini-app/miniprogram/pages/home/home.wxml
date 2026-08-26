@@ -35,7 +35,10 @@
           <view class="search-result-name" style="font-size: {{28 * fontScale}}rpx;">{{d.name}}</view>
           <view class="search-result-meta" style="font-size: {{20 * fontScale}}rpx;">{{d.role}} · 约 {{d.time}} 分钟</view>
         </view>
-        <text class="search-result-arrow">›</text>
+        <view class="add-to-pool-btn {{myPool.indexOf(d.name) >= 0 ? 'add-to-pool-btn-in' : ''}}"
+              data-name="{{d.name}}" catchtap="onAddToPool">
+          {{myPool.indexOf(d.name) >= 0 ? '✓ 在池' : '+ 菜池'}}
+        </view>
       </view>
     </block>
   </view>
@@ -65,6 +68,10 @@
                 <view class="dish-meta" style="font-size: {{20 * fontScale}}rpx;">{{dish.role}} · 约 {{dish.time}} 分钟</view>
               </view>
               <text class="dish-toggle" style="font-size: {{32 * fontScale}}rpx;">›</text>
+              <view class="add-to-pool-btn {{myPool.indexOf(dish.name) >= 0 ? 'add-to-pool-btn-in' : ''}}"
+                    data-name="{{dish.name}}" catchtap="onAddToPool">
+                {{myPool.indexOf(dish.name) >= 0 ? '✓' : '+菜池'}}
+              </view>
             </view>
             <view class="dish-actions">
               <view class="dish-act dish-act-eat" data-name="{{dish.name}}" catchtap="onEatOne">✓ 就做</view>
@@ -217,6 +224,10 @@
         <text class="recipe-emoji" style="font-size: {{60 * fontScale}}rpx;">{{recipeDish.emoji}}</text>
         <view class="recipe-title" style="font-size: {{34 * fontScale}}rpx;">{{recipeDish.name}}</view>
         <view class="recipe-meta" style="font-size: {{22 * fontScale}}rpx;">{{recipeDish.role}} · 约 {{recipeDish.time}} 分钟</view>
+        <view class="add-to-pool-btn add-to-pool-btn-large {{myPool.indexOf(recipeDish.name) >= 0 ? 'add-to-pool-btn-in' : ''}}"
+              data-name="{{recipeDish.name}}" catchtap="onAddToPool">
+          {{myPool.indexOf(recipeDish.name) >= 0 ? '✓ 已在菜池' : '+ 加入菜池'}}
+        </view>
       </view>
       <scroll-view scroll-y class="recipe-scroll">
         <view wx:if="{{recipeDish.ingredients.length > 0}}" class="recipe-section">
@@ -315,9 +326,10 @@
               </view>
             </block>
           </block>
+          <!-- 清空按钮：挪进 scroll-view 末尾，避开原生组件事件边界 -->
+          <view class="logbook-clear-link logbook-clear-link-inside" catchtap="onClearAllHistory">🗑️ 清空所有历史</view>
         </block>
       </scroll-view>
-      <view wx:if="{{logbookGroups.length > 0}}" class="logbook-clear-link" catchtap="onClearAllHistory">🗑️ 清空所有历史</view>
     </view>
   </view>
 

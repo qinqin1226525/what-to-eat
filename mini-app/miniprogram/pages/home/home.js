@@ -64,12 +64,23 @@ Page({
     this.refresh()
   },
 
-  onShow() {
+  async onShow() {
     // 同步 app.globalData.scores → 本页 data（让 WXML 能用）
     const scores = app.globalData.scores || {}
     if (Object.keys(scores).length > 0) {
       this.setData({ scores })
     }
+    // 同步菜池：合并云端 + 本地（防 add→get 竞态覆盖）
+    try {
+      const res = await cloud.customDish('get')
+      if (res && res.ok) {
+        const cloudItems = res.items || []
+        const localItems = app.globalData.myPool || []
+        const merged = Array.from(new Set([...cloudItems,...localItems]))
+        app.globalData.myPool = merged
+        this.setData({ myPool: merged })
+      }
+    } catch (e) { /* 静默失败 */ }
   },
 
   // 内部：累加某道菜的 cooks/likes/dislikes，同步本地 + 云端
@@ -149,11 +160,16 @@ Page({
   // ===== 我的菜池 =====
   async onOpenMyPool() {
     this.setData({ showMyPool: true, poolInput: '' })
+    // 合并云端 + 本地（防刚 add 完 get 抢先返回覆盖）
     try {
       const res = await cloud.customDish('get')
-      const items = (res && res.ok) ? (res.items || []) : []
-      this.setData({ myPool: items })
-      app.globalData.myPool = items
+      if (res && res.ok) {
+        const cloudItems = res.items || []
+        const localItems = app.globalData.myPool || []
+        const merged = Array.from(new Set([...cloudItems,...localItems]))
+        app.globalData.myPool = merged
+        this.setData({ myPool: merged })
+      }
     } catch (err) {
       util.showError('加载菜池失败', err)
     }
@@ -596,6 +612,36 @@ Page({
 
   closeRecipe() {
     this.setData({ recipeDish: null })
+  },
+
+  // ===== 任意位置一键加入菜池 =====
+  // 检查某菜是否已在菜池
+  _isInPool(name) {
+    const pool = app.globalData.myPool || []
+    return pool.includes(name)
+  },
+
+  // 点击「+ 菜池」按钮（搜索结果 / 菜谱详情 / combo 都调用这个）
+  async onAddToPool(e) {
+    const name = e.currentTarget.dataset.name
+    if (!name) return
+    if (this._isInPool(name)) {
+      wx.showToast({ title: `「${name}」已在菜池`, icon: 'none', duration: 1200 })
+      return
+    }
+    try {
+      const res = await cloud.customDish('add', { items: [name] })
+      if (res && res.ok) {
+        // 同步本地缓存 + 刷新视图
+        app.globalData.myPool = res.items
+        this.setData({ myPool: res.items })
+        wx.showToast({ title: `✓ 已加「${name}」`, icon: 'success', duration: 1200 })
+      } else {
+        util.showError('加入菜池失败', new Error(res && res.error))
+      }
+    } catch (err) {
+      util.showError('加入菜池失败', err)
+    }
   },
 
   // ===== 一键记录（就做）=====
