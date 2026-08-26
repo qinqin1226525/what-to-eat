@@ -44,8 +44,6 @@ Page({
       topDishes: [],
       mealDist: []
     },
-    // AI 顾问 modal
-    showAIPanel: false,
     // 菜谱详情 modal
     recipeDish: null,
     // 选中的菜
@@ -289,24 +287,6 @@ Page({
 
   closeMonthlyReport() {
     this.setData({ showMonthlyReport: false })
-  },
-
-  onOpenAI() {
-    this.setData({ showAIPanel: true })
-  },
-
-  closeAIPanel() {
-    this.setData({ showAIPanel: false })
-  },
-
-  onOpenAIChat() {
-    this.closeAIPanel()
-    wx.navigateTo({ url: '/pages/chat/chat' })
-  },
-
-  onOpenAIPrefs() {
-    this.closeAIPanel()
-    wx.navigateTo({ url: '/pages/profile/profile' })
   },
 
   // ===== 4 mode tab =====

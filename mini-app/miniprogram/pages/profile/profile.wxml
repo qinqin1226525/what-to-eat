@@ -15,16 +15,6 @@
   <view class="card">
     <view class="card-title">口味偏好</view>
 
-    <!-- AI 聊天设置入口 -->
-    <view class="ai-chat-btn" catchtap="onOpenAiChat">
-      <text class="ai-chat-emoji">🎙️</text>
-      <view class="ai-chat-text">
-        <view class="ai-chat-title">跟 AI 聊口味</view>
-        <view class="ai-chat-sub" style="font-size: {{22 * fontScale}}rpx;">不想填表？告诉 AI 你的口味就行</view>
-      </view>
-      <text class="ai-chat-arrow">›</text>
-    </view>
-
     <view wx:if="{{prefs.customNote}}" class="custom-note-display" style="font-size: {{24 * fontScale}}rpx;">
       💡 {{prefs.customNote}}
     </view>
@@ -134,7 +124,6 @@
   <view class="card">
     <view class="card-title">开发者工具</view>
     <view class="text-muted" style="margin-bottom:8rpx;">云端菜谱库：{{dishCount}} 道菜</view>
-    <view class="text-muted" style="margin-bottom:16rpx;">🤖 今日 AI 剩余：<text style="color:#ff9a3c;font-weight:600;">{{aiRemaining}}</text> / {{aiLimit}} 次</view>
     <view style="display:flex;gap:12rpx;">
       <view style="flex:1;">
         <button class="btn-primary" bindtap="openAddDish" style="font-size:28rpx;padding:18rpx 0;">➕ 添加新菜</button>
@@ -160,11 +149,7 @@
         <view class="form-label">菜名 *</view>
         <view style="display:flex;gap:12rpx;align-items:center;">
           <input class="form-input" style="flex:1;" value="{{newDish.name}}" data-field="name" bindinput="onNewDishField" placeholder="例：番茄牛腩" maxlength="30" />
-          <button class="ai-fill-btn" bindtap="onSmartFill" disabled="{{smartFilling}}">
-            {{smartFilling ? '...' : 'AI auto'}}
-          </button>
         </view>
-        <view wx:if="{{smartFilled}}" class="text-muted" style="font-size:22rpx;margin-top:8rpx;">AI 自动填充，可修改</view>
       </view>
 
       <view class="form-section">
@@ -298,41 +283,5 @@
   </view>
 
   <view class="text-muted text-center" style="padding:24rpx 0 60rpx;">v0.2.0 · 健康画像</view>
-
-  <!-- AI 聊口味 modal -->
-  <view wx:if="{{showAiChat}}" class="ai-mask" catchtap="closeAiChat">
-    <view class="ai-card" catchtap="onNoop">
-      <view class="ai-header">
-        <view class="ai-title" style="font-size: {{32 * fontScale}}rpx;">🎙️ 跟 AI 聊口味</view>
-        <view class="ai-close" catchtap="closeAiChat">✕</view>
-      </view>
-      <view class="ai-sub" style="font-size: {{22 * fontScale}}rpx;">
-        告诉 AI 你的偏好，比如：最近在增肌高蛋白 / 老婆怀孕要低钠 / 不吃香菜
-      </view>
-
-      <!-- 对话列表 -->
-      <scroll-view scroll-y class="ai-chat-scroll">
-        <block wx:for="{{aiChatHistory}}" wx:key="idx" wx:for-item="msg">
-          <view class="ai-msg ai-msg-{{msg.role}}" style="font-size: {{28 * fontScale}}rpx;">
-            <view class="ai-msg-bubble">{{msg.text}}</view>
-            <view wx:if="{{msg.explanation}}" class="ai-msg-explanation" style="font-size: {{22 * fontScale}}rpx;">
-              ✓ {{msg.explanation}}
-            </view>
-          </view>
-        </block>
-        <view wx:if="{{aiChatSending}}" class="ai-msg ai-msg-ai" style="font-size: {{28 * fontScale}}rpx;">
-          <view class="ai-msg-bubble">…思考中</view>
-        </view>
-      </scroll-view>
-
-      <!-- 输入区 -->
-      <view class="ai-input-row">
-        <input class="ai-input" value="{{aiChatInput}}" bindinput="onAiChatInput"
-               bindconfirm="onAiChatSend" placeholder="说说你想吃什么 / 不想吃什么…"
-               confirm-type="send" disabled="{{aiChatSending}}" />
-        <view class="ai-send-btn {{aiChatSending ? 'disabled' : ''}}" catchtap="onAiChatSend">发送</view>
-      </view>
-    </view>
-  </view>
 
 </view>

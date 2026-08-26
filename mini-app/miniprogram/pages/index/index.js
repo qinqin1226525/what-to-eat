@@ -269,10 +269,6 @@ Page({
     wx.navigateTo({ url: '/pages/stats/stats' })
   },
 
-  onOpenAI() {
-    wx.navigateTo({ url: '/pages/chat/chat' })
-  },
-
   // ------- 菜谱详情弹窗 -------
   showDishDetail(e) {
     const dish = e.currentTarget.dataset.dish

@@ -1,7 +1,6 @@
 {
   "pages": [
     "pages/home/home",
-    "pages/chat/chat",
     "pages/profile/profile"
   ],
   "window": {

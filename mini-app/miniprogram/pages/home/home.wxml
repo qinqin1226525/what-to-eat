@@ -11,11 +11,10 @@
         <view class="header-date">{{todayLabel}}</view>
       </view>
     </view>
-    <!-- 4 个大按钮（对齐 web app 的 banner-actions） -->
+    <!-- 3 个大按钮（砍掉 AI 顾问） -->
     <view class="banner-actions">
       <view class="banner-btn" catchtap="onOpenManualLog">📝 记录</view>
       <view class="banner-btn banner-btn-primary" catchtap="onOpenMyPool">🍳 我的菜池</view>
-      <view class="banner-btn" catchtap="onOpenAI">🤖 AI 顾问</view>
       <view class="banner-btn" catchtap="onOpenMonthlyReport">📊 报告</view>
     </view>
   </view>
@@ -408,29 +407,5 @@
     </view>
   </view>
 
-  <!-- ========== AI 顾问 modal（选 chat 或 preference） ========== -->
-  <view wx:if="{{showAIPanel}}" class="ai-mask" catchtap="closeAIPanel">
-    <view class="ai-card" catchtap="_noop">
-      <view class="modal-close" catchtap="closeAIPanel">✕</view>
-      <view class="ai-title" style="font-size: {{32 * fontScale}}rpx;">🤖 AI 顾问</view>
-      <view class="ai-sub" style="font-size: {{22 * fontScale}}rpx;">2 个入口，按需选</view>
-      <view class="ai-entry" catchtap="onOpenAIChat">
-        <text class="ai-entry-emoji">💬</text>
-        <view class="ai-entry-info">
-          <view class="ai-entry-title" style="font-size: {{28 * fontScale}}rpx;">跟 AI 聊三餐 / 营养</view>
-          <view class="ai-entry-sub" style="font-size: {{20 * fontScale}}rpx;">自由聊天，问什么都可以</view>
-        </view>
-        <text class="ai-entry-arrow">›</text>
-      </view>
-      <view class="ai-entry" catchtap="onOpenAIPrefs">
-        <text class="ai-entry-emoji">🎙️</text>
-        <view class="ai-entry-info">
-          <view class="ai-entry-title" style="font-size: {{28 * fontScale}}rpx;">跟 AI 聊口味</view>
-          <view class="ai-entry-sub" style="font-size: {{20 * fontScale}}rpx;">用自然语言告诉 AI 你的偏好</view>
-        </view>
-        <text class="ai-entry-arrow">›</text>
-      </view>
-    </view>
-  </view>
 
 </view>

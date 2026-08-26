@@ -18,11 +18,7 @@ const api = {
   // 菜谱
   getDishes: () => call('getDishes'),
   addDish: (dish) => call('addDish', dish),
-  smartAddDish: (name) => call('smartAddDish', { name }),
   seedDishes: () => call('seedDishes'),
-
-  // AI 顾问
-  aiAdvisor: (payload) => call('aiAdvisor', payload),
 
   // 餐食
   addMeal: (payload) => call('addMeal', payload),
