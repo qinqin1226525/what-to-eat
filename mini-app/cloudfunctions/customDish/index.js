@@ -102,6 +102,17 @@ exports.main = async (event) => {
       return { ok: true, items: clean }
     }
 
+    if (action === 'clear') {
+      // 清空当前用户的菜池
+      const { doc } = await findMyDoc()
+      if (doc) {
+        await db.collection(COL).doc(doc._id).update({
+          data: { items: [], updatedAt: Date.now() }
+        })
+      }
+      return { ok: true, items: [] }
+    }
+
     return { ok: false, error: `未知 action: ${action}` }
   } catch (err) {
     return { ok: false, error: err.message || String(err) }

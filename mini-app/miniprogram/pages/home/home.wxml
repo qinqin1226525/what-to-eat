@@ -14,7 +14,7 @@
     <!-- 4 个大按钮（对齐 web app 的 banner-actions） -->
     <view class="banner-actions">
       <view class="banner-btn" catchtap="onOpenManualLog">📝 记录</view>
-      <view class="banner-btn banner-btn-primary" catchtap="onDrawCombo">🎲 抽一套</view>
+      <view class="banner-btn banner-btn-primary" catchtap="onOpenMyPool">🍳 我的菜池</view>
       <view class="banner-btn" catchtap="onOpenAI">🤖 AI 顾问</view>
       <view class="banner-btn" catchtap="onOpenMonthlyReport">📊 报告</view>
     </view>
@@ -155,10 +155,56 @@
               <text class="dish-toggle" style="font-size: {{32 * fontScale}}rpx;">›</text>
             </view>
             <view class="dish-actions">
+              <view class="dish-act dish-act-feedback {{scores[dish.name] && scores[dish.name].likes ? 'liked' : ''}}"
+                    data-name="{{dish.name}}" catchtap="onLikeDish">👍</view>
               <view class="dish-act dish-act-eat" data-name="{{dish.name}}" catchtap="onEatOne">✓ 就做</view>
+              <view class="dish-act dish-act-feedback {{scores[dish.name] && scores[dish.name].dislikes ? 'disliked' : ''}}"
+                    data-name="{{dish.name}}" catchtap="onDislikeDish">👎</view>
             </view>
           </view>
         </block>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 我的菜池 modal ========== -->
+  <view wx:if="{{showMyPool}}" class="pool-mask" catchtap="closeMyPool">
+    <view class="pool-card" catchtap="_noop">
+      <view class="pool-header">
+        <text class="pool-title" style="font-size: {{32 * fontScale}}rpx;">🍳 我的菜池</text>
+        <text class="pool-close" catchtap="closeMyPool">✕</text>
+      </view>
+      <view class="pool-sub" style="font-size: {{22 * fontScale}}rpx;">
+        加你自己会做的菜（每个微信账号独立存储）
+      </view>
+
+      <!-- 加菜输入 -->
+      <view class="pool-add-row">
+        <input class="pool-input" value="{{poolInput}}" bindinput="onPoolInput"
+               bindconfirm="onPoolAdd" placeholder="输入菜名，回车添加" confirm-type="done" />
+        <view class="pool-add-btn" catchtap="onPoolAdd">➕</view>
+      </view>
+
+      <!-- 菜池列表 -->
+      <scroll-view scroll-y class="pool-scroll">
+        <block wx:if="{{myPool.length === 0}}">
+          <view class="pool-empty">还没加菜，去上面输入一个试试 👆</view>
+        </block>
+        <block wx:else>
+          <block wx:for="{{myPool}}" wx:key="*this" wx:for-item="d">
+            <view class="pool-row">
+              <text class="pool-row-name">{{d}}</text>
+              <text class="pool-row-del" data-name="{{d}}" catchtap="onPoolRemove">×</text>
+            </view>
+          </block>
+        </block>
+      </scroll-view>
+
+      <!-- 底部操作 -->
+      <view class="pool-footer">
+        <view class="pool-btn pool-btn-secondary" catchtap="onPoolClear">🗑 清空</view>
+        <view class="pool-btn pool-btn-primary {{myPool.length === 0 ? 'pool-btn-disabled' : ''}}"
+              catchtap="onPoolDraw">🎲 抽一道</view>
       </view>
     </view>
   </view>

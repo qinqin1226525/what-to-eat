@@ -37,7 +37,10 @@ const api = {
 
   // 偏好
   savePrefs: (payload) => call('savePrefs', payload),
-  getPrefs: () => call('getPrefs')
+  getPrefs: () => call('getPrefs'),
+
+  // 我的菜池（用户私有，按 _openid 隔离）
+  customDish: (action, payload = {}) => call('customDish', { action, ...payload })
 }
 
 module.exports = api

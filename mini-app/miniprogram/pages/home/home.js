@@ -50,12 +50,42 @@ Page({
     recipeDish: null,
     // 选中的菜
     selectedDishes: new Set(),
-    recentPicks: []
+    recentPicks: [],
+    // 自催化评分（云端同步）
+    scores: {},
+    // 我的菜池（用户私有，按 _openid 存云端）
+    showMyPool: false,
+    myPool: [],
+    poolInput: ''
   },
 
   onLoad() {
     this.setData({ todayLabel: this._todayLabel() })
     this.refresh()
+  },
+
+  onShow() {
+    // 同步 app.globalData.scores → 本页 data（让 WXML 能用）
+    const scores = app.globalData.scores || {}
+    if (Object.keys(scores).length > 0) {
+      this.setData({ scores })
+    }
+  },
+
+  // 内部：累加某道菜的 cooks/likes/dislikes，同步本地 + 云端
+  _bumpScore(name, key) {
+    if (!name || !key) return
+    const scores = { ...(app.globalData.scores || {}) }
+    const cur = scores[name] || { cooks: 0, likes: 0, dislikes: 0 }
+    cur[key] = (cur[key] || 0) + 1
+    scores[name] = cur
+    app.globalData.scores = scores
+    this.setData({ scores })
+    // 异步同步云端（不阻塞 UI）
+    cloud.savePrefs({
+      prefs: app.globalData.prefs || {},
+      scores
+    }).catch(err => util.showError('评分同步失败', err))
   },
 
   onShow() {
@@ -114,6 +144,126 @@ Page({
 
   closeManualLog() {
     this.setData({ showManualLog: false })
+  },
+
+  // ===== 我的菜池 =====
+  async onOpenMyPool() {
+    this.setData({ showMyPool: true, poolInput: '' })
+    try {
+      const res = await cloud.customDish('get')
+      const items = (res && res.ok) ? (res.items || []) : []
+      this.setData({ myPool: items })
+      app.globalData.myPool = items
+    } catch (err) {
+      util.showError('加载菜池失败', err)
+    }
+  },
+
+  closeMyPool() {
+    this.setData({ showMyPool: false })
+  },
+
+  onPoolInput(e) {
+    this.setData({ poolInput: e.detail.value })
+  },
+
+  async onPoolAdd() {
+    const name = (this.data.poolInput || '').trim()
+    if (!name) {
+      wx.showToast({ title: '请输入菜名', icon: 'none' })
+      return
+    }
+    if (this.data.myPool.includes(name)) {
+      wx.showToast({ title: '已在菜池中', icon: 'none' })
+      return
+    }
+    try {
+      const res = await cloud.customDish('add', { items: [name] })
+      if (res && res.ok) {
+        this.setData({ myPool: res.items, poolInput: '' })
+        app.globalData.myPool = res.items
+        wx.showToast({ title: `✓ 已加「${name}」`, icon: 'success', duration: 1200 })
+      } else {
+        util.showError('添加失败', new Error(res && res.error))
+      }
+    } catch (err) {
+      util.showError('添加失败', err)
+    }
+  },
+
+  async onPoolRemove(e) {
+    const name = e.currentTarget.dataset.name
+    if (!name) return
+    try {
+      const res = await cloud.customDish('remove', { name })
+      if (res && res.ok) {
+        this.setData({ myPool: res.items })
+        app.globalData.myPool = res.items
+        wx.showToast({ title: `已删「${name}」`, icon: 'none', duration: 1000 })
+      }
+    } catch (err) {
+      util.showError('删除失败', err)
+    }
+  },
+
+  onPoolClear() {
+    if (this.data.myPool.length === 0) return
+    wx.showModal({
+      title: '清空菜池？',
+      content: `当前 ${this.data.myPool.length} 道菜将被清空（只清你自己账号的，不影响其他人）`,
+      confirmText: '清空',
+      confirmColor: '#d14545',
+      success: async (r) => {
+        if (!r.confirm) return
+        try {
+          const res = await cloud.customDish('clear')
+          if (res && res.ok) {
+            this.setData({ myPool: [] })
+            app.globalData.myPool = []
+            wx.showToast({ title: '已清空', icon: 'success' })
+          }
+        } catch (err) {
+          util.showError('清空失败', err)
+        }
+      }
+    })
+  },
+
+  onPoolDraw() {
+    const pool = this.data.myPool
+    if (pool.length === 0) {
+      wx.showToast({ title: '菜池是空的，先加菜', icon: 'none' })
+      return
+    }
+    const pick = pool[Math.floor(Math.random() * pool.length)]
+    wx.showModal({
+      title: '🎲 抽中啦',
+      content: `今晚做「${pick}」？`,
+      confirmText: '就做这个',
+      cancelText: '再来一次',
+      success: (r) => {
+        if (r.confirm) {
+          // 记录到 meals + 自催化 cooks +1
+          this._bumpScore(pick, 'cooks')
+          const today = util.todayISO()
+          cloud.addMeal({ dish: pick, meal: '晚餐', status: 'confirmed', date: today })
+            .then(() => {
+              wx.showToast({ title: `✓ ${pick}`, icon: 'success' })
+              this.refresh()
+            })
+            .catch(err => util.showError('记录失败', err))
+        }
+        // r.cancel → 抽下一个（递归一次）
+        if (r.cancel) {
+          const next = pool[Math.floor(Math.random() * pool.length)]
+          if (next !== pick) {
+            setTimeout(() => {
+              this.onPoolDraw.__ = { lastPick: pick }
+            }, 200)
+          }
+        }
+      }
+    })
   },
 
   onOpenMonthlyReport() {
@@ -244,6 +394,7 @@ Page({
       for (const d of (meal.dishes || [])) {
         try {
           await cloud.addMeal({ dish: d.name, meal: meal.slot, status: 'confirmed', date: today })
+          this._bumpScore(d.name, 'cooks')
           ok++
         } catch (e) { fail++ }
       }
@@ -259,6 +410,7 @@ Page({
     try {
       const today = util.todayISO()
       await cloud.addMeal({ dish: name, meal: meal || '午餐', status: 'confirmed', date: today })
+      this._bumpScore(name, 'cooks')
       wx.showToast({ title: `✓ ${name}`, icon: 'success', duration: 1500 })
       this.refresh()
     } catch (err) {
@@ -453,11 +605,27 @@ Page({
     try {
       const today = util.todayISO()
       await cloud.addMeal({ dish: name, meal: '午餐', status: 'confirmed', date: today })
+      this._bumpScore(name, 'cooks')
       wx.showToast({ title: `✓ ${name}`, icon: 'success', duration: 1500 })
       this.refresh()
     } catch (err) {
       util.showError('记录失败', err)
     }
+  },
+
+  // ===== 自催化：点赞 / 点踩 =====
+  onLikeDish(e) {
+    const name = e.currentTarget.dataset.name
+    if (!name) return
+    this._bumpScore(name, 'likes')
+    wx.showToast({ title: '👍 已喜欢', icon: 'none', duration: 1000 })
+  },
+
+  onDislikeDish(e) {
+    const name = e.currentTarget.dataset.name
+    if (!name) return
+    this._bumpScore(name, 'dislikes')
+    wx.showToast({ title: '👎 已不喜欢', icon: 'none', duration: 1000 })
   },
 
   // ===== 手动记录 =====
@@ -626,6 +794,7 @@ Page({
       for (const { meal, dish } of all) {
         try {
           await cloud.addMeal({ dish, meal, status: 'manual', date: f.date })
+          this._bumpScore(dish, 'cooks')
           ok++
         } catch (e) { fail++ }
       }
