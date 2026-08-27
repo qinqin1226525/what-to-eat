@@ -79,6 +79,8 @@ Page({
         this.setData({ myPool: merged })
       }
     } catch (e) { /* 静默失败 */ }
+    // 同时刷新历史 + 菜谱（原第二个 onShow 的职责）
+    this.refresh()
   },
 
   // 内部：累加某道菜的 cooks/likes/dislikes，同步本地 + 云端
@@ -95,10 +97,6 @@ Page({
       prefs: app.globalData.prefs || {},
       scores
     }).catch(err => util.showError('评分同步失败', err))
-  },
-
-  onShow() {
-    this.refresh()
   },
 
   _todayLabel() {

@@ -62,8 +62,9 @@ exports.main = async (event) => {
         })
         return { ok: true, items: merged }
       } else {
+        // 云函数里 add 不会自动加 _openid，必须显式写，否则 findMyDoc 永远查不到
         await db.collection(COL).add({
-          data: { items: newItems, updatedAt: now }
+          data: { _openid: openid, items: newItems, updatedAt: now }
         })
         return { ok: true, items: newItems }
       }
@@ -96,7 +97,7 @@ exports.main = async (event) => {
         })
       } else {
         await db.collection(COL).add({
-          data: { items: clean, updatedAt: now }
+          data: { _openid: openid, items: clean, updatedAt: now }
         })
       }
       return { ok: true, items: clean }
